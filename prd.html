@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./doc-page.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  doc-page:not(:defined) { visibility: hidden; }
+  a { color: #4A6D8C; }
+  a:hover { color: #34506A; }
+</style>
+</helmet>
+
+<doc-page margin="0.8in">
+  <div slot="header" style="display:flex;align-items:baseline;gap:10px;padding-bottom:7px;border-bottom:1px solid #E2DACD;font-family:'Noto Sans SC',sans-serif;font-size:10.5px;color:#6D665D;letter-spacing:.06em">
+    <span style="flex:1">AI 红人营销操作系统 · 产品需求文档</span>
+    <span>v1.5 · 2026-09-03</span>
+  </div>
+  <div slot="footer" style="display:flex;align-items:baseline;gap:10px;padding-top:7px;border-top:1px solid #E2DACD;font-family:'Noto Sans SC',sans-serif;font-size:10.5px;color:#6D665D">
+    <span style="flex:1">Influencer Marketing AIOS — 内部文档</span>
+    <span>增长与营销</span>
+  </div>
+
+  <div style="font-family:'Noto Sans SC',-apple-system,sans-serif;color:#25221F;font-size:10.5pt;line-height:1.65">
+
+    <div style="font-family:'Noto Sans SC',sans-serif;font-size:9.5px;letter-spacing:.14em;color:#B0663F;margin-bottom:6px">PRODUCT REQUIREMENTS DOCUMENT</div>
+    <h1 style="font-family:'Noto Serif SC',serif;font-size:25pt;font-weight:700;letter-spacing:-.01em;line-height:1.25;margin:0 0 10px">AI 红人营销操作系统<br />Influencer Marketing AIOS</h1>
+    <p style="margin:0 0 18px;color:#6D665D;font-size:11pt;line-height:1.6">把「选品 → 策略 → Brief → 红人 → 寄样 → 素材 → 复盘 → 结算」做成一条有记忆、可复用、可审计的闭环工作流，让 AI 承担判断与起草，人只做确认与决策。</p>
+
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0 26px;padding:13px 16px;background:#FBF7F1;border:1px solid #ECE2D4;border-radius:10px;margin:0 0 24px;break-inside:avoid">
+      <div style="font-size:9.5pt;color:#6D665D;padding:3px 0">版本　<strong style="color:#25221F">v1.5（已实现基线）</strong></div>
+      <div style="font-size:9.5pt;color:#6D665D;padding:3px 0">日期　<strong style="color:#25221F">2026-09-03</strong></div>
+      <div style="font-size:9.5pt;color:#6D665D;padding:3px 0">形态　<strong style="color:#25221F">高保真可交互原型</strong></div>
+      <div style="font-size:9.5pt;color:#6D665D;padding:3px 0">市场　<strong style="color:#25221F">中国品牌出海 · 美国站</strong></div>
+      <div style="font-size:9.5pt;color:#6D665D;padding:3px 0">语言　<strong style="color:#25221F">中文界面；Brief 与邮件支持中英切换</strong></div>
+      <div style="font-size:9.5pt;color:#6D665D;padding:3px 0">导航　<strong style="color:#25221F">13 个一级模块</strong></div>
+    </div>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:0 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F">1. 背景与问题</h2>
+    <p style="margin:0 0 9px">中国品牌在北美做红人营销，真正的成本不在预算，而在<strong>判断与协作的损耗</strong>：选品靠感觉、策略写在文档里没人回看、Brief 每次从零开始、红人沟通散落在邮箱、素材回收靠人催、复盘结论下一轮又忘了。</p>
+    <p style="margin:0 0 9px">这些环节各自都有工具，但彼此不连通，导致三个后果：同一个判断被反复重做；数据无法回流（复盘结论改不动选品评分与下一轮策略）；进度不可见（不知道哪一步卡住，只能靠开会同步）。</p>
+    <p style="margin:0 0 18px">本系统的目标不是再做一个「红人管理表格」，而是做<strong>一个有记忆的操作系统</strong>：每一次判断都留下依据，每一次结果都回写到判断上。</p>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:0 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F">2. 目标用户与场景</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin:0 0 18px">
+      <thead>
+        <tr style="background:#FBF7F1">
+          <th style="text-align:left;padding:7px 9px;border:1px solid #E2DACD;font-weight:600;width:22%">角色</th>
+          <th style="text-align:left;padding:7px 9px;border:1px solid #E2DACD;font-weight:600;width:34%">核心诉求</th>
+          <th style="text-align:left;padding:7px 9px;border:1px solid #E2DACD;font-weight:600">高频动作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:7px 9px;border:1px solid #E2DACD"><strong>Marketing Lead</strong></td>
+          <td style="padding:7px 9px;border:1px solid #E2DACD">预算花在哪最值、进度是否失控、团队谁在拖</td>
+          <td style="padding:7px 9px;border:1px solid #E2DACD">看 Dashboard、在 My Tasks 处理九类审批、看人员榜单</td>
+        </tr>
+        <tr style="background:#FDFBF8">
+          <td style="padding:7px 9px;border:1px solid #E2DACD"><strong>推广专员</strong></td>
+          <td style="padding:7px 9px;border:1px solid #E2DACD">今天该做什么、Brief 怎么写、红人怎么谈</td>
+          <td style="padding:7px 9px;border:1px solid #E2DACD">生成策略与 Brief、建联红人、寄样、录入素材并提交打标</td>
+        </tr>
+        <tr>
+          <td style="padding:7px 9px;border:1px solid #E2DACD"><strong>运营 / 选品</strong></td>
+          <td style="padding:7px 9px;border:1px solid #E2DACD">哪些产品值得投红人预算</td>
+          <td style="padding:7px 9px;border:1px solid #E2DACD">查产品经营数据、看营销得分、勾选提交推广</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:0 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F">3. 产品原则</h2>
+    <ol style="margin:0 0 18px;padding-left:20px">
+      <li style="margin-bottom:5px"><strong>AI 负责起草，人负责确认。</strong>所有 AI 输出都可编辑、可确认、可标记不适用，并显示依据与置信度。</li>
+      <li style="margin-bottom:5px"><strong>一切结果回写到判断。</strong>复盘结论能改产品评分、策略章节与 Brief 模板。</li>
+      <li style="margin-bottom:5px"><strong>状态而非文档。</strong>策略与 Brief 是有版本、有审批状态的对象，不是静态文件。</li>
+      <li style="margin-bottom:5px"><strong>分类由审核决定。</strong>素材与红人的分类不由执行人直接写入，一律走「提交 → 审核 → 收录」。</li>
+      <li style="margin-bottom:5px"><strong>数据同源。</strong>同一概念只有一个来源——时间目标只来自时间进度调整，Dashboard 与复盘全部由各模块真实记录派生。</li>
+    </ol>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:24px 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F;break-before:page">4. 核心流程</h2>
+    <div style="padding:13px 16px;background:#FBF7F1;border-left:3px solid #B0663F;border-radius:0 8px 8px 0;margin:0 0 14px;font-size:10pt;line-height:1.9;break-inside:avoid">
+      <strong>Products</strong>（营销得分 + 勾选推广）　→　<strong>Campaigns</strong>（新建 Campaign：营销目标、推广KPI、预算与时间）　→　<strong>Strategy Studio</strong>（八模块输入 → 生成策略 → 逐章确认）<br />
+      →　<strong>Brief Studio</strong>（按渠道或红人风格生成 → 多版本保存 → 申请审核）　→　<strong>My Tasks</strong>（九类审批 · 邮件跟进）　→　<strong>Influencer CRM</strong>（筛选 / 扩量 → 首次建联 → 谈判 → 寄样）<br />
+      →　<strong>Sample Mgt</strong>（寄样进度 / 创建寄样）　→　<strong>Asset Library</strong>（录入 → AI 评估 → 打标提交 → 审核收录）　→　<strong>Reports</strong>（复盘 → 一键回写）　→　<strong>Budget Mgt</strong>（佣金结算 → 发票审批 → 回写预算池）
+    </div>
+    <p style="margin:0 0 18px">全流程状态在 <strong>Campaigns · 推广进度看板</strong>上以七节点呈现：策略是否完成、Brief 是否通过、开场邮件是否已发、是否达成合作、素材回收比例、时间进度是否异常、目标达成率。</p>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:0 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F">5. 模块需求</h2>
+    <p style="margin:0 0 12px;color:#6D665D;font-size:9.5pt">导航顺序：Dashboard · My Tasks · Products · Campaigns · Strategy Studio · Brief Studio · Influencer CRM · Sample Mgt · Asset Library · Budget Mgt · Reports · Contract Mgt · Settings</p>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.1 Dashboard</h3>
+    <p style="margin:0 0 7px">三张卡片切换：核心数据、人员榜单、红人榜单。问候语「早上好，Helen」。全部数值由真实状态派生，支持本月 / 本季度 / 本年度与自定义区间。<strong>所有 AI 总结统一为缩放格式</strong>（徽章 + 一句摘要 + 展开/收起）。</p>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>核心数据</strong>：进行中种草项目、月度曝光量完成率、累计合格素材数、待回收素材、平均 CPV、预算支出、寄样总数量、待回复邮件；上方为可缩放的「核心数据诊断」。</li>
+      <li style="margin-bottom:3px"><strong>目标完成概览</strong>：五项目标（合格素材数、曝光数、红人 GMV、CPV 达成率、UGC 授权素材）对比时间进度刻度线。</li>
+      <li style="margin-bottom:3px"><strong>合作漏斗</strong>：与目标完成概览同构，每环节给当前值 / 目标值与完成百分比；第一环节为「建联数量」。</li>
+      <li style="margin-bottom:3px"><strong>四张质量卡</strong>：流程健康、内容质量、成本效率、资产与关系沉淀；各卡独立时间维度 + 缩放 AI 总结。</li>
+      <li style="margin-bottom:3px"><strong>人员榜单</strong>：按工作流程顺序——建联数、达成合作数、寄样数、合格素材数、曝光量达成、红人 GMV、CPV、黑名单/淘汰数；上方为「人员表现诊断」。</li>
+      <li style="margin-bottom:3px"><strong>红人榜单</strong>：红人 + <strong>层级列</strong>（Nano→Mega，与 CRM 同源）、素材主题、封面（跳原素材）、渠道、合作产品、SKU、Views、ER、CPV、红人 GMV；后四项支持升降排序；上方为「红人表现诊断」。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.2 My Tasks</h3>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>卡住流程的事</strong>：六个卡片一行——待回复邮件、待回收素材、待审批事项、待补内容授权、逾期交付红人、待审批发票。</li>
+      <li style="margin-bottom:3px"><strong>待回复邮件</strong>：数据看板 + 筛选（回复状态、邮件状态 12h/24h/48h/超 48h、红人层级、红人标签）；点「去回复」直达该红人的邮件会话（与会话同源，不再出现"无往来"）。</li>
+      <li style="margin-bottom:3px"><strong>审批清单</strong>（九类）：选品、Campaign、Strategy、Brief、红人合作、寄样、素材入库、付款、合同变更。每条带类型徽章与状态徽章，「查看」按类型跳转对应模块；筛选行含<strong>审批类型</strong>与<strong>审批状态</strong>两组；驳回必须填意见（含快捷话术）；结果回流对应模块与提醒；可撤回重审（发票为双向同步）。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.3 Products</h3>
+    <p style="margin:0 0 6px">三张卡片：产品库、红人 GMV 概况、产品异动分析。</p>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>产品库</strong>：20 条 SKU 表格 + 卡内 SKU 搜索；字段含序号、营销得分、产品图、产品名、市场、品牌、店铺、BU、品类、运营专员、ASIN（跳亚马逊）、SKU、优先级（P0–P2 / K0–K2）、目标星级、星级（升降箭头）、Review、客单价、RPS14、BSR 位置、大类排名、库存、推广勾选。</li>
+      <li style="margin-bottom:3px"><strong>营销得分</strong>：AI 十维评分；推荐组合中的红人层级采用 CRM 统一分级。</li>
+      <li style="margin-bottom:3px"><strong>红人 GMV 概况</strong>：缩放 AI 总结在标题下方；表格按产品图 / 产品名称 / SKU 分列，含红人 GMV（带环比趋势）、占该产品销售、订单数、红人数、ROAS；<strong>四个指标列均支持升降排序</strong>，支持月 / 季 / 年切换。</li>
+      <li style="margin-bottom:3px"><strong>产品异动 AI 分析</strong>：预警 / 机会 / 观察三类，副标题按标签实时统计，每条可展开分析。</li>
+      <li style="margin-bottom:3px">勾选「推广」提交后，自动进入 Strategy Studio 待生成列表、Campaigns 进度看板与新建 Campaign 的产品下拉。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.4 Campaigns</h3>
+    <p style="margin:0 0 6px">三张卡片：推广进度看板、Campaign 列表、时间进度调整；AI 总结置于三张卡片下方。<strong>三张卡片的产品集合与时间信息完全同源</strong>。</p>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>推广进度看板</strong>：产品级七节点，节点可点击跳转；时间进度节点只由共享排期判定（素材逾期归入素材回收节点），未排期显示「未排期」。</li>
+      <li style="margin-bottom:3px"><strong>Campaign 列表</strong>：深色方形序号 + 产品名称 + 营销目标标签（爆品打造 / 品牌打造 / 新品起量 / 常规走量）+ 状态与阶段进度；下方 4 列 × 3 行产品资料（品牌、市场、SKU、上市时间、运营专员、星级与目标星级及箭头、Review、客单价、RPS14、BSR 位置、大类排名、推广专员）；底部三栏推广KPI / 预算目标 / 时间目标，标签与数值同源，区分按期推进 / 排期落后 / 常设项目 / 已结项 / 未排期。</li>
+      <li style="margin-bottom:3px"><strong>新建 Campaign</strong>：独立页面跳转。产品 SKU 与营销目标均为下拉（SKU 仅列已勾选推广的产品），选中后自动带出产品库资料（只读）；手动填写营销目标、推广KPI、营销预算、起止时间；创建后写入列表与预算池。</li>
+      <li style="margin-bottom:3px"><strong>时间进度调整</strong>：每行显示「产品名 / SKU · Campaign 名 / 起止 · 负责人」；五阶段甘特，每阶段独立「编辑时间」，支持整体 ±1 周与复位；改期即时传导到看板与列表。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.5 Strategy Studio</h3>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px">三张卡片：待生成推广策略的产品 List、Create Strategy、策略库。</li>
+      <li style="margin-bottom:3px"><strong>产品选择器</strong>：序号、产品图、产品名 + ASIN + SKU、星级与 Review、市场/品牌/店铺、营销得分、策略进度；按钮为「查看策略 / 编辑策略」、「资料完整度」、「AI 解析」、「制作 Brief」。</li>
+      <li style="margin-bottom:3px"><strong>八模块输入</strong>：字段独立编辑与确认，可标记不适用；AI 提取项显示来源。<strong>推广目标下的「主目标（营销目标）」为四选一下拉</strong>（与新建 Campaign 一致，无自由文本入口），且策略正文的执行摘要与「项目目标与成功标准」按所选目标生成；每个产品的输入与目标独立保存，互不串味。</li>
+      <li style="margin-bottom:3px"><strong>策略生成</strong>：快速版 8 章 / 标准版 15 章 / 深度版 19 章，逐章确认与锁定，支持导出策略 PDF。</li>
+      <li style="margin-bottom:3px"><strong>策略库</strong>：与 Brief 库同构，横轴下拉筛选，按产品一行，「查看策略」下拉选版本并呈现完整策略文档。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.6 Brief Studio</h3>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>生成设置</strong>：生成方式（按渠道 / 按红人风格）+ 语言切换（中文 / English，整份切换）+ 生成次数与已保存版本数。</li>
+      <li style="margin-bottom:3px"><strong>Brief 结构（AI 生成模型）</strong>：
+        <div style="margin:5px 0 0;padding:9px 12px;background:#FBF7F1;border:1px solid #ECE2D4;border-radius:8px">
+          <div style="margin-bottom:4px"><strong>① 制作主旨</strong> —— 让【谁】在【什么场景】里理解【一个核心信息】，并声明只需说清这一件事。</div>
+          <div style="margin-bottom:4px"><strong>② 达人具体怎么拍</strong> —— 开头（前 3 秒出现哪个场景）／展示（哪些细节需要近景 + 加分项）／表达（哪句话必须被理解，单句可念）／交付（时长、格式、静帧、时间节点）。</div>
+          <div><strong>③ 边界</strong> —— 必须保留（产品、场景、一个核心卖点、追踪）／不能出现（禁用词、过度承诺、竞品比较）／可以自由（叙事、镜头、开场、个人语气）。</div>
+        </div>
+        另含 Campaign 背景、内容目标、创作方向与合规提醒（含该品类可讲的事实范围）。
+      </li>
+      <li style="margin-bottom:3px"><strong>迭代与版本</strong>：「重新生成 Brief」反复出稿；交互编辑框在正文右侧、AI 建议上方；满意后存为独立版本；表头两行布局（表头独占一行，导出与字数在第二行）。</li>
+      <li style="margin-bottom:3px"><strong>Brief 库</strong>：横轴下拉筛选；按产品一行，「查看 ▾」列出各版本，每版本独立「申请审核」；被驳回版本显示意见与审批人。支持导出 Brief PDF。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.7 Influencer CRM</h3>
+    <p style="margin:0 0 6px">五张卡片（同一行）：红人库、合作红人 List、<strong>合格/优质红人</strong>、淘汰 / 黑名单、相似度扩量。</p>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>红人库</strong>：九维下拉筛选；每条横向排列，含多渠道跳转、发布频率、层级、FIT 分数（分数后紧跟「联系」，已合作显示「已合作」不可操作）；AI 分析可缩放展开，报价偏高、交付不稳定等提示并入其中。</li>
+      <li style="margin-bottom:3px"><strong>FIT 打分</strong>：品牌 / 受众 / 内容 / 市场 / 目标五维，可人工修改；每维可展开明细（如受众匹配下的国家、年龄、教育、收入、地区、性别、职业分布）。</li>
+      <li style="margin-bottom:3px"><strong>建联与邮件</strong>：独立页面；合作产品下拉（取自 Brief Studio 产品列表）；语言切换<strong>仅影响主题与正文</strong>（模板名保持中文，合作类型与合作结构本地化）；七个模板——<strong>首次建联</strong>（默认，正文含产品销售链接，可「+ 添加产品 ▾」多选 SKU）、首次邮件跟进、报价与合作确认、合作确认、寄样确认、内容进度跟进、发布后数据跟进；Gmail 风格会话与收件箱同源；可发送 Brief、可发起寄样（产品 + 数量 + 美式地址）；支持立即或定时发送。</li>
+      <li style="margin-bottom:3px"><strong>合作档案</strong>：数据总结在最上方；六个加粗模块——沟通记录（可跳原邮件）、合作历史（素材可跳 Asset Library）、合同（含签约时间与正文）、付款记录（标注第几次合作与定金/尾款）、寄样记录、价格谈判记录。</li>
+      <li style="margin-bottom:3px"><strong>合格/优质红人</strong>：历史素材仅保留素材分 ≥ 60；经审批加入的素材不设门槛并标注「经审批加入」。素材分按 View 25% / GMV 30% / ROAS 25% / 目标达成 20% 计算，寄样素材（无 ROAS）按权重归一化，不被系统性低估。</li>
+      <li style="margin-bottom:3px"><strong>淘汰 / 黑名单</strong>：标注「淘汰」或「黑名单」及原因、时间、操作人，并附同结构的合作素材表。</li>
+      <li style="margin-bottom:3px"><strong>相似度扩量</strong>：以合格/优质红人为种子加权推荐；<strong>候选信息与红人库完全一致</strong>（渠道徽章、垂类、双渠道跳转、十一项信息胶囊），带相似度分与推荐理由；「加入红人库」或批量联系后<strong>自动写入红人库</strong>（状态待联系，FIT 取相似度）。</li>
+      <li style="margin-bottom:3px"><strong>批量操作</strong>：勾选后批量联系、批量寄样（自动建单）、批量打标签。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.8 Sample Mgt</h3>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px">顶部五个指标一行（寄样单总数、样品件数、在途、已签收、异常）；下方两张卡片：寄样进度、创建寄样。</li>
+      <li style="margin-bottom:3px"><strong>寄样进度</strong>：物流状态<strong>下拉筛选</strong>（全部 / 在途 / 已签收 / 异常，各带数量与状态色点）；异常 = 发出超过 7 天仍未签收，行内加「异常」标记并给出天数说明。</li>
+      <li style="margin-bottom:3px"><strong>创建寄样</strong>：支持单个收件人填写与批量粘贴多行地址一次建单。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.9 Asset Library</h3>
+    <p style="margin:0 0 6px">四张卡片：Asset Library、合格素材、授权素材、录入素材。</p>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>Asset Library</strong>：一字段一列的扁平表格——# · 红人 · Post Day · 素材主题 · 渠道 · 封面 · 合作产品 · SKU · 合作类型 · Views · ER · CPV · <strong>素材标签 / 红人标签 / 提交申请</strong>（三列铺开，各有表头）。筛选行：时间、产品、渠道、<strong>合作类型</strong>、Views、ER、CPV。</li>
+      <li style="margin-bottom:3px"><strong>打标与审核流程</strong>：素材标签（合格素材 / 授权素材 / 淘汰素材）与红人标签（继续合作 / 合格·优质红人 / 淘汰·拉黑）先暂存为「待提交」，点「提交申请」后进入 My Tasks 审批清单（素材入库 / 红人合作两类）；审核通过才收录到对应卡片与 CRM 名单，驳回则退回 Asset Library 可重提。</li>
+      <li style="margin-bottom:3px"><strong>AI 分析</strong>：整条铺开在素材下方，一行给结论与摘要，展开后三个维度（是否达到该红人均播、CPV 是否达标、数据是否优质及建议）。</li>
+      <li style="margin-bottom:3px"><strong>合格素材</strong>：<strong>只收录审核通过的素材</strong>，行内无任何审核控件，末列为只读「收录状态」（✓ 标签 + 收录日期，悬停显示审核人）；统计口径为「命中 N 条 · ER 达标 N 条 · 已审核收录 N 条」，无收录时给出空态引导。另含数据看板、可缩放 AI 总结与五项筛选（品牌、渠道、产品、推广专员、时间）。</li>
+      <li style="margin-bottom:3px"><strong>授权素材</strong>：授权类型（广告投放授权 / 仅社媒授权）、授权期限（时长）与合同链接。</li>
+      <li style="margin-bottom:3px"><strong>录入素材</strong>：Post 日期、链接、成本 + 四个指标（Views、ER %、CPV、红人 GMV 为非必填；CPV 留空按成本 ÷ Views 自动计算）；含素材类型与授权类型选择。</li>
+      <li style="margin-bottom:3px">支持下载素材包清单（含链接与授权状态）。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.10 Budget Mgt</h3>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>预算池</strong>：按产品拆分，显示预算池 / 已承诺 / 已付款 / 使用率与剩余可用。</li>
+      <li style="margin-bottom:3px"><strong>佣金结算</strong>：按归因 GMV × 佣金率计算应付佣金，一键生成发票。</li>
+      <li style="margin-bottom:3px"><strong>发票与付款审批</strong>：财务风格表单（申请人、产品、SKU、渠道、红人、付款类型首/尾款、提交时间、金额）；通过 / 驳回 / 标记已付款，付款回写预算池；与 My Tasks 审批清单双向同步。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.11 Reports</h3>
+    <p style="margin:0 0 7px">四份报告共用骨架：标题与说明 → 四个关键指标 → AI 头条结论 → 报告主体 → 可一键写入的行动建议；均支持导出复盘 PDF。</p>
+    <ul style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>Campaign 报告</strong>：花费、产出、ROAS、CPA；有效卖点与无效项；建议写入策略。</li>
+      <li style="margin-bottom:3px"><strong>Influencer 报告</strong>：花费按 CRM 合作类型归类（付费 / 置换 / 佣金 / 免费 / 拒绝，未确认显示待确认并展示报价，判定取自报价与合作方式而非是否已交付）；含 Views、ER、CPV；结论列为「AI 解析」。</li>
+      <li style="margin-bottom:3px"><strong>Asset 报告</strong>：按渠道互动率、按授权状态可复用比例；建议写入 Brief。</li>
+      <li style="margin-bottom:3px"><strong>Product Learning</strong>：把实际表现回写到营销得分维度。</li>
+    </ul>
+
+    <h3 style="font-family:'Noto Sans SC',sans-serif;font-size:11.5pt;font-weight:600;margin:14px 0 6px;color:#B0663F">5.12 Contract Mgt / Settings</h3>
+    <ul style="margin:0 0 18px;padding-left:20px">
+      <li style="margin-bottom:3px"><strong>Contract Mgt</strong>：六份美国合同模板（付费、置换、纯佣金、免费共创、素材授权、Ambassador），中英双名称；查看与编辑默认英文正文、右上角可切中文；可删除。</li>
+      <li style="margin-bottom:3px"><strong>Settings</strong>：寄样后自动跟进、AI 合规守卫、资产自动打标签、每周策略摘要、红人门户（Beta）。</li>
+    </ul>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:24px 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F;break-before:page">6. 全局能力</h2>
+    <ul style="margin:0 0 18px;padding-left:20px">
+      <li style="margin-bottom:4px"><strong>AI 存在方式</strong>：AI 输出内联在各模块卡片中（判断 + 依据 + 置信度），全部为可缩放格式；同时提供可召唤的右侧 Copilot 面板。</li>
+      <li style="margin-bottom:4px"><strong>审核中枢</strong>：九类审批集中在 My Tasks，素材与红人分类、发票付款、选品与立项均需审核后生效，结果回流对应模块并留痕。</li>
+      <li style="margin-bottom:4px"><strong>双语能力</strong>：Brief 整份中英切换；邮件仅切主题与正文，模板名保持中文，合作类型与合作结构本地化，产品名与 SKU 保留原文。</li>
+      <li style="margin-bottom:4px"><strong>站内提醒</strong>：顶栏「提醒」带未读数，聚合红人回信（标注超 48 小时）、素材逾期、样品签收、审批结果、发票待审批，点击直达。</li>
+      <li style="margin-bottom:4px"><strong>导出与交付</strong>：策略 / Brief / 复盘导出可打印页面（存为 PDF），素材包清单导出 CSV。</li>
+      <li style="margin-bottom:4px"><strong>交互一致性</strong>：下拉点空白处自动收起、浮层不被裁切、侧栏可伸缩、同类卡片组压缩在一行、表格列宽按内容分配且不截断文本。</li>
+    </ul>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:0 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F">7. 数据联动关系</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin:0 0 18px">
+      <thead>
+        <tr style="background:#FBF7F1">
+          <th style="text-align:left;padding:7px 9px;border:1px solid #E2DACD;font-weight:600;width:36%">触发动作</th>
+          <th style="text-align:left;padding:7px 9px;border:1px solid #E2DACD;font-weight:600">联动结果</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">产品库勾选「推广」</td><td style="padding:6px 9px;border:1px solid #E2DACD">Strategy Studio 待办 + Campaigns 进度行 + 新建 Campaign 产品下拉</td></tr>
+        <tr style="background:#FDFBF8"><td style="padding:6px 9px;border:1px solid #E2DACD">创建 Campaign</td><td style="padding:6px 9px;border:1px solid #E2DACD">Campaign 列表新增 + 预算池新增额度</td></tr>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">选择营销目标（策略输入）</td><td style="padding:6px 9px;border:1px solid #E2DACD">策略正文执行摘要与目标章节按该目标重写（按产品独立保存）</td></tr>
+        <tr style="background:#FDFBF8"><td style="padding:6px 9px;border:1px solid #E2DACD">时间进度调整（±周 / 编辑阶段）</td><td style="padding:6px 9px;border:1px solid #E2DACD">Campaign 列表时间目标 + 推广进度看板时间节点同步</td></tr>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">点击「制作 Brief」</td><td style="padding:6px 9px;border:1px solid #E2DACD">进入 Brief Studio 产品列表 + 建联邮件产品下拉</td></tr>
+        <tr style="background:#FDFBF8"><td style="padding:6px 9px;border:1px solid #E2DACD">Brief 申请审核 / 审批</td><td style="padding:6px 9px;border:1px solid #E2DACD">Brief 库状态与意见 + 推广进度 Brief 节点 + 侧栏徽章 + 提醒</td></tr>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">首次建联邮件发送（记录 SKU）</td><td style="padding:6px 9px;border:1px solid #E2DACD">合作红人 List + 推广进度邮件/合作节点 + 待回复邮件与会话</td></tr>
+        <tr style="background:#FDFBF8"><td style="padding:6px 9px;border:1px solid #E2DACD">创建寄样单</td><td style="padding:6px 9px;border:1px solid #E2DACD">寄样进度与物流状态 + 推广进度寄样节点 + 签收提醒</td></tr>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">素材打标提交 → 审核通过</td><td style="padding:6px 9px;border:1px solid #E2DACD">合格素材 / 授权素材卡片收录 + CRM 三名单 + 该素材写入红人合作记录</td></tr>
+        <tr style="background:#FDFBF8"><td style="padding:6px 9px;border:1px solid #E2DACD">相似度扩量加入 / 批量联系</td><td style="padding:6px 9px;border:1px solid #E2DACD">红人库新增该红人（画像 + FIT + 待联系状态）</td></tr>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">佣金结算 / 发票审批付款</td><td style="padding:6px 9px;border:1px solid #E2DACD">预算池已付款 + Dashboard 预算支出 + 审批清单双向同步 + 提醒</td></tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:0 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F">8. 视觉与交互规范</h2>
+    <ul style="margin:0 0 18px;padding-left:20px">
+      <li style="margin-bottom:4px"><strong>基调</strong>：暖白纸感底色，珊瑚色为主操作色，鼠尾草绿 / 琥珀 / 砖红表示达标、注意、异常，淡紫用于 AI 输出。</li>
+      <li style="margin-bottom:4px"><strong>信息密度</strong>：中等偏专业工作台，表格化呈现，数字统一等宽对齐，列间距克制。</li>
+      <li style="margin-bottom:4px"><strong>AI 视觉标识</strong>：AI 内容带徽章与依据说明，人工确认后标注「已编辑确认」。</li>
+      <li style="margin-bottom:4px"><strong>状态色义固定</strong>：草稿灰、待审批琥珀、已通过绿、已驳回红、异常砖红，全站一致。</li>
+    </ul>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:0 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F">9. 当前范围与后续规划</h2>
+    <p style="margin:0 0 7px;font-weight:600;font-size:10pt">v1.5 已实现</p>
+    <p style="margin:0 0 12px">13 个模块的完整交互；三层结构的 Brief 生成模型与中英双语；七个邮件模板（含首次建联与产品链接）；九类审批中枢与「提交 → 审核 → 收录」的素材/红人分类流程；Campaigns 三卡片的产品与时间同源；相似度扩量回流红人库；寄样四档状态筛选；预算与结算双向同步；Dashboard 与 Reports 全量数据派生；导出交付。</p>
+    <p style="margin:0 0 7px;font-weight:600;font-size:10pt">v1.6 候选</p>
+    <ol style="margin:0 0 12px;padding-left:20px">
+      <li style="margin-bottom:3px">复盘建议真实回写产品评分与策略章节（当前为标记态）；</li>
+      <li style="margin-bottom:3px">权限与多角色视图（专员只看自己负责的产品与红人）；</li>
+      <li style="margin-bottom:3px">数据接入层：TikTok Shop / GA / 折扣码归因，并显式标注归因缺口；</li>
+      <li style="margin-bottom:3px">全局搜索（⌘K）与跨模块跳转；</li>
+      <li style="margin-bottom:3px">真实 PDF 与素材原文件打包下载（需后端支持）；</li>
+      <li style="margin-bottom:3px">红人门户：红人自助查看 Brief、上传初稿、查看结算。</li>
+    </ol>
+
+    <h2 style="font-family:'Noto Serif SC',serif;font-size:15pt;font-weight:600;margin:0 0 8px;padding-bottom:5px;border-bottom:1.5px solid #25221F">10. 成功指标</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin:0 0 10px">
+      <thead>
+        <tr style="background:#FBF7F1">
+          <th style="text-align:left;padding:7px 9px;border:1px solid #E2DACD;font-weight:600;width:38%">指标</th>
+          <th style="text-align:left;padding:7px 9px;border:1px solid #E2DACD;font-weight:600;width:24%">基线</th>
+          <th style="text-align:left;padding:7px 9px;border:1px solid #E2DACD;font-weight:600">目标</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">单个产品从选品到发出首次建联邮件</td><td style="padding:6px 9px;border:1px solid #E2DACD">3–5 天</td><td style="padding:6px 9px;border:1px solid #E2DACD">1 天内</td></tr>
+        <tr style="background:#FDFBF8"><td style="padding:6px 9px;border:1px solid #E2DACD">Brief 一次通过率</td><td style="padding:6px 9px;border:1px solid #E2DACD">65%</td><td style="padding:6px 9px;border:1px solid #E2DACD">≥ 85%</td></tr>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">红人邮件 24 小时内回复率</td><td style="padding:6px 9px;border:1px solid #E2DACD">不可测</td><td style="padding:6px 9px;border:1px solid #E2DACD">≥ 80%</td></tr>
+        <tr style="background:#FDFBF8"><td style="padding:6px 9px;border:1px solid #E2DACD">寄样到内容发布周期</td><td style="padding:6px 9px;border:1px solid #E2DACD">18 天</td><td style="padding:6px 9px;border:1px solid #E2DACD">≤ 14 天</td></tr>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">素材打标到审核收录时长</td><td style="padding:6px 9px;border:1px solid #E2DACD">不可测</td><td style="padding:6px 9px;border:1px solid #E2DACD">≤ 1 天</td></tr>
+        <tr style="background:#FDFBF8"><td style="padding:6px 9px;border:1px solid #E2DACD">广告可授权素材比例</td><td style="padding:6px 9px;border:1px solid #E2DACD">55%</td><td style="padding:6px 9px;border:1px solid #E2DACD">≥ 80%</td></tr>
+        <tr><td style="padding:6px 9px;border:1px solid #E2DACD">复盘结论进入下一轮策略的比例</td><td style="padding:6px 9px;border:1px solid #E2DACD">不可测</td><td style="padding:6px 9px;border:1px solid #E2DACD">100% 可追溯</td></tr>
+      </tbody>
+    </table>
+
+  </div>
+</doc-page>
+
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="AI-powered creator operations platform for campaigns, creators, briefs, assets, budgets and reporting.">
+<meta name="theme-color" content="#2457F5">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Influencer Marketing AIOS">
+<meta property="og:description" content="AI-powered creator operations platform">
+<meta property="og:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Influencer Marketing AIOS">
+<meta name="twitter:description" content="AI-powered creator operations platform">
+<meta name="twitter:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
+<title>Budget Mgt · Influencer Marketing AIOS</title>
+<link rel="stylesheet" href="../design-system.css">
+<script>window.AIOS_PAGE = "finance";</script>
+<script src="../support.js"></script>
+<script src="../mail-nav.js" defer></script>
+</head>
+<body data-page="finance">
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #F3F6FC; }
+  * { box-sizing: border-box; }
+  a { color: #2457F5; text-decoration: none; }
+  a:hover { color: #1D48D8; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #E2E8F2; border-radius: 6px; border: 3px solid #F3F6FC; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes pulseDot { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+</style>
+</helmet>
+
+<div style="display:flex;height:100vh;overflow:hidden;background:#F3F6FC;color:#1D2638;font-family:Inter,'PingFang SC','Noto Sans SC',sans-serif;font-size:15px;line-height:1.6">
+
+  <aside style="width:{{ navWidth }};flex:0 0 {{ navWidth }};background:#F5F8FE;border-right:1px solid #E2E8F2;display:flex;flex-direction:column;padding:{{ navPad }};transition:width .18s ease;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 4px 22px">
+      <div style="width:28px;height:28px;flex:0 0 28px;border-radius:8px;background:#1D2638;color:#F5F8FE;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;font-size:12px;font-weight:700;letter-spacing:-.03em;cursor:pointer" onClick="{{ toggleNav }}">IM</div>
+      <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;min-width:0;overflow:hidden">
+          <div style="font-size:13px;font-weight:700;letter-spacing:-.02em;line-height:1.2;text-wrap:balance">Influencer Marketing AIOS</div>
+          <div style="font-size:8px;letter-spacing:.13em;color:#8792A5;line-height:1.25;margin-top:2px">OPERATIONS PLATFORM</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ toggleNav }}" style="flex:0 0 auto;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#8792A5;cursor:pointer;font-size:13px" style-hover="background:#EAF0FF;color:#1D2638">{{ navToggleIcon }}</div>
+      </sc-if>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden;min-height:0;width:100%;max-width:100%">
+      <sc-for list="{{ nav }}" as="item" hint-placeholder-count="9">
+        <div onClick="{{ item.go }}" title="{{ item.title }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;cursor:pointer;background:{{ item.bg }};color:{{ item.fg }};font-weight:{{ item.fw }};justify-content:{{ item.justify }};position:relative;min-width:0;width:100%;max-width:100%" style-hover="background:#EAF0FF">
+          <sc-if value="{{ navCollapsed }}" hint-placeholder-val="{{ false }}">
+            <span style="width:22px;height:22px;flex:0 0 22px;border-radius:7px;display:flex;align-items:center;justify-content:center;text-align:center;font-variant-numeric:tabular-nums;font-size:10px;font-weight:700;opacity:.82;background:rgba(36,87,245,.07)">{{ item.key }}</span>
+          </sc-if>
+          <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+            <span style="flex:1;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px">{{ item.label }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+
+    <div style="flex:0 0 12px"></div>
+
+    <sc-if value="{{ navCollapsed }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ toggleNav }}" title="展开导航" style="display:flex;align-items:center;justify-content:center;height:30px;border-radius:12px;color:#8792A5;cursor:pointer;font-size:14px;margin-bottom:10px" style-hover="background:#EAF0FF;color:#1D2638">{{ navToggleIcon }}</div>
+    </sc-if>
+
+    <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #E2E8F2;padding-top:14px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-variant-numeric:tabular-nums;font-size:13px;color:#647187;white-space:nowrap">本周 AI 用量</div>
+        <div style="height:5px;background:#E2E8F2;border-radius:3px;overflow:hidden"><div style="height:5px;width:62%;background:#6E8F74;border-radius:3px"></div></div>
+      </div>
+    </sc-if>
+
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="height:58px;flex:0 0 58px;border-bottom:1px solid #E2E8F2;background:#F3F6FC;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#647187;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">
+        <span>{{ crumbRoot }}</span>
+        <sc-if value="{{ crumbLeaf }}" hint-placeholder-val="{{ true }}">
+          <span style="opacity:.5">/</span>
+        </sc-if>
+        <span style="color:#1D2638">{{ crumbLeaf }}</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="flex:0 0 auto;position:relative;margin-right:4px">
+        <div onClick="{{ toggleNotif }}" style="display:flex;align-items:center;gap:7px;border:1px solid {{ notifBd }};background:{{ notifBg }};border-radius:999px;padding:7px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8">
+          <span style="font-size:13.5px;color:#647187">提醒</span>
+          <sc-if value="{{ notifCount }}" hint-placeholder-val="{{ true }}">
+            <span style="font-size:11px;font-weight:600;background:#C4636D;color:#fff;border-radius:999px;padding:1px 7px;font-variant-numeric:tabular-nums">{{ notifCount }}</span>
+          </sc-if>
+        </div>
+        <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:calc(100% + 8px);right:0;z-index:80;width:376px;max-height:440px;overflow-y:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;box-shadow:0 14px 34px rgba(29,38,56,.16);padding:6px;animation:fadeUp .16s ease both">
+            <div style="display:flex;align-items:center;gap:8px;padding:9px 11px 8px">
+              <div style="flex:1;font-size:13.5px;font-weight:600">站内提醒</div>
+              <div onClick="{{ markAllNotif }}" style="flex:0 0 auto;font-size:11.5px;color:#1D48D8;cursor:pointer;white-space:nowrap">全部标为已读</div>
+            </div>
+            <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+              <div onClick="{{ n.go }}" style="display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border-radius:11px;cursor:pointer;background:{{ n.bg }}" style-hover="background:#F8FAFE">
+                <span style="flex:0 0 7px;width:7px;height:7px;border-radius:999px;background:{{ n.dot }};margin-top:5px"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12.5px;font-weight:{{ n.fw }};text-wrap:pretty">{{ n.title }}</div>
+                  <div style="font-size:11.5px;color:#647187;text-wrap:pretty">{{ n.note }}</div>
+                  <div style="font-size:10.5px;color:#A2ABBA;margin-top:2px">{{ n.when }} · {{ n.cta }} →</div>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ notifEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:22px;text-align:center;font-size:12.5px;color:#8792A5">暂无新提醒</div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:26px 26px 60px">
+
+      <!-- ══ FINANCE ══ -->
+      <sc-if value="{{ isFinance }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1120px;margin:0 auto;animation:fadeUp .3s ease both">
+          <div style="display:flex;align-items:flex-end;gap:16px;margin-bottom:18px;flex-wrap:wrap">
+            <div style="flex:1 1 260px;min-width:0">
+              <h1 style="margin:0;font-size:28px;font-weight:500;letter-spacing:-.02em">Budget Mgt</h1>
+              <p style="margin:4px 0 0;color:#647187;text-wrap:pretty">{{ fnNote }}</p>
+            </div>
+            <div style="flex:0 0 auto;position:relative">
+              <div onClick="{{ toggleExpRange }}" style="display:flex;align-items:center;gap:8px;border:1px solid {{ expRangeBd }};background:#FFFFFF;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C3D0E5">
+                <span style="font-size:12.5px;color:#A2ABBA">时间</span>
+                <span style="font-size:13px;font-weight:500;color:#1D2638;font-variant-numeric:tabular-nums">{{ expRangeLabel }}</span>
+                <span style="font-size:9px;color:#8792A5">▾</span>
+              </div>
+              <sc-if value="{{ expRangeOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:calc(100% + 8px);right:0;z-index:90;width:300px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;box-shadow:0 14px 34px rgba(29,38,56,.16);padding:14px;animation:fadeUp .16s ease both">
+                  <div style="font-size:12px;color:#A2ABBA;margin-bottom:8px">快捷维度</div>
+                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:14px">
+                    <sc-for list="{{ expPresets }}" as="p" hint-placeholder-count="5">
+                      <div onClick="{{ p.pick }}" style="font-size:12.5px;text-align:center;border-radius:9px;padding:6px 0;cursor:pointer;white-space:nowrap;border:1px solid {{ p.bd }};background:{{ p.bg }};color:{{ p.fg }}">{{ p.label }}</div>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                    <div onClick="{{ expCalPrev }}" style="flex:0 0 auto;font-size:13px;color:#647187;border:1px solid #E2E8F2;border-radius:8px;padding:2px 9px;cursor:pointer" style-hover="border-color:#C8D4E8">‹</div>
+                    <div style="flex:1;text-align:center;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums">{{ expCalTitle }}</div>
+                    <div onClick="{{ expCalNext }}" style="flex:0 0 auto;font-size:13px;color:#647187;border:1px solid #E2E8F2;border-radius:8px;padding:2px 9px;cursor:pointer" style-hover="border-color:#C8D4E8">›</div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
+                    <sc-for list="{{ smpWeekLabels }}" as="w" hint-placeholder-count="7">
+                      <div style="text-align:center;font-size:10.5px;color:#A2ABBA">{{ w }}</div>
+                    </sc-for>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+                    <sc-for list="{{ expCalDays }}" as="d" hint-placeholder-count="35">
+                      <div onClick="{{ d.pick }}" title="{{ d.title }}" style="height:28px;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-variant-numeric:tabular-nums;border-radius:7px;cursor:{{ d.cursor }};background:{{ d.bg }};color:{{ d.fg }};font-weight:{{ d.fw }}">{{ d.label }}</div>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid #EDF1F7">
+                    <span style="flex:1;min-width:0;font-size:11.5px;color:#A2ABBA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ expCalHint }}</span>
+                    <div onClick="{{ expRangeApply }}" style="flex:0 0 auto;font-size:12.5px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:5px 14px;cursor:pointer;white-space:nowrap">完成</div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#EDF1F7;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden;margin-bottom:16px">
+            <sc-for list="{{ fnKpis }}" as="k" hint-placeholder-count="4">
+              <div style="background:#FFFFFF;padding:13px 15px;min-width:0">
+                <div style="font-size:11.5px;color:#A2ABBA;line-height:1.4;text-wrap:pretty">{{ k.label }}</div>
+                <div style="font-size:22px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;color:{{ k.color }}">{{ k.value }}</div>
+                <div style="font-size:11.5px;color:#8792A5;line-height:1.45;text-wrap:pretty">{{ k.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+            <div style="flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ fnTabs }}" as="t" hint-placeholder-count="3">
+                <div onClick="{{ t.pick }}" style="font-size:13px;border-radius:999px;padding:6px 14px;cursor:pointer;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};white-space:nowrap">{{ t.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ fnTabPool }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden">
+              <div style="padding:14px 16px;border-bottom:1px solid #E2E8F2;font-size:12px;color:#8792A5">按产品拆分的预算池 · 已承诺含未付款的合作金额</div>
+              <sc-for list="{{ fnPool }}" as="p" hint-placeholder-count="3">
+                <div style="padding:14px 16px;border-bottom:1px solid #F5F8FE">
+                  <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap">
+                    <div style="flex:1 1 200px;min-width:0">
+                      <div style="font-size:14.5px;font-weight:600;letter-spacing:-.01em">{{ p.name }}</div>
+                      <div style="font-size:11.5px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ p.meta }}</div>
+                    </div>
+                    <div style="flex:0 0 auto;display:flex;gap:16px;flex-wrap:wrap">
+                      <sc-for list="{{ p.cells }}" as="c" hint-placeholder-count="4">
+                        <div style="min-width:0">
+                          <div style="font-size:11px;color:#A2ABBA;white-space:nowrap">{{ c.label }}</div>
+                          <div style="font-size:13.5px;font-variant-numeric:tabular-nums;color:{{ c.color }};white-space:nowrap">{{ c.value }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:#EEF2F8;margin-top:10px">
+                    <div style="width:{{ p.paidPct }}%;background:#6E8F74"></div>
+                    <div style="width:{{ p.openPct }}%;background:#E3C89A"></div>
+                  </div>
+                  <div style="display:flex;gap:14px;margin-top:6px;flex-wrap:wrap;font-size:11px;color:#647187">
+                    <span>■ 已付款 {{ p.paidPct }}%</span><span style="color:#A5762C">■ 已承诺未付 {{ p.openPct }}%</span><span style="color:#A2ABBA">剩余可用 {{ p.freeText }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ fnTabComm }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:24px minmax(120px,1fr) 96px 92px 64px 88px 96px 104px;gap:8px;padding:10px 14px;background:#F8FAFE;border-bottom:1px solid #E2E8F2;font-size:11.5px;color:#A2ABBA">
+                <div>#</div><div>红人</div><div>SKU</div><div style="text-align:right">归因 GMV</div><div style="text-align:right">佣金率</div><div style="text-align:right">应付佣金</div><div>状态</div><div>操作</div>
+              </div>
+              <sc-for list="{{ fnComm }}" as="c" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:24px minmax(120px,1fr) 96px 92px 64px 88px 96px 104px;gap:8px;padding:11px 14px;border-bottom:1px solid #F5F8FE;align-items:center;background:{{ c.rowBg }}">
+                  <div style="font-size:12px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ c.idx }}</div>
+                  <div style="font-size:12.5px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.handle }}</div>
+                  <div style="font-size:11.5px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap">{{ c.sku }}</div>
+                  <div style="font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums">{{ c.gmv }}</div>
+                  <div style="font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums">{{ c.rate }}</div>
+                  <div style="font-size:13px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums;color:#4E7156">{{ c.fee }}</div>
+                  <div><span style="font-size:11.5px;border-radius:999px;padding:1px 9px;background:{{ c.stBg }};color:{{ c.stFg }};white-space:nowrap">{{ c.status }}</span></div>
+                  <div>
+                    <sc-if value="{{ c.canPay }}" hint-placeholder-val="{{ true }}">
+                      <div onClick="{{ c.pay }}" style="font-size:11.5px;background:#2457F5;color:#fff;border:1px solid #2457F5;border-radius:999px;padding:4px 11px;cursor:pointer;white-space:nowrap;display:inline-block">生成发票</div>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ fnTabInv }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ fnInvEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px dashed #E2E8F2;border-radius:16px;padding:26px;text-align:center;font-size:13.5px;color:#8792A5">{{ expRangeLabel }} 内没有发票记录，换个时间维度试试。</div>
+            </sc-if>
+            <sc-if value="{{ fnInvNotEmpty }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(29,38,56,.04)">
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 16px;border-bottom:1px solid #E2E8F2;flex-wrap:wrap">
+                <div style="flex:1 1 200px;min-width:0;font-size:14px;font-weight:600;letter-spacing:-.005em;color:#1D2638">付款申请台账</div>
+                <sc-for list="{{ fnInvSummary }}" as="sm" hint-placeholder-count="4">
+                  <div style="flex:0 0 auto;font-size:11.5px;color:#A2ABBA;white-space:nowrap">
+                    {{ sm.label }} <span style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ sm.color }}">{{ sm.value }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="overflow-x:auto">
+                <div style="min-width:1140px">
+                  <div style="display:grid;grid-template-columns:112px 76px 116px minmax(140px,1.1fr) 96px 76px 84px 92px 84px 132px;gap:8px;padding:9px 16px;background:#F8FAFE;border-bottom:1px solid #E2E8F2;font-size:11px;color:#A2ABBA;letter-spacing:.03em">
+                    <div>发票号</div><div>申请人</div><div>红人</div><div>付款产品</div><div>SKU</div><div>渠道</div><div>付款类型</div><div>提交日期</div><div style="text-align:right">金额</div><div style="text-align:right">状态 / 操作</div>
+                  </div>
+                  <sc-for list="{{ fnInv }}" as="i" hint-placeholder-count="6">
+                    <div style="display:grid;grid-template-columns:112px 76px 116px minmax(140px,1.1fr) 96px 76px 84px 92px 84px 132px;gap:8px;padding:11px 16px;border-bottom:1px solid #F5F8FE;align-items:center;background:{{ i.rowBg }}" style-hover="background:#F8FAFE">
+                      <div style="min-width:0">
+                        <div style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.id }}</div>
+                        <div title="{{ i.item }}" style="font-size:10.5px;color:#A2ABBA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.kind }}</div>
+                      </div>
+                      <div style="min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.applicant }}</div>
+                      <div style="min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.handle }}</div>
+                      <div title="{{ i.item }}" style="min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.prodName }}</div>
+                      <div style="min-width:0;font-size:11.5px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.skuText }}</div>
+                      <div style="min-width:0;font-size:11.5px;color:#647187;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.channelText }}</div>
+                      <div style="min-width:0"><span style="display:inline-block;max-width:100%;font-size:11px;border-radius:6px;padding:1px 7px;background:{{ i.payBg }};color:{{ i.payFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ i.payType }}</span></div>
+                      <div style="min-width:0;font-size:11.5px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap">{{ i.date }}</div>
+                      <div style="text-align:right;font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ i.amount }}</div>
+                      <div style="min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap">
+                        <sc-if value="{{ i.canDecide }}" hint-placeholder-val="{{ true }}">
+                          <div onClick="{{ i.approve }}" style="flex:0 0 auto;font-size:11.5px;background:#6E8F74;color:#FFFFFF;border-radius:7px;padding:4px 10px;cursor:pointer;white-space:nowrap">通过</div>
+                        </sc-if>
+                        <sc-if value="{{ i.canDecide }}" hint-placeholder-val="{{ true }}">
+                          <div onClick="{{ i.reject }}" style="flex:0 0 auto;font-size:11.5px;border:1px solid #E0B8BC;background:#F7EDEE;color:#C4636D;border-radius:7px;padding:3px 10px;cursor:pointer;white-space:nowrap">驳回</div>
+                        </sc-if>
+                        <sc-if value="{{ i.canPay }}" hint-placeholder-val="{{ false }}">
+                          <div onClick="{{ i.pay }}" style="flex:0 0 auto;font-size:11.5px;background:#2457F5;color:#FFFFFF;border-radius:7px;padding:4px 10px;cursor:pointer;white-space:nowrap">标记已付</div>
+                        </sc-if>
+                        <sc-if value="{{ i.settled }}" hint-placeholder-val="{{ false }}">
+                          <span title="{{ i.byText }}" style="flex:0 0 auto;font-size:11.5px;border-radius:6px;padding:2px 9px;background:{{ i.stBg }};color:{{ i.stFg }};white-space:nowrap">{{ i.status }}</span>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <div style="display:grid;grid-template-columns:112px 76px 116px minmax(140px,1.1fr) 96px 76px 84px 92px 84px 132px;gap:8px;padding:11px 16px;background:#F8FAFE;border-top:1px solid #E2E8F2;align-items:baseline">
+                    <div style="grid-column:1 / 9;font-size:12px;color:#647187">{{ fnInvFooter }}<span style="margin-left:8px;color:#A2ABBA">金额合计</span></div>
+                    <div style="text-align:right;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ fnInvTotal }}</div>
+                    <div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </sc-if>
+          </sc-if>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      
+    </div>
+  </main>
+
+  <sc-if value="{{ copilotClosed }}" hint-placeholder-val="{{ true }}">
+    <div onClick="{{ toggleCopilot }}" style="position:fixed;right:24px;bottom:24px;z-index:120;display:flex;align-items:center;gap:9px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:11px 18px;cursor:pointer;font-size:14px;font-weight:500;white-space:nowrap;box-shadow:0 10px 26px rgba(36,87,245,.34)" style-hover="background:#1D48D8">
+      <span style="width:7px;height:7px;border-radius:999px;background:#FFFFFF;opacity:.85;animation:pulseDot 2s infinite"></span>
+      <span>AI Copilot</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ copilotOpen }}" hint-placeholder-val="{{ false }}">
+    <aside style="position:fixed;right:22px;bottom:22px;z-index:120;width:392px;max-width:calc(100vw - 44px);height:min(600px,calc(100vh - 44px));border:1px solid #E2E8F2;border-radius:20px;background:#F8FAFE;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 48px rgba(29,38,56,.22);animation:fadeUp .2s ease both">
+      <div style="flex:0 0 auto;border-bottom:1px solid #E2E8F2;display:flex;align-items:center;gap:9px;padding:13px 16px;background:#FFFFFF">
+        <span style="width:7px;height:7px;border-radius:999px;background:#2457F5;flex:0 0 7px"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;letter-spacing:-.01em">AI Copilot</div>
+          <div style="font-size:11px;color:#8792A5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">当前页面 · {{ copilotCtx }}</div>
+        </div>
+        <div onClick="{{ toggleCopilot }}" style="flex:0 0 auto;font-size:18px;color:#8792A5;cursor:pointer;line-height:1;padding:0 2px" style-hover="color:#1D2638">×</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ chat }}" as="m" hint-placeholder-count="2">
+          <div style="align-self:{{ m.align }};max-width:88%;background:{{ m.bg }};border:1px solid {{ m.bd }};color:{{ m.fg }};border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.7;white-space:pre-line;text-wrap:pretty">{{ m.text }}</div>
+        </sc-for>
+        <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+          <div style="align-self:flex-start;font-variant-numeric:tabular-nums;font-size:12px;color:#8792A5;animation:pulseDot 1.2s infinite">正在结合当前上下文推理…</div>
+        </sc-if>
+      </div>
+      <div style="border-top:1px solid #E2E8F2;padding:14px 16px;display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ prompts }}" as="p" hint-placeholder-count="3">
+            <div onClick="{{ p.send }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;border-radius:999px;padding:4px 10px;cursor:pointer;color:#647187" style-hover="border-color:#C3D0E5;color:#1D2638">{{ p.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 13px">
+          <span style="flex:1;min-width:0;font-size:13.5px;color:#929CAF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ copilotPlaceholder }}</span>
+          <span style="font-variant-numeric:tabular-nums;font-size:12px;color:#A8B1C0">⏎</span>
+        </div>
+      </div>
+    </aside>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
+</script>
+<script src="../app-logic.js"></script>
+</body>
+</html>

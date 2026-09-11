@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="AI-powered creator operations platform for campaigns, creators, briefs, assets, budgets and reporting.">
+<meta name="theme-color" content="#2457F5">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Influencer Marketing AIOS">
+<meta property="og:description" content="AI-powered creator operations platform">
+<meta property="og:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Influencer Marketing AIOS">
+<meta name="twitter:description" content="AI-powered creator operations platform">
+<meta name="twitter:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
+<title>Campaigns · Influencer Marketing AIOS</title>
+<link rel="stylesheet" href="../design-system.css">
+<script>window.AIOS_PAGE = "campaigns";</script>
+<script src="../support.js"></script>
+<script src="../mail-nav.js" defer></script>
+</head>
+<body data-page="campaigns">
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #F3F6FC; }
+  * { box-sizing: border-box; }
+  a { color: #2457F5; text-decoration: none; }
+  a:hover { color: #1D48D8; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #E2E8F2; border-radius: 6px; border: 3px solid #F3F6FC; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes pulseDot { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+  .campaign-email-select { appearance: none; -webkit-appearance: none; min-width: 20px; width: 20px !important; height: 20px !important; margin: 0; padding: 0; border: 2px solid #7EA3FF !important; background: #FFFFFF; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #FFFFFF; font: 700 12px/1 Inter, sans-serif; box-shadow: 0 0 0 2px rgba(36,87,245,.08); }
+  .campaign-email-select[title="取消选择"] { background: #2457F5 !important; border-color: #2457F5 !important; box-shadow: 0 0 0 3px rgba(36,87,245,.13); }
+  .campaign-email-select[title="已达成合作"] { background: #6E9778 !important; border-color: #6E9778 !important; box-shadow: none; }
+  .campaign-email-select.is-selected,.campaign-email-select[aria-checked="true"] { background: #2457F5 !important; border-color: #2457F5 !important; color:#FFFFFF !important; box-shadow:0 0 0 3px rgba(36,87,245,.13); }
+  .campaign-email-select.is-cooperated { background:#6E9778 !important;border-color:#6E9778 !important;color:#FFFFFF !important;box-shadow:none; }
+  .campaign-email-coop-status { display: inline-flex; align-items: center; justify-self: start; border-radius: 999px; padding: 3px 10px; font-size: 11.5px; line-height: 1.6; white-space: nowrap; }
+</style>
+</helmet>
+
+<div style="display:flex;height:100vh;overflow:hidden;background:#F3F6FC;color:#1D2638;font-family:Inter,'PingFang SC','Noto Sans SC',sans-serif;font-size:15px;line-height:1.6">
+
+  <aside style="width:{{ navWidth }};flex:0 0 {{ navWidth }};background:#F5F8FE;border-right:1px solid #E2E8F2;display:flex;flex-direction:column;padding:{{ navPad }};transition:width .18s ease;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 4px 22px">
+      <div style="width:28px;height:28px;flex:0 0 28px;border-radius:8px;background:#1D2638;color:#F5F8FE;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;font-size:12px;font-weight:700;letter-spacing:-.03em;cursor:pointer" onClick="{{ toggleNav }}">IM</div>
+      <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;min-width:0;overflow:hidden">
+          <div style="font-size:13px;font-weight:700;letter-spacing:-.02em;line-height:1.2;text-wrap:balance">Influencer Marketing AIOS</div>
+          <div style="font-size:8px;letter-spacing:.13em;color:#8792A5;line-height:1.25;margin-top:2px">OPERATIONS PLATFORM</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ toggleNav }}" style="flex:0 0 auto;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#8792A5;cursor:pointer;font-size:13px" style-hover="background:#EAF0FF;color:#1D2638">{{ navToggleIcon }}</div>
+      </sc-if>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden;min-height:0;width:100%;max-width:100%">
+      <sc-for list="{{ nav }}" as="item" hint-placeholder-count="9">
+        <div onClick="{{ item.go }}" title="{{ item.title }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;cursor:pointer;background:{{ item.bg }};color:{{ item.fg }};font-weight:{{ item.fw }};justify-content:{{ item.justify }};position:relative;min-width:0;width:100%;max-width:100%" style-hover="background:#EAF0FF">
+          <sc-if value="{{ navCollapsed }}" hint-placeholder-val="{{ false }}">
+            <span style="width:22px;height:22px;flex:0 0 22px;border-radius:7px;display:flex;align-items:center;justify-content:center;text-align:center;font-variant-numeric:tabular-nums;font-size:10px;font-weight:700;opacity:.82;background:rgba(36,87,245,.07)">{{ item.key }}</span>
+          </sc-if>
+          <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+            <span style="flex:1;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px">{{ item.label }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+
+    <div style="flex:0 0 12px"></div>
+
+    <sc-if value="{{ navCollapsed }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ toggleNav }}" title="展开导航" style="display:flex;align-items:center;justify-content:center;height:30px;border-radius:12px;color:#8792A5;cursor:pointer;font-size:14px;margin-bottom:10px" style-hover="background:#EAF0FF;color:#1D2638">{{ navToggleIcon }}</div>
+    </sc-if>
+
+    <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #E2E8F2;padding-top:14px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-variant-numeric:tabular-nums;font-size:13px;color:#647187;white-space:nowrap">本周 AI 用量</div>
+        <div style="height:5px;background:#E2E8F2;border-radius:3px;overflow:hidden"><div style="height:5px;width:62%;background:#6E8F74;border-radius:3px"></div></div>
+      </div>
+    </sc-if>
+
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="height:58px;flex:0 0 58px;border-bottom:1px solid #E2E8F2;background:#F3F6FC;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#647187;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">
+        <span>{{ crumbRoot }}</span>
+        <sc-if value="{{ crumbLeaf }}" hint-placeholder-val="{{ true }}">
+          <span style="opacity:.5">/</span>
+        </sc-if>
+        <span style="color:#1D2638">{{ crumbLeaf }}</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="flex:0 0 auto;position:relative;margin-right:4px">
+        <div onClick="{{ toggleNotif }}" style="display:flex;align-items:center;gap:7px;border:1px solid {{ notifBd }};background:{{ notifBg }};border-radius:999px;padding:7px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8">
+          <span style="font-size:13.5px;color:#647187">提醒</span>
+          <sc-if value="{{ notifCount }}" hint-placeholder-val="{{ true }}">
+            <span style="font-size:11px;font-weight:600;background:#C4636D;color:#fff;border-radius:999px;padding:1px 7px;font-variant-numeric:tabular-nums">{{ notifCount }}</span>
+          </sc-if>
+        </div>
+        <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:calc(100% + 8px);right:0;z-index:80;width:376px;max-height:440px;overflow-y:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;box-shadow:0 14px 34px rgba(29,38,56,.16);padding:6px;animation:fadeUp .16s ease both">
+            <div style="display:flex;align-items:center;gap:8px;padding:9px 11px 8px">
+              <div style="flex:1;font-size:13.5px;font-weight:600">站内提醒</div>
+              <div onClick="{{ markAllNotif }}" style="flex:0 0 auto;font-size:11.5px;color:#1D48D8;cursor:pointer;white-space:nowrap">全部标为已读</div>
+            </div>
+            <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+              <div onClick="{{ n.go }}" style="display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border-radius:11px;cursor:pointer;background:{{ n.bg }}" style-hover="background:#F8FAFE">
+                <span style="flex:0 0 7px;width:7px;height:7px;border-radius:999px;background:{{ n.dot }};margin-top:5px"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12.5px;font-weight:{{ n.fw }};text-wrap:pretty">{{ n.title }}</div>
+                  <div style="font-size:11.5px;color:#647187;text-wrap:pretty">{{ n.note }}</div>
+                  <div style="font-size:10.5px;color:#A2ABBA;margin-top:2px">{{ n.when }} · {{ n.cta }} →</div>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ notifEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:22px;text-align:center;font-size:12.5px;color:#8792A5">暂无新提醒</div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:26px 26px 60px">
+
+      <!-- ══ NEW CAMPAIGN ══ -->
+      <sc-if value="{{ isNewCampaign }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1080px;margin:0 auto;animation:fadeUp .3s ease both">
+          <div onClick="{{ ncClose }}" style="font-size:13px;color:#8792A5;cursor:pointer;margin-bottom:12px;display:inline-block" style-hover="color:#1D2638">← 返回 Campaigns</div>
+            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:18px;margin-bottom:18px;box-shadow:0 8px 24px rgba(29,38,56,.05);animation:fadeUp .18s ease both">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+                <div style="flex:1 1 220px;min-width:0">
+                  <div style="font-size:17px;font-weight:600;letter-spacing:-.015em;color:#1D2638">新建 Campaign</div>
+                  <div style="font-size:12.5px;color:#647187;margin-top:2px;text-wrap:pretty">选择已提交推广的产品，自动带出产品库资料，只需手动填写营销目标、内容数量、播放量、预算与时间目标。</div>
+                </div>
+                <div onClick="{{ ncClose }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#F8FAFE;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">关闭</div>
+              </div>
+
+              <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px;position:relative;z-index:40">
+                <span style="flex:0 0 auto;font-size:12.5px;color:#647187">产品 SKU</span>
+                <div style="flex:0 0 auto;position:relative">
+                  <div onClick="{{ ncToggleSku }}" style="display:flex;align-items:center;gap:8px;width:290px;box-sizing:border-box;font-size:13.5px;color:{{ ncSkuFg }};background:#F8FAFE;border:1px solid {{ ncSkuBd }};border-radius:999px;padding:8px 14px;cursor:pointer" style-hover="border-color:#C8D4E8">
+                    <span style="flex:1;min-width:0;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ncSkuLabel }}</span>
+                    <span style="flex:0 0 auto;font-size:9px;color:#A2ABBA">▾</span>
+                  </div>
+                  <sc-if value="{{ ncSkuOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:calc(100% + 6px);left:0;z-index:60;width:330px;max-height:280px;overflow-y:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:13px;box-shadow:0 12px 28px rgba(29,38,56,.14);padding:5px">
+                      <sc-for list="{{ ncSkuOptions }}" as="o" hint-placeholder-count="3">
+                        <div onClick="{{ o.pick }}" style="display:flex;align-items:baseline;gap:8px;background:{{ o.bg }};border-radius:9px;padding:7px 10px;cursor:pointer;min-width:0" style-hover="background:#F8FAFE">
+                          <span style="flex:1;min-width:0;font-size:12.5px;color:{{ o.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.name }}</span>
+                          <span style="flex:0 0 auto;font-size:11px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ o.sku }}</span>
+                        </div>
+                      </sc-for>
+                      <sc-if value="{{ ncSkuEmpty }}" hint-placeholder-val="{{ false }}">
+                        <div style="padding:16px 12px;text-align:center;font-size:12px;color:#8792A5;text-wrap:pretty">在 Products 产品库勾选产品并点击「提交推广」后，产品会出现在这里</div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+                <span style="flex:1 1 120px;min-width:0;font-size:11.5px;color:{{ ncHintFg }};text-align:right">{{ ncHint }}</span>
+              </div>
+
+              <sc-if value="{{ ncFound }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #EEF2F8;border-radius:14px;overflow:hidden;margin-bottom:14px">
+                  <div style="padding:9px 13px;background:#F8FAFE;border-bottom:1px solid #EEF2F8;font-size:11.5px;color:#A2ABBA">产品库自动带出 · 只读</div>
+                  <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:#EEF2F8">
+                    <sc-for list="{{ ncFields }}" as="fd" hint-placeholder-count="12">
+                      <div style="background:#FFFFFF;padding:10px 12px;min-width:0">
+                        <div style="font-size:11px;color:#A2ABBA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fd.label }}</div>
+                        <div style="font-size:13px;font-variant-numeric:tabular-nums;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fd.value }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+                  <sc-for list="{{ ncInputs }}" as="ni" hint-placeholder-count="6">
+                    <div style="min-width:0;position:relative">
+                      <div style="font-size:12px;font-weight:600;color:#647187;margin-bottom:5px">{{ ni.label }}</div>
+                      <sc-if value="{{ ni.isSelect }}" hint-placeholder-val="{{ false }}">
+                        <div onClick="{{ ni.toggle }}" style="display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;font-size:13.5px;color:{{ ni.fg }};background:#F8FAFE;border:1px solid {{ ni.bd }};border-radius:10px;padding:8px 11px;cursor:pointer" style-hover="border-color:#C8D4E8">
+                          <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ni.shown }}</span>
+                          <span style="flex:0 0 auto;font-size:9px;color:#A2ABBA">▾</span>
+                        </div>
+                        <sc-if value="{{ ni.open }}" hint-placeholder-val="{{ false }}">
+                          <div style="position:absolute;top:calc(100% - 12px);left:0;z-index:55;min-width:100%;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 12px 28px rgba(29,38,56,.14);padding:5px">
+                            <sc-for list="{{ ni.options }}" as="op" hint-placeholder-count="4">
+                              <div onClick="{{ op.pick }}" style="font-size:12.5px;color:{{ op.fg }};background:{{ op.bg }};border-radius:9px;padding:7px 10px;cursor:pointer;white-space:nowrap" style-hover="background:#F8FAFE">{{ op.label }}</div>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                      </sc-if>
+                      <sc-if value="{{ ni.isInput }}" hint-placeholder-val="{{ true }}">
+                        <input type="{{ ni.type }}" value="{{ ni.value }}" onInput="{{ ni.set }}" onChange="{{ ni.set }}" placeholder="{{ ni.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13.5px;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:10px;padding:8px 11px;outline:none" />
+                      </sc-if>
+                      <div style="font-size:11px;color:#A2ABBA;margin-top:3px;text-wrap:pretty">{{ ni.note }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="margin-top:18px">
+                  <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:9px;flex-wrap:wrap"><div style="font-size:14px;font-weight:600;color:#1D2638">Campaign 时间进度调整</div><div style="font-size:11.5px;color:#8792A5">创建前确认各阶段时间，可整体移动或逐阶段修改</div></div>
+                  <div style="border:1px solid #E2E8F2;border-radius:15px;background:#FFFFFF;overflow:hidden">
+                    <sc-if value="{{ ncTimelineReady }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;align-items:center;gap:8px;padding:11px 13px;background:#F8FAFE;border-bottom:1px solid #EEF2F8;flex-wrap:wrap">
+                        <div style="flex:1 1 220px;min-width:0"><div style="font-size:13px;font-weight:600;color:#334155">{{ ncProductName }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px">{{ ncSku }} · {{ ncTimeline.range }}</div></div>
+                        <div onClick="{{ ncTimeline.toggleEdit }}" style="font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:5px 11px;cursor:pointer">{{ ncTimeline.editLabel }}</div>
+                        <span style="font-size:10.5px;border-radius:999px;padding:3px 9px;background:{{ ncTimeline.stateBg }};color:{{ ncTimeline.stateFg }}">{{ ncTimeline.stateText }}</span>
+                        <div onClick="{{ ncTimeline.pull }}" style="font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:5px 10px;cursor:pointer">− 1 周</div><span style="min-width:50px;text-align:center;font-size:11px;color:#8792A5">{{ ncTimeline.shiftText }}</span><div onClick="{{ ncTimeline.push }}" style="font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:5px 10px;cursor:pointer">+ 1 周</div><div onClick="{{ ncTimeline.reset }}" style="font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:5px 10px;cursor:pointer">复位</div>
+                      </div>
+                      <div style="padding:10px 13px 12px"><sc-for list="{{ ncTimeline.phases }}" as="ph" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:9px;padding:6px 0;flex-wrap:wrap"><div style="flex:0 0 112px;font-size:11.5px;color:#647187;white-space:nowrap">{{ ph.label }}</div><div style="flex:1 1 180px;min-width:160px;height:14px;background:#F2F5FA;border-radius:999px;position:relative;overflow:hidden"><div style="position:absolute;top:0;bottom:0;left:{{ ph.left }}%;width:{{ ph.width }}%;background:#AEB9CB;border-radius:999px"></div></div><sc-if value="{{ ph.reading }}" hint-placeholder-val="{{ true }}"><div style="flex:0 0 100px;font-size:10.5px;color:#8792A5;font-variant-numeric:tabular-nums">{{ ph.range }}</div></sc-if><sc-if value="{{ ph.editing }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:5px"><input type="date" value="{{ ph.startVal }}" onChange="{{ ph.setStart }}" style="width:116px;box-sizing:border-box;font-family:inherit;font-size:10.5px;color:#334155;background:#FFFFFF;border:1px solid #B8CBFF;border-radius:8px;padding:4px 6px;outline:none" /><span style="font-size:10px;color:#A2ABBA">–</span><input type="date" value="{{ ph.endVal }}" onChange="{{ ph.setEnd }}" style="width:116px;box-sizing:border-box;font-family:inherit;font-size:10.5px;color:#334155;background:#FFFFFF;border:1px solid #B8CBFF;border-radius:8px;padding:4px 6px;outline:none" /></div></sc-if><div onClick="{{ ph.toggleEdit }}" style="flex:0 0 auto;font-size:10.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:3px 9px;cursor:pointer">{{ ph.editLabel }}</div></div></sc-for></div>
+                    </sc-if>
+                    <sc-if value="{{ ncTimelineWaiting }}" hint-placeholder-val="{{ true }}"><div style="padding:24px 16px;text-align:center;font-size:12px;color:#A2ABBA;background:#FAFBFE">{{ ncTimeline.hint }}</div></sc-if>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid #EDF1F7">
+                  <span style="flex:1 1 160px;min-width:0;font-size:12px;color:#A2ABBA;text-wrap:pretty">{{ ncSummary }}</span>
+                  <div onClick="{{ ncClose }}" style="flex:0 0 auto;font-size:13px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 15px;cursor:pointer;white-space:nowrap">取消</div>
+                  <div onClick="{{ ncCreate }}" style="flex:0 0 auto;font-size:13px;background:{{ ncBtnBg }};color:{{ ncBtnFg }};border:1px solid {{ ncBtnBd }};border-radius:999px;padding:7px 17px;cursor:pointer;white-space:nowrap">创建 Campaign</div>
+                </div>
+              </sc-if>
+            </div>
+        </div>
+      </sc-if>
+
+      <!-- ══ CAMPAIGNS LIST ══ -->
+      <sc-if value="{{ isCampaigns }}" hint-placeholder-val="{{ true }}">
+        <div style="max-width:1080px;margin:0 auto;animation:fadeUp .3s ease both">
+          <div class="compact-view-tabs" style="display:flex;align-items:center;gap:4px;overflow-x:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:6px;margin-bottom:18px">
+            <sc-for list="{{ cmTabs }}" as="t" hint-placeholder-count="3">
+              <div class="compact-view-tab" onClick="{{ t.pick }}" title="{{ t.note }}" style="flex:0 0 auto;border:1px solid {{ t.bd }};background:{{ t.bg }};border-radius:9px;padding:7px 13px;cursor:pointer;color:{{ t.fg }};white-space:nowrap" style-hover="filter:brightness(.98)">
+                <span style="font-size:13px;font-weight:600;letter-spacing:-.01em">{{ t.label }}</span>
+              </div>
+            </sc-for>
+            <div style="flex:1;min-width:16px"></div>
+            <div onClick="{{ ncOpen }}" style="flex:0 0 auto;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 15px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(36,87,245,.14)">+ 新建 Campaign</div>
+          </div>
+
+          <div style="background:#F7F9FF;border:1px solid #D9E4FF;border-radius:16px;padding:12px 17px;margin-bottom:18px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-size:11px;font-weight:600;background:#2457F5;color:#fff;border-radius:999px;padding:2px 9px;flex:0 0 auto">AI 总结</span>
+              <span style="font-size:12px;color:#1D48D8;flex:1 1 220px">推广进度诊断 · 基于七个节点的实时状态</span>
+              <div onClick="{{ pipeAiToggle }}" style="font-size:12px;color:#2457F5;background:#FFFFFF;border:1px solid #C8D4E8;border-radius:999px;padding:5px 11px;cursor:pointer;white-space:nowrap">{{ pipeAiToggleLabel }}</div>
+            </div>
+            <sc-if value="{{ pipeAiOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13.5px;line-height:1.75;text-wrap:pretty;margin:10px 0 12px">{{ pipeAiSummary }}</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px">
+                <sc-for list="{{ pipeAiPoints }}" as="p" hint-placeholder-count="3">
+                  <div onClick="{{ p.go }}" style="background:#FFFFFF;border:1px solid #D9E4FF;border-radius:12px;padding:11px 13px;min-width:0;cursor:pointer" style-hover="border-color:#B8CBFF">
+                    <div style="font-size:12.5px;font-weight:500;color:{{ p.color }};text-wrap:pretty">{{ p.title }}</div>
+                    <div style="font-size:12.5px;color:#647187;margin-top:3px;text-wrap:pretty">{{ p.body }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ cmTabBoard }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-bottom:22px">
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:11px;padding:0 2px">
+              <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;color:#1D2638;flex:0 0 auto">推广进度看板</div>
+              <div style="font-size:12px;color:#8792A5;flex:1 1 200px;min-width:0;text-wrap:pretty">来自 Products 勾选「推广」的产品，自动跟踪七个节点</div>
+            </div>
+            <sc-if value="{{ pipeEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px dashed #E2E8F2;border-radius:16px;padding:22px;text-align:center;font-size:13.5px;color:#8792A5">还没有提交推广的产品。在 Products 产品库勾选「推广」后会自动出现在这里。</div>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ pipeline }}" as="p" hint-placeholder-count="3">
+                <div onClick="{{ p.open }}" style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden;cursor:pointer" style-hover="border-color:#B8CBFF;box-shadow:0 10px 28px rgba(36,87,245,.10)">
+                  <div style="display:flex;gap:12px;align-items:center;padding:13px 16px;background:#F8FAFE;flex-wrap:wrap">
+                    <span style="flex:0 0 auto;width:16px;text-align:right;font-size:12.5px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ p.idx }}</span>
+                    <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy" style="width:40px;height:40px;flex:0 0 40px;border-radius:10px;object-fit:cover;background:#F5F8FE;border:1px solid #E2E8F2;display:block" />
+                    <div style="flex:1 1 200px;min-width:0">
+                      <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</div>
+                      <div style="font-size:11.5px;color:#8792A5;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.sub }}</div>
+                    </div>
+                    <div style="flex:0 1 150px;min-width:120px">
+                      <div style="display:flex;justify-content:space-between;gap:6px;font-size:11px;color:#8792A5;margin-bottom:4px">
+                        <span style="white-space:nowrap">整体进度</span>
+                        <span style="font-variant-numeric:tabular-nums;color:{{ p.pctColor }};flex:0 0 auto">{{ p.pctText }}</span>
+                      </div>
+                      <div style="height:5px;background:#EEF2F8;border-radius:3px;overflow:hidden"><div style="height:5px;border-radius:3px;background:{{ p.pctColor }};width:{{ p.pct }}%"></div></div>
+                    </div>
+                    <span style="flex:0 0 auto;font-size:11.5px;border-radius:999px;padding:2px 10px;background:{{ p.stateBg }};color:{{ p.stateFg }};white-space:nowrap">{{ p.stateText }}</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:#EDF1F7;border-top:1px solid #EDF1F7">
+                    <sc-for list="{{ p.steps }}" as="st" hint-placeholder-count="7">
+                      <div onClick="{{ st.go }}" style="background:#FFFFFF;padding:11px 10px;min-width:0;cursor:{{ st.cursor }}" style-hover="background:#F8FAFE">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+                          <span style="width:16px;height:16px;flex:0 0 16px;border-radius:999px;background:{{ st.dotBg }};color:{{ st.dotFg }};font-size:9.5px;display:flex;align-items:center;justify-content:center">{{ st.mark }}</span>
+                          <span style="font-size:11.5px;color:#647187;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ st.label }}</span>
+                        </div>
+                        <div style="font-size:12px;color:{{ st.valueColor }};font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ st.value }}</div>
+                        <div style="font-size:11px;color:#A2ABBA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ st.note }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ cmTabTime }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:11px;padding:0 2px">
+              <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;color:#1D2638;flex:0 0 auto">Campaign 时间进度调整</div>
+              <div style="font-size:12px;color:#8792A5;flex:1 1 200px;min-width:0;text-wrap:pretty">按阶段查看计划与实际，可整体前移或顺延</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ timeline }}" as="t" hint-placeholder-count="3">
+                <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden">
+                  <div style="display:flex;gap:12px;align-items:center;padding:13px 16px;background:#F8FAFE;flex-wrap:wrap">
+                    <span style="flex:0 0 auto;width:16px;text-align:right;font-size:12.5px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ t.idx }}</span>
+                    <div onClick="{{ t.open }}" style="flex:1 1 200px;min-width:0;cursor:pointer">
+                      <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.name }}</div>
+                      <div style="font-size:11.5px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.idLine }}</div>
+                      <div style="font-size:11.5px;color:#A2ABBA;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.window }} · {{ t.owner }}</div>
+                    </div>
+                    <div onClick="{{ t.toggleEdit }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ t.editBd }};background:{{ t.editBg }};color:#647187;border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ t.editLabel }}</div>
+                    <span style="flex:0 0 auto;font-size:11.5px;border-radius:999px;padding:2px 10px;background:{{ t.stateBg }};color:{{ t.stateFg }};white-space:nowrap">{{ t.stateText }}</span>
+                    <div style="flex:0 0 auto;display:flex;align-items:center;gap:7px">
+                      <div onClick="{{ t.pull }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:5px 11px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">− 1 周</div>
+                      <span style="font-size:12px;color:#A2ABBA;font-variant-numeric:tabular-nums;min-width:56px;text-align:center;white-space:nowrap">{{ t.shiftText }}</span>
+                      <div onClick="{{ t.push }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:5px 11px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">+ 1 周</div>
+                      <div onClick="{{ t.reset }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:5px 11px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">复位</div>
+                    </div>
+                  </div>
+                  <div style="padding:12px 16px 14px">
+                    <sc-if value="{{ t.editing }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:12px;padding:11px 13px;margin-bottom:10px">
+                        <div style="flex:1 1 130px;min-width:0">
+                          <div style="font-size:11px;color:#A2ABBA;margin-bottom:5px">整体开始</div>
+                          <input value="{{ t.startVal }}" onChange="{{ t.setStart }}" placeholder="2026-08-01" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:12.5px;font-variant-numeric:tabular-nums;color:#1D2638;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:9px;padding:6px 10px;outline:none" />
+                        </div>
+                        <div style="flex:1 1 130px;min-width:0">
+                          <div style="font-size:11px;color:#A2ABBA;margin-bottom:5px">整体结束</div>
+                          <input value="{{ t.endVal }}" onChange="{{ t.setEnd }}" placeholder="2026-09-30" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:12.5px;font-variant-numeric:tabular-nums;color:#1D2638;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:9px;padding:6px 10px;outline:none" />
+                        </div>
+                        <div onClick="{{ t.applyWindow }}" style="flex:0 0 auto;font-size:12.5px;background:#2457F5;color:#fff;border-radius:999px;padding:7px 15px;cursor:pointer;white-space:nowrap">应用到全部阶段</div>
+                      </div>
+                    </sc-if>
+                    <sc-for list="{{ t.phases }}" as="ph" hint-placeholder-count="5">
+                      <div style="display:flex;align-items:center;gap:10px;padding:7px 0;flex-wrap:wrap">
+                        <div style="flex:0 0 96px;font-size:12.5px;color:#647187;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ph.label }}</div>
+                        <div style="flex:1 1 160px;min-width:120px;height:16px;background:#F5F8FE;border-radius:8px;position:relative;overflow:hidden">
+                          <div style="position:absolute;top:0;bottom:0;left:{{ ph.left }}%;width:{{ ph.width }}%;background:{{ ph.color }};border-radius:8px"></div>
+                        </div>
+                        <sc-if value="{{ ph.editing }}" hint-placeholder-val="{{ false }}">
+                          <div style="flex:0 0 auto;display:flex;align-items:center;gap:5px">
+                            <input value="{{ ph.startVal }}" onChange="{{ ph.setStart }}" style="width:74px;box-sizing:border-box;font-family:inherit;font-size:11.5px;font-variant-numeric:tabular-nums;color:#1D2638;background:#FFFFFF;border:1px solid #B8CBFF;border-radius:8px;padding:4px 7px;outline:none" />
+                            <span style="font-size:11px;color:#A2ABBA">–</span>
+                            <input value="{{ ph.endVal }}" onChange="{{ ph.setEnd }}" style="width:74px;box-sizing:border-box;font-family:inherit;font-size:11.5px;font-variant-numeric:tabular-nums;color:#1D2638;background:#FFFFFF;border:1px solid #B8CBFF;border-radius:8px;padding:4px 7px;outline:none" />
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ ph.reading }}" hint-placeholder-val="{{ true }}">
+                          <div style="flex:0 0 148px;font-size:11.5px;color:#A2ABBA;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ph.range }}</div>
+                        </sc-if>
+                        <span style="flex:0 0 auto;font-size:11px;border-radius:999px;padding:1px 8px;background:{{ ph.tagBg }};color:{{ ph.tagFg }};white-space:nowrap">{{ ph.status }}</span>
+                        <div onClick="{{ ph.toggleEdit }}" style="flex:0 0 auto;font-size:11px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:2px 9px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ ph.editLabel }}</div>
+                      </div>
+                    </sc-for>
+                    <div style="font-size:12px;color:#647187;margin-top:8px;text-wrap:pretty">{{ t.note }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ cmTabList }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:11px;padding:0 2px">
+            <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;color:#1D2638;flex:0 0 auto">Campaign 列表</div>
+            <div style="font-size:12px;color:#8792A5;flex:1 1 200px;min-width:0">3 个进行中 · 1 个已复盘</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:11px">
+            <sc-for list="{{ campaignList }}" as="c" hint-placeholder-count="4">
+              <div onClick="{{ c.open }}" style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden;cursor:pointer" style-hover="border-color:#B8CBFF;box-shadow:0 10px 28px rgba(36,87,245,.10)">
+                <div style="display:flex;gap:13px;align-items:center;padding:14px 18px;background:#F8FAFE;flex-wrap:wrap">
+                  <span style="flex:0 0 30px;width:30px;height:30px;border-radius:9px;background:#1D2638;color:#F8FAFE;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ c.idx }}</span>
+                  <div style="flex:1 1 200px;min-width:0">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                      <span style="font-size:15.5px;font-weight:600;letter-spacing:-.01em;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.product }}</span>
+                      <span style="flex:0 0 auto;font-size:11.5px;border-radius:999px;padding:2px 10px;background:{{ c.goalBg }};color:{{ c.goalFg }};white-space:nowrap">{{ c.goalType }}</span>
+                    </div>
+                  </div>
+                  <span style="flex:0 0 auto;font-size:11.5px;border-radius:999px;padding:2px 10px;background:{{ c.stateBg }};color:{{ c.stateFg }};white-space:nowrap">{{ c.stateText }}</span>
+                  <div style="flex:0 1 150px;min-width:120px">
+                    <div style="display:flex;justify-content:space-between;gap:6px;font-size:11px;color:#8792A5;margin-bottom:4px">
+                      <span style="white-space:nowrap">{{ c.stage }}</span>
+                      <span style="font-variant-numeric:tabular-nums;flex:0 0 auto">{{ c.pct }}%</span>
+                    </div>
+                    <div style="height:5px;background:#EEF2F8;border-radius:3px;overflow:hidden"><div style="height:5px;border-radius:3px;background:{{ c.color }};width:{{ c.pct }}%"></div></div>
+                  </div>
+                  <div onClick="{{ c.remove }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C4636D;color:#C4636D">删除</div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#EDF1F7;border-top:1px solid #EDF1F7">
+                  <sc-for list="{{ c.facts }}" as="ft" hint-placeholder-count="12">
+                    <div title="{{ ft.tip }}" style="background:#FFFFFF;padding:10px 14px;min-width:0">
+                      <div style="font-size:11px;color:#A2ABBA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ft.label }}</div>
+                      <div style="display:flex;align-items:baseline;gap:5px;margin-top:1px;min-width:0">
+                        <span style="font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;color:{{ ft.color }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ft.value }}</span>
+                        <sc-if value="{{ ft.hasArrow }}" hint-placeholder-val="{{ false }}">
+                          <span style="flex:0 0 auto;font-size:12px;color:{{ ft.arrowColor }}">{{ ft.arrow }}</span>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#EDF1F7;border-top:1px solid #EDF1F7">
+                  <sc-for list="{{ c.goals }}" as="g" hint-placeholder-count="4">
+                    <div style="background:#FFFFFF;padding:12px 14px;min-width:0">
+                      <div style="display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;margin-bottom:6px">
+                        <span style="font-size:11.5px;color:#A2ABBA;flex:0 0 auto">{{ g.label }}</span>
+                        <span style="font-size:11px;border-radius:999px;padding:1px 8px;background:{{ g.tagBg }};color:{{ g.tagFg }};white-space:nowrap">{{ g.tag }}</span>
+                        <div style="flex:1;min-width:0"></div>
+                        <div onClick="{{ g.toggleEdit }}" style="flex:0 0 auto;font-size:11px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:1px 8px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ g.editLabel }}</div>
+                      </div>
+                      <div style="font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.actual }}</div>
+                      <sc-if value="{{ g.editing }}" hint-placeholder-val="{{ false }}">
+                        <input value="{{ g.target }}" onClick="{{ g.stop }}" onChange="{{ g.setTarget }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:12px;font-variant-numeric:tabular-nums;color:#1D2638;background:#FFFFFF;border:1px solid #B8CBFF;border-radius:8px;padding:4px 8px;outline:none;margin-top:3px" />
+                      </sc-if>
+                      <sc-if value="{{ g.reading }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:11.5px;color:#8792A5;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">目标 {{ g.target }}</div>
+                      </sc-if>
+                      <div style="height:4px;background:#EEF2F8;border-radius:2px;overflow:hidden;margin-top:6px"><div style="height:4px;border-radius:2px;background:{{ g.color }};width:{{ g.pct }}%"></div></div>
+                      <div style="font-size:11px;color:#A2ABBA;margin-top:5px;text-wrap:pretty">{{ g.note }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ══ CAMPAIGN DETAIL ══ -->
+      <sc-if value="{{ isCampaign }}" hint-placeholder-val="{{ true }}">
+        <div class="campaign-detail-shell" style="max-width:1180px;margin:0 auto">
+          <div onClick="{{ goCampaigns }}" style="font-size:12px;color:#647187;cursor:pointer;margin-bottom:5px;display:inline-flex;align-items:center;gap:5px" style-hover="color:#2457F5">← 返回 Campaigns</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:0">
+              <h1 style="margin:0;font-size:24px;font-weight:500;letter-spacing:-.02em">{{ cd.name }}</h1>
+              <p style="margin:2px 0 0;color:#647187;font-size:12.5px">{{ cd.product }} · {{ cd.sku }} · 目标 {{ cd.objective }} · 预算 {{ cd.budget }}（已花 {{ cd.spent }}）· {{ cd.window }}</p>
+            </div>
+            <span style="font-size:10.5px;border-radius:999px;padding:3px 9px;background:{{ cd.stateBg }};color:{{ cd.stateFg }};white-space:nowrap">{{ cd.stateText }}</span>
+            <div onClick="{{ goReports }}" style="background:#2457F5;color:#FFFFFF;border-radius:999px;padding:7px 12px;font-size:12.5px;cursor:pointer;white-space:nowrap">生成复盘报告</div>
+          </div>
+
+          <div class="campaign-detail-tabs" style="display:flex;align-items:center;overflow-x:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:5px;margin-bottom:12px;position:sticky;top:0;z-index:20;box-shadow:0 2px 8px rgba(29,38,56,.035)">
+            <sc-for list="{{ campaignTabs }}" as="t" hint-placeholder-count="7">
+              <div style="flex:1 0 auto;min-width:140px;display:flex;align-items:center">
+              <div onClick="{{ t.pick }}" style="flex:1;min-width:0;border:1px solid {{ t.bd }};background:{{ t.bg }};border-radius:9px;padding:6px 7px;cursor:pointer;box-shadow:{{ t.shadow }}" style-hover="border-color:#8CAFFF">
+                <div style="display:flex;align-items:center;gap:6px;min-width:0"><span style="width:20px;height:20px;flex:0 0 20px;border-radius:999px;background:{{ t.circleBg }};color:{{ t.circleFg }};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600">{{ t.stepMark }}</span><div style="flex:1;min-width:0"><div style="font-size:11.5px;font-weight:600;color:{{ t.fg }};white-space:nowrap">{{ t.label }}</div><div style="font-size:8.8px;color:#8792A5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.metaLabel }}</div></div><div style="display:flex;align-items:center;gap:4px;flex:0 0 auto"><span style="width:5px;height:5px;border-radius:999px;background:{{ t.statusDot }}"></span><span style="font-size:9.5px;color:{{ t.statusFg }};white-space:nowrap">{{ t.status }}</span></div></div>
+              </div>
+              <sc-if value="{{ t.hasNext }}" hint-placeholder-val="{{ true }}"><div style="width:10px;flex:0 0 10px;height:1px;background:{{ t.connector }};position:relative"><span style="position:absolute;right:-1px;top:-6px;color:{{ t.connector }};font-size:11px">›</span></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin:-1px 0 12px;border:1px solid #DDE5F3;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(29,38,56,.025)">
+            <div onClick="{{ campaignAiSummaryToggle }}" style="min-height:42px;display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer" style-hover="background:#FAFBFE">
+              <span style="display:inline-flex;align-items:center;border-radius:999px;background:#2457F5;color:#FFFFFF;padding:4px 9px;font-size:10.5px;font-weight:600;white-space:nowrap">AI 总结</span>
+              <span style="width:6px;height:6px;border-radius:999px;background:{{ campaignAiSummaryDot }};flex:0 0 6px"></span>
+              <span style="font-size:12px;font-weight:600;color:#334155;white-space:nowrap">{{ campaignAiSummaryLabel }}环节</span>
+              <sc-if value="{{ campaignAiSummaryCollapsed }}" hint-placeholder-val="{{ true }}"><span style="font-size:11.5px;color:#8792A5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">自动汇总当前进度、主要问题与下一步建议</span></sc-if>
+              <span style="flex:1"></span>
+              <span style="font-size:11px;color:#2457F5;white-space:nowrap">{{ campaignAiSummaryAction }}</span>
+              <span style="width:20px;height:20px;border-radius:999px;background:#F3F6FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1">{{ campaignAiSummaryChevron }}</span>
+            </div>
+            <sc-if value="{{ campaignAiSummaryOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;padding:0 12px 12px">
+                <div style="border:1px solid #E2E8F2;background:#F8FAFE;border-radius:10px;padding:10px 11px"><div style="font-size:10.5px;color:#8792A5;margin-bottom:5px">进度概览</div><div style="font-size:12px;line-height:1.6;color:#334155">{{ campaignAiSummaryProgress }}</div></div>
+                <div style="border:1px solid {{ campaignAiSummaryBd }};background:{{ campaignAiSummaryBg }};border-radius:10px;padding:10px 11px"><div style="font-size:10.5px;color:{{ campaignAiSummaryFg }};margin-bottom:5px">主要问题</div><div style="font-size:12px;line-height:1.6;color:#334155">{{ campaignAiSummaryIssue }}</div></div>
+                <div style="border:1px solid #D8E2FA;background:#F5F8FF;border-radius:10px;padding:10px 11px"><div style="font-size:10.5px;color:#4568C6;margin-bottom:5px">下一步建议</div><div style="font-size:12px;line-height:1.6;color:#334155">{{ campaignAiSummaryNext }}</div></div>
+              </div>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ campaignTabStrategy }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:0 2px">
+              <div style="flex:1 1 260px;min-width:0"><div style="font-size:15px;font-weight:600">选择 Campaign 策略</div><div style="font-size:12px;color:#8792A5">来自 Strategy Studio · 自动使用当前产品的最新版本，切换版本后立即生效</div></div>
+              <div style="position:relative;z-index:35">
+                <div onClick="{{ campaignStrategyMenuToggle }}" style="font-size:12.5px;border:1px solid #C8D4E8;background:#FFFFFF;color:#2457F5;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap">选择策略 ▾</div>
+                <sc-if value="{{ campaignStrategyMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ campaignStrategyMenuKeep }}" style="position:absolute;top:40px;right:0;width:360px;max-width:calc(100vw - 100px);background:#FFFFFF;border:1px solid #D9E1EF;border-radius:14px;padding:7px;box-shadow:0 16px 36px rgba(29,38,56,.14)"><sc-if value="{{ campaignStrategyMenuEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;padding:13px;text-align:center">当前 SKU 暂无已维护的策略版本</div></sc-if><sc-for list="{{ campaignStrategyOptions }}" as="v" hint-placeholder-count="4"><div onClick="{{ v.pick }}" style="display:flex;align-items:flex-start;gap:9px;border-radius:10px;padding:10px;cursor:pointer;background:{{ v.bg }}" style-hover="background:#F7F9FF"><span style="width:18px;height:18px;border-radius:999px;border:1px solid {{ v.radioBd }};background:{{ v.radioBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:9px;flex:0 0 18px">{{ v.mark }}</span><div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;color:#1D2638">{{ v.title }}</div><div style="font-size:11px;color:#8792A5;margin-top:2px">{{ v.meta }} · {{ v.summary }}</div></div><span style="font-size:10.5px;border-radius:999px;padding:2px 7px;background:{{ v.statusBg }};color:{{ v.statusFg }};white-space:nowrap">{{ v.status }}</span></div></sc-for></div></sc-if>
+              </div>
+              <div onClick="{{ campaignStrategyJumpEdit }}" style="font-size:12.5px;border:1px solid #C8D4E8;background:#FFFFFF;color:#2457F5;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap">跳转编辑</div>
+            </div>
+
+            <sc-if value="{{ campaignStrategyFormOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#FFFFFF;border:1px solid #B8CBFF;border-radius:16px;padding:16px 18px;margin-bottom:14px;animation:fadeUp .16s ease both">
+	                <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px"><div style="font-size:15px;font-weight:600;flex:1">{{ campaignStrategyFormTitle }}</div><span style="font-size:11.5px;color:#8792A5">保存后自动成为 Strategy Studio 中的新版本</span></div>
+	                <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:13px;padding:5px;margin-bottom:14px">
+	                  <sc-for list="{{ campaignStrategyDraftTabs }}" as="tab" hint-placeholder-count="3"><div onClick="{{ tab.pick }}" style="min-width:0;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid {{ tab.bd }};background:{{ tab.bg }};color:{{ tab.fg }};border-radius:9px;padding:9px 10px;cursor:pointer"><span style="font-size:12.5px;font-weight:600;white-space:nowrap">{{ tab.label }}</span><span style="font-size:11px;color:{{ tab.noteFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ tab.note }}</span></div></sc-for>
+	                </div>
+
+	                <sc-if value="{{ campaignStrategyDraftTabInput }}" hint-placeholder-val="true">
+	                  <div class="campaign-strategy-layout">
+	                    <aside class="campaign-strategy-toc" style="background:#F8FAFE">
+	                      <div class="campaign-strategy-toc-title">输入项</div>
+	                      <div style="font-size:10.5px;color:#A2ABBA;margin:-3px 10px 9px">8 组资料填写</div>
+	                      <sc-for list="{{ campaignStrategyDraftInputSteps }}" as="st" hint-placeholder-count="8"><div onClick="{{ st.pick }}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:11px;cursor:pointer;background:{{ st.bg }};color:{{ st.fg }};font-weight:{{ st.fw }}"><span style="width:6px;height:6px;border-radius:999px;background:{{ st.dot }};flex:0 0 6px"></span><span style="flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ st.no }}. {{ st.name }}</span><span style="font-size:11px;color:#8792A5">{{ st.pctText }}</span></div></sc-for>
+	                    </aside>
+	                    <div class="campaign-strategy-main">
+	                      <label style="display:block;margin-bottom:13px"><div style="font-size:11px;color:#647187;margin-bottom:4px">策略名称</div><input type="text" value="{{ campaignStrategyDraftTitle }}" onChange="{{ campaignStrategyDraftTitleSet }}" placeholder="策略名称" style="width:100%;height:38px;box-sizing:border-box;font-family:inherit;font-size:12.5px;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:10px;padding:8px 11px;outline:none" /></label>
+	                      <div style="background:#FFFFFF;border:1px solid #EEF2F8;border-radius:14px;padding:17px">
+	                        <div style="font-size:15px;font-weight:600;color:#1D2638;margin-bottom:4px">{{ campaignStrategyDraftModuleName }}</div>
+	                        <div style="font-size:12px;color:#8792A5;margin-bottom:11px">已基于当前 Campaign 与产品资料预填，请确认或补充后再生成策略</div>
+	                        <sc-for list="{{ campaignStrategyDraftModuleFields }}" as="fd" hint-placeholder-count="4"><label style="display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid #EDF1F7;flex-wrap:wrap"><span style="flex:0 0 150px;font-size:12.5px;color:#647187;padding-top:8px">{{ fd.label }}</span><span style="flex:1 1 260px;min-width:0"><textarea value="{{ fd.value }}" onChange="{{ fd.set }}" rows="2" style="width:100%;box-sizing:border-box;resize:vertical;font-family:inherit;font-size:13px;line-height:1.55;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:9px;padding:7px 10px;outline:none"></textarea><sc-if value="{{ fd.hasSrc }}" hint-placeholder-val="true"><span style="display:block;font-size:10.5px;color:#1D48D8;margin-top:3px">来源 {{ fd.src }}</span></sc-if></span></label></sc-for>
+	                      </div>
+	                    </div>
+	                  </div>
+	                </sc-if>
+
+	                <sc-if value="{{ campaignStrategyDraftTabCheck }}" hint-placeholder-val="false">
+	                  <div style="display:flex;flex-direction:column;gap:12px">
+	                    <div style="background:#FFFFFF;border:1px solid #EEF2F8;border-radius:14px;padding:17px"><div style="font-size:15px;font-weight:600;color:#1D2638;margin-bottom:13px">Claim — 证据映射</div><div style="display:flex;flex-direction:column;gap:8px"><sc-for list="{{ campaignStrategyDraftEvidence }}" as="ev" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:12px;border:1px solid #EEF2F8;border-radius:11px;padding:10px 13px;flex-wrap:wrap"><span style="flex:1 1 180px;font-size:13px">{{ ev.claim }}</span><span style="flex:1 1 180px;font-size:12px;color:#647187">{{ ev.source }}</span><span style="font-size:11px;border-radius:999px;padding:2px 10px;background:{{ ev.bg }};color:{{ ev.color }}">{{ ev.tag }}</span></div></sc-for></div></div>
+	                    <div style="background:#FFFFFF;border:1px solid #EEF2F8;border-radius:14px;padding:17px"><div style="font-size:15px;font-weight:600;color:#1D2638;margin-bottom:4px">缺失项 {{ campaignStrategyDraftMissingCount }} 项</div><div style="font-size:12px;color:#8792A5;margin-bottom:12px">点击缺失项可返回对应输入模块补充</div><sc-if value="{{ campaignStrategyDraftNoMissing }}" hint-placeholder-val="false"><div style="font-size:13px;color:#4E7156">所有必填项已补齐，可以生成正式策略。</div></sc-if><div style="display:flex;flex-wrap:wrap;gap:7px"><sc-for list="{{ campaignStrategyDraftMissing }}" as="m" hint-placeholder-count="8"><span onClick="{{ m.go }}" style="font-size:12px;border:1px solid #FBE3E3;background:#FBE3E3;color:#C4636D;border-radius:999px;padding:4px 11px;cursor:pointer">{{ m.label }} →</span></sc-for></div></div>
+	                  </div>
+	                </sc-if>
+
+	                <sc-if value="{{ campaignStrategyDraftTabResult }}" hint-placeholder-val="false">
+	                <div class="campaign-strategy-layout">
+                  <aside class="campaign-strategy-toc">
+                    <div class="campaign-strategy-toc-title">策略目录</div>
+                    <sc-for list="{{ campaignStrategyDraftToc }}" as="t" hint-placeholder-count="15"><div onClick="{{ t.pick }}" class="campaign-strategy-toc-item"><span>{{ t.no }}</span><span>{{ t.title }}</span></div></sc-for>
+                  </aside>
+                  <div class="campaign-strategy-main">
+                <div class="campaign-strategy-setup-row">
+                  <label style="display:block;min-width:0"><div style="font-size:11px;color:#647187;margin-bottom:4px">策略名称</div><input type="text" value="{{ campaignStrategyDraftTitle }}" onChange="{{ campaignStrategyDraftTitleSet }}" placeholder="策略名称" style="width:100%;height:38px;box-sizing:border-box;font-family:inherit;font-size:12.5px;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:10px;padding:8px 11px;outline:none" /></label>
+                  <div style="min-width:0"><div style="font-size:11px;color:#647187;margin-bottom:4px">策略生成</div><div class="campaign-strategy-generate-group">
+                    <div class="campaign-strategy-generate-label">生成模式</div>
+                    <div class="campaign-strategy-mode-grid campaign-strategy-mode-grid-compact"><sc-for list="{{ campaignStrategyDraftModes }}" as="m" hint-placeholder-count="3"><div onClick="{{ m.pick }}" style="height:34px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid {{ m.bd }};background:{{ m.bg }};color:{{ m.fg }};border-radius:9px;padding:7px 9px;cursor:pointer;min-width:0"><span style="font-size:12.5px;font-weight:600;white-space:nowrap">{{ m.label }}</span><span style="font-size:11.5px;opacity:.85;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.note }}</span></div></sc-for></div>
+                    <div class="campaign-strategy-generate-divider"></div>
+                    <div onClick="{{ campaignStrategyGenerate }}" style="height:34px;box-sizing:border-box;display:flex;align-items:center;font-size:12.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:9px;padding:7px 14px;cursor:pointer;white-space:nowrap">{{ campaignStrategyGenerateLabel }}</div>
+                  </div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap"><div style="font-size:14px;font-weight:600">策略正文</div><div style="font-size:11.5px;color:#8792A5">章节结构与 Strategy Studio 保持一致</div></div>
+                <sc-if value="{{ campaignStrategyHasGenerateNotice }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:#4E7156;background:#E4EFE4;border:1px solid #CFE3D3;border-radius:10px;padding:8px 11px;margin:-3px 0 12px">✓ {{ campaignStrategyGenerateNotice }}</div></sc-if>
+                <sc-for list="{{ campaignStrategyDraftGroups }}" as="g" hint-placeholder-count="5">
+                  <div style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><div style="font-size:12.5px;font-weight:600">{{ g.title }}</div><div style="height:1px;background:#E2E8F2;flex:1"></div><div style="font-size:11.5px;color:#8792A5">{{ g.count }}</div></div>
+                    <div style="display:flex;flex-direction:column;gap:9px"><sc-for list="{{ g.items }}" as="sec" hint-placeholder-count="4">
+                      <div id="{{ sec.anchor }}" class="campaign-strategy-anchor" style="display:block;background:#FFFFFF;border:1px solid {{ sec.cardBd }};border-radius:13px;overflow:hidden">
+                        <div style="display:flex;align-items:center;gap:8px;padding:11px 13px;background:#F8FAFE;border-bottom:1px solid #EDF1F7;flex-wrap:wrap"><span style="width:22px;height:22px;flex:0 0 22px;border-radius:7px;background:{{ sec.numBg }};color:{{ sec.numFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{ sec.no }}</span><span style="font-size:13.5px;font-weight:600;flex:1 1 180px">{{ sec.title }}</span><span style="font-size:11px;border-radius:999px;padding:2px 9px;background:{{ sec.stateBg }};color:{{ sec.stateFg }};white-space:nowrap">{{ sec.stateText }}</span><span style="font-size:11px;color:#8792A5">{{ sec.ver }}</span></div>
+                        <div style="padding:12px 13px">
+                          <sc-if value="{{ sec.notEditing }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;line-height:1.75;color:#334155;text-wrap:pretty">{{ sec.body }}</div></sc-if>
+                          <sc-if value="{{ sec.editing }}" hint-placeholder-val="{{ false }}"><textarea value="{{ campaignStrategyDraftSectionDraft }}" onChange="{{ campaignStrategyDraftSectionDraftSet }}" rows="4" style="width:100%;box-sizing:border-box;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;color:#334155;background:#F8FAFE;border:1px solid #B8CBFF;border-radius:10px;padding:9px 11px;outline:none"></textarea></sc-if>
+                          <div style="display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;margin-top:10px">
+                            <sc-if value="{{ sec.notEditing }}" hint-placeholder-val="{{ true }}"><div onClick="{{ sec.startEdit }}" style="font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:{{ sec.editFg }};border-radius:999px;padding:5px 12px;cursor:{{ sec.editCursor }};white-space:nowrap">编辑</div></sc-if>
+                            <sc-if value="{{ sec.editing }}" hint-placeholder-val="{{ false }}"><div onClick="{{ sec.saveEdit }}" style="font-size:11.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap">保存</div><div onClick="{{ sec.cancelEdit }}" style="font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap">取消</div></sc-if>
+                            <div onClick="{{ sec.regen }}" style="font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:{{ sec.regenFg }};border-radius:999px;padding:5px 12px;cursor:{{ sec.regenCursor }};white-space:nowrap">重新生成</div>
+                            <div onClick="{{ sec.toggleLock }}" style="font-size:11.5px;border:1px solid {{ sec.lockBd }};background:{{ sec.lockBg }};color:{{ sec.lockFg }};border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap">{{ sec.lockLabel }}</div>
+                            <div onClick="{{ sec.toggleConfirm }}" style="font-size:11.5px;background:{{ sec.confirmBg }};color:{{ sec.confirmFg }};border:1px solid {{ sec.confirmBd }};border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap">{{ sec.confirmLabel }}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </sc-for></div>
+                  </div>
+                </sc-for>
+	                  </div>
+	                </div>
+	                </sc-if>
+	                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:13px"><div onClick="{{ campaignStrategyCancel }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 14px;cursor:pointer">取消</div><div onClick="{{ campaignStrategySave }}" style="font-size:12.5px;background:{{ campaignStrategySaveBg }};color:{{ campaignStrategySaveFg }};border:1px solid {{ campaignStrategySaveBd }};border-radius:999px;padding:7px 15px;cursor:{{ campaignStrategySaveCursor }}">保存为新版本</div></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ campaignStrategyHasNotice }}" hint-placeholder-val="{{ false }}"><div style="background:#E4EFE4;border:1px solid #CFE3D3;border-radius:12px;padding:9px 13px;color:#4E7156;font-size:12.5px;margin-bottom:14px">✓ {{ campaignStrategyNotice }}</div></sc-if>
+
+            <sc-if value="{{ campaignStrategyEmpty }}" hint-placeholder-val="{{ false }}">
+              <div class="campaign-strategy-empty">
+                <div class="campaign-strategy-empty-sticker"><span>✦</span><strong>S</strong></div>
+                <div style="font-size:16px;font-weight:600;color:#1D2638;margin-bottom:6px">还没有可用的 Campaign 策略</div>
+                <div style="max-width:430px;font-size:13px;line-height:1.7;color:#647187;text-wrap:pretty">当前 SKU 尚未维护策略版本。新建并生成策略后，你可以选择仅用于本次 Campaign，或同步保存到 Strategy Studio 版本库。</div>
+                <div onClick="{{ campaignStrategyNew }}" style="margin-top:15px;font-size:12.5px;color:#2457F5;background:#FFFFFF;border:1px solid #B8CBFF;border-radius:999px;padding:8px 15px;cursor:pointer">+ 新增策略</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ campaignStrategyConfirmModal }}" hint-placeholder-val="{{ false }}">
+              <div class="campaign-strategy-modal-layer" onClick="{{ campaignStrategyConfirmClose }}" style="position:fixed;inset:0;z-index:120;background:rgba(29,38,56,.32);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px">
+                <div onClick="{{ campaignStrategyConfirmKeep }}" style="width:min(480px,100%);background:#FFFFFF;border:1px solid #D9E1EF;border-radius:18px;box-shadow:0 24px 64px rgba(29,38,56,.2);padding:22px">
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:34px;height:34px;border-radius:11px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:17px">↗</div><div style="font-size:17px;font-weight:600;color:#1D2638">提交前保存这个新策略吗？</div></div>
+                  <div style="font-size:13.5px;line-height:1.75;color:#647187;margin-bottom:18px">这份策略尚未存入 Strategy Studio。建议保存为当前 SKU 的新版本，便于后续复用和追踪；你也可以仅用于本次 Campaign，直接提交审核。</div>
+                  <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap"><div onClick="{{ campaignStrategyConfirmClose }}" style="font-size:12.5px;color:#647187;border:1px solid #E2E8F2;border-radius:999px;padding:8px 14px;cursor:pointer">返回编辑</div><div onClick="{{ campaignStrategyConfirmDirect }}" style="font-size:12.5px;color:#2457F5;border:1px solid #C8D4E8;background:#FFFFFF;border-radius:999px;padding:8px 14px;cursor:pointer">仅本次使用并提交</div><div onClick="{{ campaignStrategyConfirmSave }}" style="font-size:12.5px;color:#FFFFFF;border:1px solid #2457F5;background:#2457F5;border-radius:999px;padding:8px 15px;cursor:pointer">保存为新版本并提交</div></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ campaignStrategyHasDocument }}" hint-placeholder-val="{{ true }}">
+              <div class="campaign-strategy-layout campaign-strategy-read-layout">
+                <aside class="campaign-strategy-toc">
+                  <div class="campaign-strategy-toc-title">策略目录</div>
+                  <sc-for list="{{ campaignStrategyToc }}" as="t" hint-placeholder-count="15"><div onClick="{{ t.pick }}" class="campaign-strategy-toc-item"><span>{{ t.no }}</span><span>{{ t.title }}</span></div></sc-for>
+                </aside>
+                <div class="campaign-strategy-main">
+              <sc-for list="{{ campaignStrategyGroups }}" as="g" hint-placeholder-count="5">
+                <div style="margin-bottom:18px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;padding:0 2px"><div style="font-size:13px;font-weight:600">{{ g.title }}</div><div style="height:1px;background:#E2E8F2;flex:1"></div><div style="font-size:12px;color:#8792A5">{{ g.count }}</div></div>
+                  <div style="display:flex;flex-direction:column;gap:10px"><sc-for list="{{ g.items }}" as="sec" hint-placeholder-count="4">
+                    <div id="{{ sec.anchor }}" class="campaign-strategy-anchor" style="background:#FFFFFF;border:1px solid {{ sec.cardBd }};border-radius:16px;overflow:hidden">
+                      <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#F8FAFE;border-bottom:1px solid #EDF1F7;flex-wrap:wrap"><span style="width:24px;height:24px;flex:0 0 24px;border-radius:8px;background:{{ sec.numBg }};color:{{ sec.numFg }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">{{ sec.no }}</span><div style="font-size:14.5px;font-weight:600;flex:1 1 180px">{{ sec.title }}</div><span style="font-size:11.5px;border-radius:999px;padding:2px 10px;background:{{ sec.stateBg }};color:{{ sec.stateFg }};white-space:nowrap">{{ sec.stateText }}</span><span style="font-size:11.5px;color:#8792A5">{{ sec.ver }}</span></div>
+                      <div style="padding:15px 16px">
+                        <div style="font-size:14px;line-height:1.8;color:#334155;text-wrap:pretty">{{ sec.body }}</div>
+                        <sc-if value="{{ sec.hasSrc }}" hint-placeholder-val="{{ true }}"><div style="font-size:11.5px;color:#1D48D8;margin-top:12px">来源 {{ sec.src }}</div></sc-if>
+                      </div>
+                    </div>
+                  </sc-for></div>
+                </div>
+              </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ campaignTabBrief }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin:-4px 2px 14px;padding:0;background:transparent"><div onClick="{{ campaignBriefJumpEdit }}" title="前往 Brief Studio 编辑当前 Brief" aria-label="前往 Brief Studio 编辑当前 Brief" style="font-size:12px;background:#FFFFFF;color:#2457F5;border:1px solid #B8CBFF;border-radius:9px;padding:7px 12px;cursor:pointer;white-space:nowrap">跳转编辑</div></div>
+            <sc-if value="{{ campaignBriefHasNotice }}" hint-placeholder-val="{{ false }}"><div style="background:{{ campaignBriefNoticeBg }};border:1px solid {{ campaignBriefNoticeBd }};border-radius:12px;padding:9px 13px;color:{{ campaignBriefNoticeFg }};font-size:12.5px;margin-bottom:14px">{{ campaignBriefNoticeMark }} {{ campaignBriefNotice }}</div></sc-if>
+            <div style="display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.65fr);gap:14px;align-items:stretch">
+              <div style="min-width:0;display:flex">
+                <div style="height:720px;box-sizing:border-box;flex:1;min-width:0;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+                  <div style="min-height:34px;padding:10px 12px;border-bottom:1px solid #EDF1F7;background:#F8FAFE;display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                    <sc-for list="{{ campaignBriefTabs }}" as="t" hint-placeholder-count="2"><div onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap"><span>{{ t.label }}</span><span style="font-size:10.5px;background:{{ t.countBg }};color:{{ t.countFg }};border-radius:999px;padding:1px 6px">{{ t.count }}</span></div></sc-for>
+                  </div>
+                  <div style="flex:1;min-height:0;padding:7px;display:flex;flex-direction:column;gap:5px;overflow:auto">
+                    <sc-if value="{{ campaignBriefListEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#A2ABBA;background:#F8FAFE;border:1px dashed #D9E1EF;border-radius:10px;padding:18px 12px;text-align:center">{{ campaignBriefListEmptyText }}</div></sc-if>
+                      <sc-for list="{{ campaignBriefVisibleRows }}" as="b" hint-placeholder-count="4">
+                        <div onClick="{{ b.select }}" style="background:{{ b.rowBg }};border:1px solid {{ b.rowBd }};border-radius:11px;padding:10px;cursor:{{ b.cursor }};box-shadow:{{ b.shadow }}">
+                          <div style="display:flex;gap:9px;align-items:flex-start"><span style="width:30px;height:30px;flex:0 0 30px;border-radius:8px;background:{{ b.iconBg }};color:{{ b.iconFg }};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600">{{ b.channelShort }}</span>
+                          <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;color:{{ b.titleFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.title }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.meta }}</div><div style="font-size:10.5px;color:{{ b.viewFg }};margin-top:6px">{{ b.viewLabel }}</div></div></div>
+                        </div>
+                      </sc-for>
+                  </div>
+                </div>
+              </div>
+              <div style="min-width:0;display:flex">
+                <sc-if value="{{ campaignBriefHasDetail }}" hint-placeholder-val="{{ true }}">
+                  <div style="height:720px;box-sizing:border-box;flex:1;min-width:0;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+                    <div style="padding:14px 17px;border-bottom:1px solid #EDF1F7;background:#F8FAFE;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="width:34px;height:34px;border-radius:9px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{ campaignBriefDetailChannelShort }}</span><div style="flex:1;min-width:220px"><div style="font-size:15px;font-weight:600;color:#1D2638">{{ campaignBriefDetailTitle }}</div><div style="font-size:11.5px;color:#8792A5;margin-top:2px">{{ campaignBriefDetailMeta }}</div></div></div>
+                    <div style="flex:1;min-height:0;display:grid;grid-template-columns:{{ campaignBriefBodyCols }};overflow:hidden">
+                      <div style="min-width:0;padding:18px 20px;display:flex;flex-direction:column;gap:18px;overflow:auto">
+                        <sc-for list="{{ campaignBriefDetailSections }}" as="sec" hint-placeholder-count="7">
+                          <div><div style="font-size:11.5px;font-weight:600;color:#647187;letter-spacing:.02em;margin-bottom:7px">{{ sec.label }}</div><sc-if value="{{ sec.isText }}" hint-placeholder-val="{{ true }}"><div style="font-size:14px;line-height:1.75;color:#334155;text-wrap:pretty">{{ sec.body }}</div></sc-if><sc-if value="{{ sec.isList }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:6px"><sc-for list="{{ sec.items }}" as="item" hint-placeholder-count="3"><div style="display:flex;gap:8px;font-size:14px;line-height:1.65;color:#334155"><span style="color:{{ sec.dot }};flex:0 0 auto">{{ sec.mark }}</span><span style="text-wrap:pretty">{{ item }}</span></div></sc-for></div></sc-if></div>
+                        </sc-for>
+                        <div style="border-top:1px dashed #DCE3EF;padding-top:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"><sc-for list="{{ campaignBriefDetailFoot }}" as="m" hint-placeholder-count="4"><div><div style="font-size:10.5px;color:#8792A5;margin-bottom:3px">{{ m.label }}</div><div style="font-size:12.5px;color:#334155">{{ m.value }}</div></div></sc-for></div>
+                      </div>
+                      <sc-if value="{{ campaignBriefConfigOpen }}" hint-placeholder-val="{{ false }}">
+                        <aside style="min-width:0;border-left:1px solid #E2E8F2;background:#FBFCFF;padding:14px;overflow:auto;display:flex;flex-direction:column;gap:12px">
+                          <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:13px;padding:13px">
+                            <div style="font-size:14px;font-weight:600;color:#1D2638">调整这份 Brief</div>
+                            <div style="font-size:11px;color:#8792A5;margin:3px 0 9px">补充要求会写进下一次生成 · 当前第 {{ campaignBriefConfigIteration }} 次</div>
+                            <textarea value="{{ campaignBriefAdjustDraft }}" onChange="{{ campaignBriefAdjustDraftSet }}" rows="4" placeholder="例：语气更口语一些；强调可以带去办公室；不要提价格" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:12.5px;line-height:1.65;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:10px;padding:9px 10px;outline:none;resize:vertical"></textarea>
+                            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px"><div onClick="{{ campaignBriefRegenerate }}" style="text-align:center;font-size:11.5px;background:#2457F5;color:#FFFFFF;border-radius:8px;padding:7px 8px;cursor:pointer">重新生成 Brief</div><div onClick="{{ campaignBriefSaveVersion }}" style="text-align:center;font-size:11.5px;background:#2457F5;color:#FFFFFF;border-radius:8px;padding:7px 8px;cursor:pointer">{{ campaignBriefSaveLabel }}</div></div>
+                          </div>
+                          <div style="background:#F1F5FF;border:1px solid #D9E4FF;border-radius:13px;padding:13px">
+                            <div style="font-size:13px;font-weight:600;color:#1D48D8;margin-bottom:9px">AI 建议 · {{ campaignBriefSuggestionCount }} 条待处理</div>
+                            <div style="display:flex;flex-direction:column;gap:8px"><sc-for list="{{ campaignBriefSuggestions }}" as="sg" hint-placeholder-count="3"><div style="background:#FFFFFF;border:1px solid #D9E4FF;border-radius:9px;padding:10px"><div style="font-size:12.5px;font-weight:600;color:#1D2638">{{ sg.title }}</div><div style="font-size:11.5px;line-height:1.55;color:#647187;margin-top:3px">{{ sg.body }}</div><div style="display:flex;align-items:center;gap:6px;margin-top:8px"><div onClick="{{ sg.apply }}" style="font-size:10.5px;background:{{ sg.actionBg }};color:{{ sg.actionFg }};border-radius:999px;padding:4px 9px;cursor:{{ sg.cursor }}">{{ sg.actionLabel }}</div><div onClick="{{ sg.ignore }}" style="font-size:10.5px;border:1px solid #E2E8F2;color:#647187;border-radius:999px;padding:3px 9px;cursor:{{ sg.cursor }}">{{ sg.ignoreLabel }}</div><span style="flex:1"></span><span style="font-size:10px;color:#9A8253">{{ sg.source }}</span></div></div></sc-for></div>
+                          </div>
+                          <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:13px;padding:13px">
+                            <div style="font-size:13px;font-weight:600;color:#1D2638;margin-bottom:9px">审批清单</div>
+                            <div style="display:flex;flex-direction:column;gap:8px"><sc-for list="{{ campaignBriefConfigChecklist }}" as="ck" hint-placeholder-count="4"><div onClick="{{ ck.toggle }}" style="display:flex;align-items:center;gap:8px;cursor:pointer"><span style="width:15px;height:15px;border-radius:5px;background:{{ ck.bg }};border:1px solid {{ ck.bd }};color:#FFFFFF;font-size:9px;display:flex;align-items:center;justify-content:center;flex:0 0 15px">{{ ck.mark }}</span><span style="font-size:11.5px;color:{{ ck.fg }}">{{ ck.label }}</span></div></sc-for></div>
+                          </div>
+                        </aside>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ campaignBriefDetailEmpty }}" hint-placeholder-val="{{ false }}"><div style="height:720px;box-sizing:border-box;flex:1;background:#FFFFFF;border:1px dashed #C8D4E8;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px"><div style="width:42px;height:42px;border-radius:12px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:10px">B</div><div style="font-size:14px;font-weight:600;color:#334155">还没有 Brief</div><div style="font-size:12px;color:#8792A5;margin-top:4px">选择渠道与红人范围并生成后，具体内容会直接显示在这里</div></div></sc-if>
+              </div>
+            </div>
+          </sc-if>
+
+	          <sc-if value="{{ campaignTabEmail }}" hint-placeholder-val="{{ false }}">
+	            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #EDF1F7;background:#F8FAFE;flex-wrap:wrap">
+                <div style="font-size:14px;font-weight:600;color:#1D2638;white-space:nowrap">已发送邮件</div>
+                <div id="campaignEmailIntentSummary" style="font-size:11.5px;color:#8792A5;white-space:nowrap">AI 自动分析合作意向</div>
+                <div style="flex:1"></div>
+                <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#8792A5;white-space:nowrap">合作意向<select id="campaignEmailIntentFilter" style="font:inherit;color:#334155;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:9px;padding:6px 28px 6px 9px;outline:none"><option value="all">全部</option><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select></label>
+                <button id="campaignEmailSelectHigh" type="button" style="font:600 12px/1.6 Inter,'PingFang SC',sans-serif;background:#FFFFFF;color:#2457F5;border:1px solid #B8CBFF;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap">批量选择高意向</button>
+                <div onClick="{{ campaignEmailCoopOpen }}" style="font-size:12.5px;font-weight:600;background:{{ campaignEmailCoopButtonBg }};color:{{ campaignEmailCoopButtonFg }};border:1px solid {{ campaignEmailCoopButtonBd }};border-radius:999px;padding:7px 14px;cursor:{{ campaignEmailCoopButtonCursor }};white-space:nowrap;box-shadow:{{ campaignEmailCoopButtonShadow }}">{{ campaignEmailCoopButtonLabel }}</div>
+              </div>
+              <div style="overflow-x:auto">
+                <div style="min-width:920px">
+                  <div style="display:grid;grid-template-columns:32px 42px minmax(320px,1fr) 135px 145px 90px 90px;align-items:center;gap:10px;padding:9px 16px;background:#FBFCFF;border-bottom:1px solid #EEF2F8;font-size:11px;font-weight:600;color:#8792A5"><span>选择</span><span></span><span>红人与邮件主题</span><span>发送时间</span><span>合作意向（AI）</span><span>邮件状态</span><span>合作状态</span></div>
+	                <sc-for list="{{ campaignSentEmails }}" as="m" hint-placeholder-count="4">
+	                  <div class="campaign-sent-email-row" data-email-handle="{{ m.handle }}" onClick="{{ m.open }}" style="display:grid;grid-template-columns:32px 42px minmax(320px,1fr) 135px 145px 90px 90px;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid #EEF2F8;cursor:pointer" style-hover="background:#F8FAFE"><div role="checkbox" class="campaign-email-select" onClick="{{ m.toggleSelect }}" title="{{ m.selectTitle }}" aria-label="{{ m.selectTitle }}" aria-checked="{{ m.selectMark }}" style="background:{{ m.selectBg }};cursor:{{ m.selectCursor }}">{{ m.selectMark }}</div><div style="width:32px;height:32px;border-radius:999px;background:#F5F8FE;display:flex;align-items:center;justify-content:center;font-size:12px;color:#647187">{{ m.initial }}</div><div style="min-width:0"><div style="font-size:13.5px;font-weight:500;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.handle }} · {{ m.subject }}</div><div style="font-size:11.5px;color:#8792A5;margin-top:2px">点击打开当前已发送邮件</div></div><span style="font-size:11.5px;color:#647187">{{ m.when }}</span><span class="campaign-email-intent"></span><span style="font-size:11.5px;border-radius:999px;padding:3px 10px;background:{{ m.bg }};color:{{ m.fg }};justify-self:start">{{ m.status }}</span><span class="campaign-email-coop-status" style="border:1px solid {{ m.coopBd }};background:{{ m.coopBg }};color:{{ m.coopFg }};font-weight:{{ m.coopWeight }}">{{ m.coopLabel }}</span></div>
+	                </sc-for>
+                <sc-if value="{{ campaignSentEmailsEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:28px;text-align:center;color:#8792A5;font-size:13px">暂无已发送邮件。待发送邮件确认后会进入这里，并可打开邮件往来弹窗。</div></sc-if>
+                </div>
+              </div>
+            </div>
+            <sc-if value="{{ campaignEmailCoopPickerOpen }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ campaignEmailCoopClose }}" style="position:fixed;inset:0;z-index:132;background:rgba(29,38,56,.28);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px">
+                <div onClick="{{ campaignEmailCoopKeep }}" style="width:min(460px,100%);max-height:min(620px,calc(100vh - 40px));background:#FFFFFF;border:1px solid #D9E1EF;border-radius:18px;box-shadow:0 24px 64px rgba(29,38,56,.2);overflow:hidden;display:flex;flex-direction:column">
+                  <div style="padding:18px 20px 14px;border-bottom:1px solid #EDF1F7;display:flex;align-items:flex-start;gap:12px"><div style="width:36px;height:36px;border-radius:11px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 36px">✓</div><div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:600;color:#1D2638">确认达成合作</div><div style="font-size:12px;color:#8792A5;margin-top:3px">选择已确认合作意向的红人，可一次选择多位</div></div><div onClick="{{ campaignEmailCoopClose }}" style="font-size:19px;color:#8792A5;cursor:pointer;line-height:1">×</div></div>
+                  <div style="padding:10px;overflow:auto;display:flex;flex-direction:column;gap:6px">
+                    <sc-for list="{{ campaignEmailCoopCandidates }}" as="c" hint-placeholder-count="4">
+                      <div onClick="{{ c.toggle }}" style="display:flex;align-items:center;gap:10px;border:1px solid {{ c.bd }};background:{{ c.bg }};border-radius:12px;padding:10px 11px;cursor:{{ c.cursor }}"><span style="width:30px;height:30px;border-radius:999px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:0 0 30px">{{ c.initial }}</span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#1D2638">{{ c.handle }}</div><div style="font-size:11px;color:#8792A5;margin-top:2px">{{ c.meta }}</div></div><span style="width:19px;height:19px;border-radius:6px;background:{{ c.checkBg }};border:1px solid {{ c.checkBd }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:11px;flex:0 0 19px">{{ c.mark }}</span></div>
+                    </sc-for>
+                    <sc-if value="{{ campaignEmailCoopCandidatesEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:24px;text-align:center;font-size:12.5px;color:#8792A5">当前邮件列表暂无可选择的红人</div></sc-if>
+                  </div>
+                  <div style="padding:13px 16px;border-top:1px solid #EDF1F7;background:#FBFCFF;display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#8792A5;flex:1">已选择 {{ campaignEmailCoopSelectedCount }} 位</span><div onClick="{{ campaignEmailCoopClose }}" style="font-size:12.5px;color:#647187;border:1px solid #E2E8F2;background:#FFFFFF;border-radius:999px;padding:7px 14px;cursor:pointer">取消</div><div onClick="{{ campaignEmailCoopConfirm }}" style="font-size:12.5px;color:{{ campaignEmailCoopConfirmFg }};border:1px solid {{ campaignEmailCoopConfirmBd }};background:{{ campaignEmailCoopConfirmBg }};border-radius:999px;padding:7px 15px;cursor:{{ campaignEmailCoopConfirmCursor }}">确认达成合作</div></div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ mailThread }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ campaignMailThreadClose }}" style="position:fixed;inset:0;z-index:310;background:rgba(20,29,46,.52);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;backdrop-filter:blur(1px)">
+                <section onClick="{{ coopActionKeep }}" role="dialog" aria-modal="true" aria-label="回复邮件" style="width:min(1560px,calc(100vw - 28px));height:min(940px,calc(100vh - 28px));background:#FFFFFF;border:1px solid #D8E0ED;border-radius:22px;box-shadow:0 32px 96px rgba(20,29,46,.32);overflow:hidden;display:flex;flex-direction:column;color:#1D2638;animation:fadeUp .18s ease both">
+                  <header style="height:58px;flex:0 0 58px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid #E2E8F2;box-sizing:border-box">
+                    <div style="font-size:17px;font-weight:600;letter-spacing:-.01em">回复邮件</div>
+                    <div style="font-size:11.5px;color:#647187;background:#F1F4F9;border-radius:999px;padding:3px 9px">1 位红人</div>
+                    <div style="flex:1"></div>
+                    <div style="border:1px solid #C8D6FF;background:#F5F8FF;color:#2457F5;border-radius:9px;padding:7px 12px;font-size:11.5px;white-space:nowrap">批量设置 Campaign</div>
+                    <div onClick="{{ campaignMailThreadClose }}" aria-label="关闭" title="关闭" style="width:34px;height:34px;flex:0 0 34px;border:0;border-radius:50%;background:#F5F8FE;color:#647187;font-size:20px;line-height:34px;text-align:center;cursor:pointer">×</div>
+                  </header>
+                  <nav style="flex:0 0 auto;display:flex;gap:7px;padding:9px 20px;border-bottom:1px solid #E2E8F2;background:#F8FAFE;overflow-x:auto">
+                    <div style="display:flex;align-items:center;gap:7px;flex:0 0 auto;border:1px solid #2457F5;background:#EAF0FF;color:#1D48D8;border-radius:10px;padding:6px 11px;font-size:12px"><span style="width:6px;height:6px;border-radius:50%;background:#C9D2E1"></span>{{ ct.handle }}</div>
+                  </nav>
+                  <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(300px,29%) minmax(0,71%)">
+                    <aside style="min-width:0;border-right:1px solid #E2E8F2;background:#F8FAFE;display:flex;flex-direction:column">
+                      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #E2E8F2;background:#FFFFFF">
+                        <div style="width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#EAF0FF;color:#2457F5;font-size:13px;font-weight:700">{{ ct.initial }}</div>
+                        <div style="min-width:0;flex:1"><div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ct.handle }}</div><div style="font-size:11px;color:#8792A5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ct.platform }} · 全部往来记录</div></div>
+                        <div style="font-size:11px;color:#647187;white-space:nowrap">{{ campaignMailThreadCount }} 封</div>
+                      </div>
+                      <div style="flex:1;overflow-y:auto;background:#FBFCFE;display:flex;flex-direction:column">
+                        <div style="padding:12px 16px;border-bottom:1px solid #E2E8F2;background:#FBFCFE;font-size:12px;font-weight:600;color:#647187">邮件往来目录</div>
+                        <sc-for list="{{ threadItems }}" as="m" hint-placeholder-count="5">
+                          <button type="button" onClick="{{ m.toggle }}" style="width:100%;padding:13px 16px;border:0;border-bottom:1px solid #E7ECF3;background:{{ m.contactRowBg }};box-shadow:{{ m.contactRowShadow }};text-align:left;font-family:inherit;cursor:pointer">
+                            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span style="flex:0 0 auto;font-size:10.5px;border-radius:999px;padding:2px 8px;background:{{ m.tagBg }};color:{{ m.tagFg }};white-space:nowrap">{{ m.who }}</span><span style="flex:1;min-width:0;font-size:11px;color:#A2ABBA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.sender }}</span><span style="display:inline-flex;align-items:center;max-width:150px;border:1px solid #D8E3FF;background:#F2F6FF;color:#5570B8;border-radius:999px;padding:2px 7px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Campaign {{ cd.name }}</span><span style="flex:0 0 auto;font-size:10.5px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ m.date }}</span></div>
+                            <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><sc-if value="{{ m.unread }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:#C4636D"></span></sc-if><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.subject }}</span></div>
+                            <div style="margin-top:5px;font-size:11.5px;color:#8792A5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.text }}</div>
+                          </button>
+                        </sc-for>
+                      </div>
+                    </aside>
+                    <section style="min-width:0;display:flex;flex-direction:column;background:#F7F9FD">
+                      <sc-for list="{{ threadItems }}" as="m" hint-placeholder-count="5">
+                        <sc-if value="{{ m.expanded }}" hint-placeholder-val="{{ true }}">
+                          <div style="display:flex;align-items:center;gap:10px;padding:15px 22px;border-bottom:1px solid #E2E8F2;background:#FFFFFF"><span style="font-size:12px;font-weight:600;color:#647187">历史邮件详情</span><span style="display:inline-flex;align-items:center;border:1px solid #D8E3FF;background:#F2F6FF;color:#5570B8;border-radius:999px;padding:2px 7px;font-size:10px">Campaign {{ cd.name }}</span><span style="font-size:11px;color:#A2ABBA">{{ m.date }}</span><button type="button" onClick="{{ campaignMailThreadReply }}" style="margin-left:auto;border:1px solid #2457F5;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:6px 12px;font-family:inherit;font-size:11.5px;cursor:pointer">回复此邮件</button></div>
+                          <div style="margin:18px 22px;padding:26px 30px;border:1px solid #E2E8F2;border-radius:14px;background:#FFFFFF;box-shadow:0 5px 18px rgba(37,61,105,.05)">
+                            <div style="font-size:18px;font-weight:600;color:#1D2638;margin-bottom:18px">{{ m.subject }}</div>
+                            <div style="display:grid;grid-template-columns:58px minmax(0,1fr);gap:9px 12px;padding-bottom:18px;border-bottom:1px solid #EEF2F8;font-size:12px"><span style="color:#8792A5">Campaign</span><span style="color:#465268">{{ cd.name }}</span><span style="color:#8792A5">发件人</span><span style="color:#465268">{{ m.sender }}</span><span style="color:#8792A5">收件人</span><span style="color:#465268">{{ m.recipient }}</span></div>
+                            <div style="margin:0;padding-top:22px;white-space:pre-wrap;color:#283246;font-size:13px;line-height:1.8">{{ m.text }}</div>
+                          </div>
+                        </sc-if>
+                      </sc-for>
+                    </section>
+                  </div>
+                </section>
+              </div>
+            </sc-if>
+            <sc-if value="{{ campaignEmailDrawerOpen }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ campaignEmailDrawerClose }}" style="position:fixed;inset:0;z-index:130;background:rgba(29,38,56,.26);display:flex;justify-content:flex-end">
+                <div class="campaign-email-drawer" onClick="{{ campaignEmailDrawerKeep }}" style="width:min(1380px,82vw);max-width:100%;height:100%;background:#FFFFFF;box-shadow:-18px 0 46px rgba(29,38,56,.18);display:flex;flex-direction:column">
+                  <div style="padding:18px 20px;border-bottom:1px solid #EDF1F7;display:flex;align-items:flex-start;gap:12px">
+                    <div style="width:36px;height:36px;border-radius:999px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 36px">{{ campaignEmailDrawerInitial }}</div>
+                    <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ campaignEmailDrawerTitle }}</div><div style="font-size:12px;color:#8792A5;margin-top:2px">{{ campaignEmailDrawerMeta }}</div></div>
+                    <div onClick="{{ campaignEmailDrawerClose }}" style="font-size:18px;color:#8792A5;cursor:pointer;line-height:1">×</div>
+                  </div>
+                  <div style="flex:1;min-height:0;overflow:hidden;display:grid;grid-template-columns:minmax(240px,290px) minmax(0,1fr);background:#F8FAFE">
+                    <aside style="min-width:0;min-height:0;overflow-y:auto;border-right:1px solid #E2E8F2;background:#FFFFFF">
+                      <div style="position:sticky;top:0;z-index:2;padding:15px 16px 12px;background:#FFFFFF;border-bottom:1px solid #EDF1F7">
+                        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:600;color:#1D2638;flex:1;min-width:0">历史邮件往来</span><span style="font-size:11px;color:#8792A5;background:#F1F4F8;border-radius:999px;padding:2px 8px">{{ campaignEmailHistoryCount }}</span></div>
+                        <div style="font-size:11.5px;color:#8792A5;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">与 {{ campaignEmailDrawerTitle }} 的全部沟通</div>
+                      </div>
+                      <div style="padding:8px">
+                        <sc-for list="{{ campaignEmailHistoryItems }}" as="h" hint-placeholder-count="3">
+                          <div style="border:1px solid {{ h.bd }};background:{{ h.bg }};border-radius:11px;padding:10px 11px;margin-bottom:4px">
+                            <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span style="flex:1;min-width:0;font-size:12.5px;font-weight:{{ h.fw }};color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.subject }}</span><span style="font-size:10.5px;color:{{ h.dirFg }};white-space:nowrap">{{ h.direction }}</span></div>
+                            <div style="font-size:11.5px;line-height:1.45;color:#647187;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ h.preview }}</div>
+                            <div style="font-size:10.5px;color:#A2ABBA;margin-top:6px;font-variant-numeric:tabular-nums">{{ h.when }}</div>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </aside>
+                    <div style="min-width:0;min-height:0;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+                      <div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:14px;font-weight:600;color:#1D2638">{{ campaignEmailDrawerContentTitle }}</div><div style="font-size:11.5px;color:#8792A5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ campaignEmailDrawerSubject }}</div></div>
+                    <sc-if value="{{ campaignEmailDrawerPending }}" hint-placeholder-val="{{ true }}">
+                      <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;overflow:hidden">
+                        <div style="display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;border-bottom:1px solid #EEF2F8">
+                          <div style="font-size:11.5px;color:#8792A5;padding:10px 14px">收件人</div>
+                          <input value="{{ campaignEmailDrawerTo }}" onChange="{{ campaignEmailSetTo }}" style="width:100%;border:0;outline:none;font-family:inherit;font-size:13px;color:#1D2638;padding:10px 14px;background:#FFFFFF" />
+                        </div>
+                        <div style="display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;border-bottom:1px solid #EEF2F8">
+                          <div style="font-size:11.5px;color:#8792A5;padding:10px 14px">抄送</div>
+                          <input value="{{ campaignEmailDrawerCc }}" onChange="{{ campaignEmailSetCc }}" placeholder="添加抄送人" style="width:100%;border:0;outline:none;font-family:inherit;font-size:13px;color:#1D2638;padding:10px 14px;background:#FFFFFF" />
+                        </div>
+                        <div style="display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;border-bottom:1px solid #EEF2F8">
+                          <div style="font-size:11.5px;color:#8792A5;padding:10px 14px">密送</div>
+                          <input value="{{ campaignEmailDrawerBcc }}" onChange="{{ campaignEmailSetBcc }}" placeholder="添加密送人" style="width:100%;border:0;outline:none;font-family:inherit;font-size:13px;color:#1D2638;padding:10px 14px;background:#FFFFFF" />
+                        </div>
+                        <div style="display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;border-bottom:1px solid #EEF2F8">
+                          <div style="font-size:11.5px;color:#8792A5;padding:10px 14px">主题</div>
+                          <input value="{{ campaignEmailDrawerSubject }}" onChange="{{ campaignEmailSetSubject }}" style="width:100%;border:0;outline:none;font-family:inherit;font-size:13px;font-weight:600;color:#1D2638;padding:10px 14px;background:#FFFFFF" />
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #EEF2F8;background:#F8FAFE;flex-wrap:wrap">
+                          <sc-for list="{{ campaignEmailToolbar }}" as="tb" hint-placeholder-count="9"><div onClick="{{ tb.click }}" title="{{ tb.title }}" aria-label="{{ tb.title }}" style="min-width:30px;height:28px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;padding:0 8px;cursor:pointer;white-space:nowrap">{{ tb.label }}</div></sc-for>
+                          <span style="flex:1"></span>
+                          <sc-for list="{{ campaignEmailInsertChips }}" as="chip" hint-placeholder-count="3"><div onClick="{{ chip.click }}" style="font-size:11.5px;border:1px solid #D9E4FF;background:#FFFFFF;color:#2457F5;border-radius:999px;padding:4px 9px;cursor:pointer;white-space:nowrap">{{ chip.label }}</div></sc-for>
+                        </div>
+                        <textarea value="{{ campaignEmailDrawerBody }}" onChange="{{ campaignEmailSetBody }}" rows="16" style="width:100%;box-sizing:border-box;border:0;outline:none;resize:vertical;font-family:inherit;font-size:13.5px;line-height:1.75;color:#334155;padding:16px 18px;background:#FFFFFF;min-height:330px"></textarea>
+                        <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid #EEF2F8;background:#FBFCFF;flex-wrap:wrap">
+                          <sc-for list="{{ campaignEmailAttachments }}" as="a" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:7px;border:1px solid #E2E8F2;background:#FFFFFF;border-radius:999px;padding:5px 10px;font-size:11.5px;color:#647187;white-space:nowrap"><span>{{ a.icon }}</span><span>{{ a.name }}</span></div></sc-for>
+                          <span style="flex:1"></span>
+                          <sc-for list="{{ campaignEmailSendOptions }}" as="o" hint-placeholder-count="3"><div onClick="{{ o.click }}" style="font-size:11.5px;border:1px solid {{ o.bd }};background:{{ o.bg }};color:{{ o.fg }};border-radius:999px;padding:5px 10px;cursor:pointer;white-space:nowrap">{{ o.label }}</div></sc-for>
+                        </div>
+                      </div>
+                      <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:14px">
+                        <div style="font-size:13px;font-weight:600;color:#1D2638;margin-bottom:9px">发送前检查</div>
+                        <sc-for list="{{ campaignEmailDrawerChecks }}" as="c" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:8px;padding:5px 0"><span style="width:15px;height:15px;border-radius:5px;background:#6E9778;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:9px;flex:0 0 15px">✓</span><span style="font-size:12.5px;color:#647187">{{ c }}</span></div></sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ campaignEmailDrawerSent }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-direction:column;gap:10px">
+                        <sc-for list="{{ campaignEmailDrawerThread }}" as="m" hint-placeholder-count="4">
+                          <div style="background:{{ m.bg }};border:1px solid {{ m.bd }};border-radius:14px;padding:13px 14px">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:12px;font-weight:600;color:#1D2638">{{ m.who }}</span><span style="flex:1"></span><span style="font-size:11px;color:#8792A5">{{ m.date }}</span></div>
+                            <div style="font-size:13px;line-height:1.75;color:#334155;white-space:pre-line;text-wrap:pretty">{{ m.text }}</div>
+                          </div>
+                        </sc-for>
+                        <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;overflow:hidden">
+                          <div style="display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;border-bottom:1px solid #EEF2F8">
+                            <div style="font-size:11.5px;color:#8792A5;padding:10px 14px">回复给</div>
+                            <input value="{{ campaignEmailReplyTo }}" style="width:100%;border:0;outline:none;font-family:inherit;font-size:13px;color:#1D2638;padding:10px 14px;background:#FFFFFF" />
+                          </div>
+                          <div style="display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;border-bottom:1px solid #EEF2F8">
+                            <div style="font-size:11.5px;color:#8792A5;padding:10px 14px">主题</div>
+                            <input value="{{ campaignEmailReplySubject }}" style="width:100%;border:0;outline:none;font-family:inherit;font-size:13px;font-weight:600;color:#1D2638;padding:10px 14px;background:#FFFFFF" />
+                          </div>
+                          <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #EEF2F8;background:#F8FAFE;flex-wrap:wrap">
+                            <sc-for list="{{ campaignEmailReplyToolbar }}" as="tb" hint-placeholder-count="7"><div onClick="{{ tb.click }}" title="{{ tb.title }}" aria-label="{{ tb.title }}" style="min-width:30px;height:28px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;padding:0 8px;cursor:pointer;white-space:nowrap">{{ tb.label }}</div></sc-for>
+                          </div>
+                          <div style="padding:12px;border-bottom:1px solid #EEF2F8;background:#FBFCFF">
+                            <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+                              <div style="width:32px;height:32px;border-radius:9px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 32px">▤</div>
+                              <div style="flex:1 1 280px;min-width:0"><div style="font-size:12.5px;font-weight:600;color:#1D2638">合同附件</div><div style="font-size:11px;color:#8792A5;margin-top:2px">模板同步自 Contract Mgt；选择后 AI 自动带入红人、产品与合作条件。</div></div>
+                              <div style="position:relative;flex:0 1 340px;min-width:250px">
+                                <div onClick="{{ campaignEmailContractToggle }}" style="height:34px;box-sizing:border-box;border:1px solid {{ campaignEmailContractSelectBd }};background:#FFFFFF;border-radius:9px;padding:0 11px;display:flex;align-items:center;gap:8px;cursor:pointer"><span style="flex:1;min-width:0;font-size:12px;color:{{ campaignEmailContractSelectFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ campaignEmailContractSelectLabel }}</span><span style="font-size:10px;color:#8792A5">⌄</span></div>
+                                <sc-if value="{{ campaignEmailContractMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ campaignEmailContractKeep }}" style="position:absolute;right:0;top:39px;z-index:12;width:min(390px,calc(100vw - 48px));max-height:260px;overflow:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:12px;box-shadow:0 14px 36px rgba(29,38,56,.16);padding:6px"><sc-for list="{{ campaignEmailContractTemplates }}" as="t" hint-placeholder-count="6"><div onClick="{{ t.pick }}" style="padding:9px 10px;border-radius:8px;background:{{ t.bg }};cursor:pointer;margin-bottom:2px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:600;color:#1D2638;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.name }}</span><span style="font-size:10px;color:{{ t.tagFg }};background:{{ t.tagBg }};border-radius:999px;padding:2px 7px;white-space:nowrap">{{ t.deal }}</span></div><div style="font-size:10.5px;color:#8792A5;margin-top:3px">{{ t.meta }}</div></div></sc-for></div></sc-if>
+                              </div>
+                            </div>
+                            <sc-if value="{{ campaignEmailContractGenerated }}" hint-placeholder-val="{{ false }}"><div style="margin-top:10px;border:1px solid {{ campaignEmailContractCardBd }};background:{{ campaignEmailContractCardBg }};border-radius:10px;padding:9px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div style="width:28px;height:34px;border-radius:6px;background:#FFFFFF;border:1px solid #D9E1EF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex:0 0 28px">PDF</div><div style="flex:1 1 220px;min-width:0"><div style="font-size:12px;font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ campaignEmailContractFileName }}</div><div style="font-size:10.5px;color:{{ campaignEmailContractStatusFg }};margin-top:2px">{{ campaignEmailContractStatus }}</div></div><div onClick="{{ campaignEmailContractOpenEditor }}" style="font-size:11.5px;border:1px solid #C8D4E8;background:#FFFFFF;color:#2457F5;border-radius:999px;padding:5px 10px;cursor:pointer;white-space:nowrap">编辑</div><div onClick="{{ campaignEmailContractAttach }}" style="font-size:11.5px;border:1px solid {{ campaignEmailContractAttachBd }};background:{{ campaignEmailContractAttachBg }};color:{{ campaignEmailContractAttachFg }};border-radius:999px;padding:5px 10px;cursor:{{ campaignEmailContractAttachCursor }};white-space:nowrap">{{ campaignEmailContractAttachLabel }}</div></div></sc-if>
+                          </div>
+                          <textarea value="{{ campaignEmailReplyBody }}" onChange="{{ campaignEmailSetReplyBody }}" rows="7" placeholder="写一封回复..." style="width:100%;box-sizing:border-box;border:0;outline:none;resize:vertical;font-family:inherit;font-size:13.5px;line-height:1.75;color:#334155;padding:14px 18px;background:#FFFFFF;min-height:150px"></textarea>
+                        </div>
+                        <sc-if value="{{ campaignEmailContractEditorOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ campaignEmailContractEditorClose }}" style="position:fixed;inset:0;z-index:160;background:rgba(29,38,56,.34);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:24px"><div onClick="{{ campaignEmailContractEditorKeep }}" style="width:min(920px,calc(100vw - 48px));height:min(760px,calc(100vh - 48px));background:#FFFFFF;border:1px solid #D9E1EF;border-radius:18px;box-shadow:0 28px 80px rgba(29,38,56,.24);overflow:hidden;display:flex;flex-direction:column"><div style="padding:16px 18px;border-bottom:1px solid #EDF1F7;display:flex;align-items:flex-start;gap:12px"><div style="width:36px;height:36px;border-radius:10px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">AI</div><div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:#1D2638">人工细调合同</div><div style="font-size:11.5px;color:#8792A5;margin-top:2px">{{ campaignEmailContractEditorMeta }}</div></div><div onClick="{{ campaignEmailContractEditorClose }}" style="font-size:19px;color:#8792A5;cursor:pointer">×</div></div><div style="padding:10px 18px;background:#F8FAFE;border-bottom:1px solid #EDF1F7;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:11px;color:#4E7156;background:#E4EFE4;border-radius:999px;padding:3px 8px">AI 已带入业务数据</span><span style="font-size:11px;color:#8792A5">可直接修改条款、金额、授权范围与交付节点</span></div><textarea value="{{ campaignEmailContractEditorBody }}" onChange="{{ campaignEmailContractEditorSetBody }}" style="flex:1;min-height:0;width:100%;box-sizing:border-box;border:0;outline:none;resize:none;font-family:inherit;font-size:13px;line-height:1.78;color:#334155;padding:20px 24px;background:#FFFFFF"></textarea><div style="padding:13px 18px;border-top:1px solid #EDF1F7;background:#FBFCFF;display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:#8792A5;flex:1">修改只保存到本次合同，不影响 Contract Mgt 原模板。</span><div onClick="{{ campaignEmailContractEditorClose }}" style="font-size:12px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 14px;cursor:pointer">保存草稿</div><div onClick="{{ campaignEmailContractSaveAttach }}" style="font-size:12px;border:1px solid #2457F5;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:7px 15px;cursor:pointer">确认并附到邮件</div></div></div></div></sc-if>
+                      </div>
+                    </sc-if>
+                    </div>
+                  </div>
+                  <div style="padding:14px 20px;border-top:1px solid #EDF1F7;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">
+                    <div onClick="{{ campaignEmailDrawerClose }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 14px;cursor:pointer">关闭</div>
+                    <sc-if value="{{ campaignEmailDrawerPending }}" hint-placeholder-val="{{ true }}"><div onClick="{{ campaignEmailDrawerSend }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 15px;cursor:pointer">确认并发送</div></sc-if>
+                    <sc-if value="{{ campaignEmailDrawerSent }}" hint-placeholder-val="{{ false }}"><div onClick="{{ campaignEmailReplySend }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 15px;cursor:pointer">{{ campaignEmailReplySendLabel }}</div></sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ campaignTabCooperation }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;padding:0 2px;flex-wrap:wrap">
+              <div style="flex:1 1 300px;min-width:0"><div style="font-size:16px;font-weight:600;color:#1D2638">合作履约</div><div style="font-size:12px;color:#8792A5;margin-top:3px">按红人查看从建联到素材回收的完整合作链路</div></div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end"><sc-for list="{{ cooperationSummary }}" as="m" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:6px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:999px;padding:5px 10px"><span style="width:6px;height:6px;border-radius:999px;background:{{ m.color }}"></span><span style="font-size:11px;color:#8792A5">{{ m.label }}</span><span style="font-size:12px;font-weight:600;color:#334155">{{ m.value }}</span></div></sc-for></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap">
+              <div style="height:36px;flex:0 1 300px;min-width:220px;display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:10px;padding:0 10px;box-sizing:border-box">
+                <span style="font-size:13px;color:#A2ABBA">⌕</span>
+                <input type="text" value="{{ coopQuery }}" onChange="{{ coopQuerySet }}" placeholder="筛选红人账号，例如 @mia.selfcare" style="min-width:0;flex:1;border:0;outline:none;background:transparent;color:#1D2638;font-family:inherit;font-size:12.5px" />
+                <sc-if value="{{ coopQueryActive }}" hint-placeholder-val="{{ false }}"><span onClick="{{ coopQueryClear }}" title="清除筛选" style="font-size:15px;line-height:1;color:#8792A5;cursor:pointer">×</span></sc-if>
+              </div>
+              <span style="font-size:11.5px;color:#8792A5">{{ coopFilterCount }}</span>
+            </div>
+            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden">
+              <div style="overflow-x:auto">
+                <div style="min-width:1120px">
+                  <div style="display:grid;grid-template-columns:190px repeat(6,minmax(142px,1fr));gap:0;background:#F8FAFE;border-bottom:1px solid #E2E8F2">
+                    <div style="padding:11px 15px;font-size:11px;font-weight:600;color:#8792A5;letter-spacing:.03em">合作红人</div>
+                    <sc-for list="{{ cooperationStageHeaders }}" as="h" hint-placeholder-count="6"><div style="padding:10px 12px;border-left:1px solid #EDF1F7;display:flex;align-items:center;gap:7px"><span style="width:20px;height:20px;border-radius:7px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">{{ h.no }}</span><span style="font-size:12px;font-weight:600;color:#334155">{{ h.label }}</span></div></sc-for>
+                  </div>
+                  <sc-for list="{{ cooperationRows }}" as="r" hint-placeholder-count="8">
+                    <div style="display:grid;grid-template-columns:190px repeat(6,minmax(142px,1fr));gap:0;border-bottom:1px solid #EEF2F8;background:#FFFFFF" style-hover="background:#FBFCFF">
+                      <div style="padding:14px 15px;display:flex;flex-direction:column;justify-content:center;min-width:0">
+                        <div onClick="{{ r.open }}" style="display:flex;align-items:center;gap:9px;cursor:pointer;min-width:0"><span style="width:30px;height:30px;border-radius:999px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:0 0 30px">{{ r.initial }}</span><div style="min-width:0"><div style="font-size:12.5px;font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.handle }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.profile }}</div></div></div>
+                        <div style="display:flex;align-items:center;gap:7px;margin-top:10px"><div style="flex:1;height:4px;background:#EEF2F8;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ r.progressPct }}%;background:{{ r.progressColor }};border-radius:999px"></div></div><span style="font-size:10px;color:#8792A5;white-space:nowrap">{{ r.progressText }}</span></div>
+                      </div>
+                      <sc-for list="{{ r.stages }}" as="st" hint-placeholder-count="6">
+                        <div onClick="{{ st.action }}" style="min-height:91px;padding:13px 12px;border-left:1px solid #EDF1F7;box-sizing:border-box;cursor:{{ st.cursor }};position:relative">
+                          <div style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:16px;border-radius:999px;background:{{ st.dotBg }};color:{{ st.dotFg }};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex:0 0 16px">{{ st.mark }}</span><span style="font-size:11px;font-weight:600;color:{{ st.fg }}">{{ st.status }}</span></div>
+                          <div style="font-size:11px;line-height:1.45;color:#647187;margin-top:7px;text-wrap:pretty">{{ st.note }}</div>
+                          <div style="font-size:9.5px;color:{{ st.metaFg }};margin-top:5px">{{ st.meta }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ cooperationEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:34px;text-align:center;color:#8792A5;font-size:13px">{{ cooperationEmptyText }}</div></sc-if>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:9px;padding:0 3px;flex-wrap:wrap"><sc-for list="{{ cooperationLegend }}" as="l" hint-placeholder-count="4"><span style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#8792A5"><i style="width:6px;height:6px;border-radius:999px;background:{{ l.color }}"></i>{{ l.label }}</span></sc-for><span style="flex:1"></span><span style="font-size:10.5px;color:#A2ABBA">沟通 Brief 由 AI 基于当前 Campaign 邮件记录自动识别 · 素材回收复用 Asset Library 录入方式</span></div>
+            <sc-if value="{{ coopActionOpen }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ coopActionClose }}" style="position:fixed;inset:0;z-index:138;background:rgba(29,38,56,.3);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px">
+                <div onClick="{{ coopActionKeep }}" style="width:{{ coopActionModalWidth }};max-height:min(760px,calc(100vh - 40px));overflow:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:18px;box-shadow:0 24px 64px rgba(29,38,56,.2)">
+                  <div style="display:flex;align-items:flex-start;gap:12px;padding:19px 20px 14px;border-bottom:1px solid #EEF2F8">
+                    <div style="width:34px;height:34px;border-radius:11px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 34px">↑</div>
+                    <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:#1D2638">{{ coopActionTitle }}</div><div style="font-size:11.5px;color:#8792A5;margin-top:3px">{{ coopActionHandle }}</div></div>
+                    <div onClick="{{ coopActionClose }}" style="font-size:20px;line-height:1;color:#8792A5;cursor:pointer;padding:2px">×</div>
+                  </div>
+                  <div style="padding:17px 20px 20px">
+                    <div style="font-size:12px;line-height:1.65;color:#647187;margin-bottom:14px">{{ coopActionHint }}</div>
+                    <sc-if value="{{ coopActionIsUpload }}" hint-placeholder-val="{{ true }}">
+                      <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px dashed #B8CBFF;border-radius:14px;padding:22px 16px;cursor:pointer;background:#F8FAFE">
+                        <input type="file" multiple="multiple" accept=".pdf,.doc,.docx,.txt,.eml,.png,.jpg,.jpeg" onChange="{{ coopUploadPick }}" style="display:none" />
+                        <span style="font-size:13px;font-weight:600;color:#2457F5">点击选择文件</span>
+                        <span style="font-size:10.5px;color:#8792A5">支持 PDF、Word、邮件、文本与图片，可多选</span>
+                      </label>
+                      <div style="display:flex;flex-direction:column;gap:7px;margin-top:12px">
+                        <sc-for list="{{ coopActionFileRows }}" as="f" hint-placeholder-count="2">
+                          <div style="display:flex;align-items:center;gap:9px;border:1px solid #EEF2F8;border-radius:11px;padding:9px 11px"><span style="width:26px;height:26px;border-radius:8px;background:#EEF2F8;color:#647187;display:flex;align-items:center;justify-content:center;font-size:9px">FILE</span><div style="flex:1;min-width:0"><div style="font-size:12px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.name }}</div><div style="font-size:10px;color:#A2ABBA;margin-top:2px">{{ f.size }} · {{ f.added }}</div></div><span onClick="{{ f.remove }}" style="font-size:11px;color:#C4636D;cursor:pointer">移除</span></div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ coopActionIsPosts }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-bottom:15px">
+                        <div style="font-size:11.5px;color:#A2ABBA;margin-bottom:7px">素材类型标签</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ alTypeChips }}" as="tc" hint-placeholder-count="2"><div onClick="{{ tc.pick }}" style="display:flex;align-items:center;gap:7px;border:1px solid {{ tc.bd }};background:{{ tc.bg }};border-radius:11px;padding:8px 12px;cursor:pointer;white-space:nowrap"><span style="width:14px;height:14px;border-radius:5px;border:1.5px solid {{ tc.boxBd }};background:{{ tc.boxBg }};color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;flex:0 0 14px">{{ tc.check }}</span><span style="font-size:12.5px;font-weight:500;color:{{ tc.fg }}">{{ tc.label }}</span><span style="font-size:11px;color:#A2ABBA">{{ tc.note }}</span></div></sc-for></div>
+                        <sc-if value="{{ alTypeHint }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#1D48D8;margin-top:7px">{{ alTypeHint }}</div></sc-if>
+                      </div>
+                      <div style="margin-bottom:14px">
+                        <div style="font-size:11.5px;color:#A2ABBA;margin-bottom:7px">发布渠道</div>
+                        <div style="display:flex;gap:7px;flex-wrap:wrap"><sc-for list="{{ coopAssetChannelOptions }}" as="ch" hint-placeholder-count="4"><div onClick="{{ ch.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border:1px solid {{ ch.bd }};background:{{ ch.bg }};color:{{ ch.fg }};border-radius:999px;padding:6px 12px;cursor:pointer"><span style="width:6px;height:6px;border-radius:999px;background:{{ ch.dot }}"></span>{{ ch.label }}</div></sc-for></div>
+                      </div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px"><sc-for list="{{ alFormBase }}" as="fd" hint-placeholder-count="5"><div style="min-width:0"><div style="font-size:11.5px;color:#A2ABBA;margin-bottom:4px">{{ fd.label }}</div><sc-if value="{{ fd.isText }}" hint-placeholder-val="{{ true }}"><input type="text" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:10px;padding:8px 11px;outline:none" /></sc-if><sc-if value="{{ fd.isSelect }}" hint-placeholder-val="{{ false }}"><div style="position:relative"><div onClick="{{ fd.toggle }}" style="display:flex;align-items:center;gap:6px;font-size:13px;background:#F8FAFE;border:1px solid {{ fd.bd }};border-radius:10px;padding:8px 11px;cursor:pointer;white-space:nowrap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:{{ fd.fg }}">{{ fd.value }}</span><span style="font-size:8px;color:#A2ABBA">▾</span></div><sc-if value="{{ fd.open }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:calc(100% + 5px);left:0;z-index:90;min-width:100%;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 10px 26px rgba(29,38,56,.12);padding:5px"><sc-for list="{{ fd.options }}" as="o" hint-placeholder-count="2"><div onClick="{{ o.pick }}" style="font-size:12.5px;color:{{ o.fg }};background:{{ o.bg }};border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap">{{ o.label }}</div></sc-for></div></sc-if></div></sc-if></div></sc-for></div>
+                      <div style="border:1px solid #EEF2F8;border-radius:14px;padding:13px;background:#F8FAFE;margin-top:15px"><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600;color:#1D2638">表现数据</div><div style="font-size:11px;color:#A2ABBA">GMV 非必填 · CPV 留空时按成本 ÷ Views 自动计算</div></div><div style="display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px"><sc-for list="{{ alFormMetrics }}" as="fd" hint-placeholder-count="4"><div style="min-width:0"><div style="font-size:11px;color:#A2ABBA;margin-bottom:3px">{{ fd.label }}</div><input type="text" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:9px;padding:7px 10px;outline:none;font-variant-numeric:tabular-nums" /></div></sc-for></div></div>
+                      <div style="display:flex;align-items:center;gap:9px;margin-top:15px;flex-wrap:wrap"><span style="flex:1 1 260px;font-size:11.5px;color:#8792A5">保存后同步进入当前 Campaign 的「素材」页与 Asset Library；可继续录入其他渠道。</span><div onClick="{{ coopAssetReset }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 15px;cursor:pointer">重置</div><div onClick="{{ coopAssetSubmit }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 16px;cursor:pointer">保存并入库</div></div>
+                    </sc-if>
+                    <sc-if value="{{ coopActionHasNotice }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:{{ coopActionNoticeColor }};margin-top:11px">{{ coopActionNotice }}</div></sc-if>
+                    <sc-if value="{{ coopSavedAssetHasRows }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:14px;border-top:1px solid #EEF2F8;padding-top:14px">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px"><div style="font-size:12.5px;font-weight:600;color:#1D2638">已录入素材</div><span style="font-size:10.5px;color:#2457F5;background:#EAF0FF;border-radius:999px;padding:2px 8px">{{ coopSavedAssetCount }}</span><span style="flex:1"></span><span style="font-size:10.5px;color:#A2ABBA">按最新录入排序</span></div>
+                        <div style="display:flex;flex-direction:column;gap:7px"><sc-for list="{{ coopSavedAssetRows }}" as="a" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:88px minmax(0,1fr) 88px;gap:10px;align-items:center;border:1px solid #E7ECF4;background:#FAFBFE;border-radius:12px;padding:9px 11px"><div><span style="display:inline-flex;font-size:10.5px;font-weight:500;color:{{ a.channelFg }};background:{{ a.channelBg }};border-radius:999px;padding:3px 8px">{{ a.channel }}</span><div style="font-size:10px;color:#A2ABBA;margin-top:4px">{{ a.post }}</div></div><div style="min-width:0"><div style="font-size:12.5px;font-weight:600;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.title }}</div><a href="{{ a.url }}" target="_blank" rel="noopener" style="display:block;font-size:10.5px;color:#647187;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none">{{ a.url }}</a></div><div style="text-align:right"><div style="font-size:11.5px;font-weight:600;color:#334155">{{ a.views }}</div><div style="font-size:10px;color:#8792A5;margin-top:3px">ER {{ a.er }}</div></div></div></sc-for></div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ coopActionIsUpload }}" hint-placeholder-val="{{ true }}"><div style="display:flex;justify-content:flex-end;margin-top:16px"><div onClick="{{ coopActionClose }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:7px 16px;cursor:pointer">完成</div></div></sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ campaignTabAssets }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:11px;padding:0 2px;flex-wrap:wrap"><div style="flex:1;min-width:240px"><div style="font-size:16px;font-weight:600;color:#1D2638">已回收素材</div><div style="font-size:12px;color:#8792A5;margin-top:3px">复用 Asset Library 视图 · 仅展示当前 Campaign / SKU 的素材</div></div><span style="font-size:11.5px;color:#8792A5">{{ campaignAssetCountNote }}</span></div>
+            <div style="border:1px solid #DDE5F1;border-radius:16px;background:#FFFFFF;box-shadow:0 8px 24px rgba(29,38,56,.04);overflow-x:auto">
+              <div style="min-width:1440px">
+                <div style="display:grid;grid-template-columns:32px repeat(11,minmax(0,1fr));column-gap:12px;padding:12px 16px;background:#F7F9FD;border-bottom:1px solid #DDE5F1;font-size:11.5px;font-weight:500;color:#8792A5;letter-spacing:.025em">
+                  <div>#</div><div>红人</div><div>Post Day</div><div>素材主题</div><div>渠道</div><div>封面</div><div>合作产品</div><div>SKU</div><div>合作类型</div><div style="text-align:right">Views</div><div style="text-align:right">ER</div><div style="text-align:right">CPV</div>
+                </div>
+                <sc-for list="{{ campaignAssetRows }}" as="r" hint-placeholder-count="4">
+                  <div style="border-bottom:1px solid #F5F8FE;background:{{ r.rowBg }}">
+                    <div style="display:grid;grid-template-columns:32px repeat(11,minmax(0,1fr));column-gap:12px;padding:13px 16px;align-items:center" style-hover="background:#F7F9FD">
+                      <div style="font-size:12px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ r.idx }}</div>
+                      <div style="display:flex;align-items:center;gap:8px;min-width:0"><div style="width:26px;height:26px;flex:0 0 26px;border-radius:999px;background:#F5F8FE;border:1px solid #E2E8F2;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#647187">{{ r.initial }}</div><div style="min-width:0"><div style="font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.handle }}</div><div style="display:flex;align-items:center;gap:6px;margin-top:1px"><span style="font-size:10px;color:#8792A5;white-space:nowrap">{{ r.tierText }}</span><sc-for list="{{ r.links }}" as="l" hint-placeholder-count="2"><a href="{{ l.url }}" target="_blank" rel="noopener" title="{{ l.title }}" style="font-size:10px;white-space:nowrap">{{ l.short }}↗</a></sc-for></div></div></div>
+                      <div style="font-size:12px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.postDate }}</div>
+                      <a href="{{ r.url }}" target="_blank" rel="noopener" title="{{ r.title }}" style="display:block;min-width:0;font-size:13.5px;font-weight:600;letter-spacing:-.01em;color:#2457F5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none">{{ r.title }}</a>
+                      <div style="min-width:0"><span style="display:inline-block;max-width:100%;font-size:11.5px;border:1px solid #E2E8F2;background:#F8FAFE;border-radius:7px;padding:1px 8px;color:#647187;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.channel }}</span></div>
+                      <a href="{{ r.url }}" target="_blank" rel="noopener" title="打开原素材" style="display:block;width:56px;height:40px;border-radius:8px;border:1px solid #E2E8F2;box-shadow:0 1px 2px rgba(29,38,56,.06);background-color:{{ r.coverTint }};background-image:{{ r.coverBg }};background-size:cover;background-position:center;position:relative;overflow:hidden;text-decoration:none"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9.5px;background:{{ r.coverShade }};color:{{ r.coverFg }}">{{ r.coverMark }}</span></a>
+                      <div style="min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.product }}</div>
+                      <div style="min-width:0;font-size:11.5px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.sku }}</div>
+                      <div style="min-width:0"><span style="display:inline-block;max-width:100%;font-size:11px;font-weight:500;border-radius:7px;padding:2px 8px;background:{{ r.dealBg }};color:{{ r.dealFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.deal }}</span></div>
+                      <div style="font-size:13px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.views }}</div><div style="font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.er }}</div><div style="font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;color:{{ r.cpvColor }};white-space:nowrap">{{ r.cpv }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ campaignAssetsEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:30px;text-align:center;color:#8792A5;font-size:13px">该 Campaign 暂无已回收素材。</div></sc-if>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ campaignTabTimeline }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:11px;padding:0 2px"><div style="font-size:15px;font-weight:600;letter-spacing:-.01em;color:#1D2638;flex:0 0 auto">Campaign 时间进度</div><div style="font-size:12px;color:#8792A5;flex:1 1 200px;min-width:0;text-wrap:pretty">只读展示计划与实际；请在 Campaign 列表的「时间进度调整」中编辑</div></div>
+            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden">
+              <div style="display:flex;gap:12px;align-items:center;padding:13px 16px;background:#F8FAFE;flex-wrap:wrap">
+                <span style="flex:0 0 auto;width:16px;text-align:right;font-size:12.5px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ campaignTimeline.idx }}</span>
+                <div style="flex:1 1 200px;min-width:0"><div style="font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ campaignTimeline.name }}</div><div style="font-size:11.5px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ campaignTimeline.idLine }}</div><div style="font-size:11.5px;color:#A2ABBA;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ campaignTimeline.window }} · {{ campaignTimeline.owner }}</div></div>
+                <span style="flex:0 0 auto;font-size:11.5px;border-radius:999px;padding:2px 10px;background:{{ campaignTimeline.stateBg }};color:{{ campaignTimeline.stateFg }};white-space:nowrap">{{ campaignTimeline.stateText }}</span>
+                <span style="flex:0 0 auto;font-size:11.5px;color:#8792A5;font-variant-numeric:tabular-nums;white-space:nowrap">{{ campaignTimeline.shiftText }}</span>
+              </div>
+              <div style="padding:12px 16px 14px">
+                <sc-for list="{{ campaignTimeline.phases }}" as="ph" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:10px;padding:7px 0;flex-wrap:wrap"><div style="flex:0 0 96px;font-size:12.5px;color:#647187;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ph.label }}</div><div style="flex:1 1 160px;min-width:120px;height:16px;background:#F5F8FE;border-radius:8px;position:relative;overflow:hidden"><div style="position:absolute;top:0;bottom:0;left:{{ ph.left }}%;width:{{ ph.width }}%;background:{{ ph.color }};border-radius:8px"></div></div>
+                    <div style="flex:0 0 148px;font-size:11.5px;color:#A2ABBA;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ph.range }}</div><span style="flex:0 0 auto;font-size:11px;border-radius:999px;padding:1px 8px;background:{{ ph.tagBg }};color:{{ ph.tagFg }};white-space:nowrap">{{ ph.status }}</span>
+                  </div>
+                </sc-for>
+                <div style="font-size:12px;color:#647187;margin-top:8px;text-wrap:pretty">{{ campaignTimeline.note }}</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ campaignTabGoals }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px"><sc-for list="{{ cd.goals }}" as="g" hint-placeholder-count="4"><div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;padding:16px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#8792A5;flex:1">{{ g.label }}</span><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ g.tagBg }};color:{{ g.tagFg }}">{{ g.tag }}</span></div><div style="font-size:18px;font-weight:600;margin-top:6px">{{ g.actual }}</div><div style="font-size:11.5px;color:#8792A5">目标 {{ g.target }}</div><div style="height:5px;background:#EEF2F8;border-radius:3px;overflow:hidden;margin-top:9px"><div style="height:5px;background:{{ g.color }};width:{{ g.pct }}%"></div></div><div style="font-size:11.5px;color:#647187;margin-top:8px">{{ g.note }}</div></div></sc-for></div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      
+    </div>
+  </main>
+
+  <sc-if value="{{ copilotClosed }}" hint-placeholder-val="{{ true }}">
+    <div onClick="{{ toggleCopilot }}" style="position:fixed;right:24px;bottom:24px;z-index:120;display:flex;align-items:center;gap:9px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:11px 18px;cursor:pointer;font-size:14px;font-weight:500;white-space:nowrap;box-shadow:0 10px 26px rgba(36,87,245,.34)" style-hover="background:#1D48D8">
+      <span style="width:7px;height:7px;border-radius:999px;background:#FFFFFF;opacity:.85;animation:pulseDot 2s infinite"></span>
+      <span>AI Copilot</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ copilotOpen }}" hint-placeholder-val="{{ false }}">
+    <aside style="position:fixed;right:22px;bottom:22px;z-index:120;width:392px;max-width:calc(100vw - 44px);height:min(600px,calc(100vh - 44px));border:1px solid #E2E8F2;border-radius:20px;background:#F8FAFE;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 48px rgba(29,38,56,.22);animation:fadeUp .2s ease both">
+      <div style="flex:0 0 auto;border-bottom:1px solid #E2E8F2;display:flex;align-items:center;gap:9px;padding:13px 16px;background:#FFFFFF">
+        <span style="width:7px;height:7px;border-radius:999px;background:#2457F5;flex:0 0 7px"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;letter-spacing:-.01em">AI Copilot</div>
+          <div style="font-size:11px;color:#8792A5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">当前页面 · {{ copilotCtx }}</div>
+        </div>
+        <div onClick="{{ toggleCopilot }}" style="flex:0 0 auto;font-size:18px;color:#8792A5;cursor:pointer;line-height:1;padding:0 2px" style-hover="color:#1D2638">×</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ chat }}" as="m" hint-placeholder-count="2">
+          <div style="align-self:{{ m.align }};max-width:88%;background:{{ m.bg }};border:1px solid {{ m.bd }};color:{{ m.fg }};border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.7;white-space:pre-line;text-wrap:pretty">{{ m.text }}</div>
+        </sc-for>
+        <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+          <div style="align-self:flex-start;font-variant-numeric:tabular-nums;font-size:12px;color:#8792A5;animation:pulseDot 1.2s infinite">正在结合当前上下文推理…</div>
+        </sc-if>
+      </div>
+      <div style="border-top:1px solid #E2E8F2;padding:14px 16px;display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ prompts }}" as="p" hint-placeholder-count="3">
+            <div onClick="{{ p.send }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;border-radius:999px;padding:4px 10px;cursor:pointer;color:#647187" style-hover="border-color:#C3D0E5;color:#1D2638">{{ p.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 13px">
+          <span style="flex:1;min-width:0;font-size:13.5px;color:#929CAF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ copilotPlaceholder }}</span>
+          <span style="font-variant-numeric:tabular-nums;font-size:12px;color:#A8B1C0">⏎</span>
+        </div>
+      </div>
+    </aside>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
+</script>
+<script src="../app-logic.js"></script>
+<script>
+  (() => {
+    const storageKey = 'aios.campaignEmailIntentFilter';
+    const intentMap = {
+      '@mia.selfcare': 'high', '@kaylascalp': 'high', '@sofia.homelab': 'high',
+      '@hairbyandre': 'medium', '@june.rests': 'medium', '@leo.calmnight': 'medium',
+      '@dailywithlin': 'low', '@nora.pm': 'low'
+    };
+    const meta = {
+      high: {label:'高', bg:'#E4EFE4', fg:'#4E7156', bd:'#CFE3D3', confidence:'92%', title:'AI 分析：回复积极、主动确认档期与合作方式'},
+      medium: {label:'中', bg:'#FBEEDA', fg:'#A5762C', bd:'#F0DCB8', confidence:'76%', title:'AI 分析：已表达兴趣，但仍需确认报价或排期'},
+      low: {label:'低', bg:'#F7EDEE', fg:'#C4636D', bd:'#F0C9C9', confidence:'61%', title:'AI 分析：回复意愿较弱，或关键合作条件未响应'}
+    };
+    let applying = false;
+    const intentOf = (handle) => {
+      if (intentMap[handle]) return intentMap[handle];
+      const score = Array.from(handle || '').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 6;
+      return score < 3 ? 'high' : (score < 5 ? 'medium' : 'low');
+    };
+    const syncEmailCheckbox = (checkbox) => {
+      if (!checkbox) return;
+      const cooperated = checkbox.getAttribute('title') === '已达成合作';
+      const selected = cooperated || checkbox.textContent.trim() === '✓' || checkbox.getAttribute('title') === '取消选择';
+      checkbox.classList.toggle('is-selected', selected && !cooperated);
+      checkbox.classList.toggle('is-cooperated', cooperated);
+      checkbox.setAttribute('aria-checked', selected ? 'true' : 'false');
+      if (selected && checkbox.textContent.trim() !== '✓') checkbox.textContent = '✓';
+      if (!selected && checkbox.textContent.trim()) checkbox.textContent = '';
+    };
+    const applyEmailIntents = () => {
+      if (applying) return;
+      const filter = document.getElementById('campaignEmailIntentFilter');
+      if (!filter) return;
+      applying = true;
+      const current = localStorage.getItem(storageKey) || 'all';
+      filter.value = current;
+      const rows = Array.from(document.querySelectorAll('.campaign-sent-email-row'));
+      const counts = {high:0, medium:0, low:0};
+      rows.forEach((row) => {
+        const intent = intentOf(row.dataset.emailHandle || '');
+        const style = meta[intent];
+        counts[intent] += 1;
+        row.dataset.intent = intent;
+        row.style.display = current === 'all' || current === intent ? 'grid' : 'none';
+        const slot = row.querySelector('.campaign-email-intent');
+        if (slot && slot.dataset.intentApplied !== intent) {
+          slot.dataset.intentApplied = intent;
+          slot.title = style.title;
+          slot.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;border:1px solid '+style.bd+';background:'+style.bg+';color:'+style.fg+';border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:50%;background:'+style.fg+'"></span>'+style.label+'<span style="font-size:10px;font-weight:400;opacity:.75">AI '+style.confidence+'</span></span>';
+        }
+        const checkbox = row.querySelector('.campaign-email-select');
+        syncEmailCheckbox(checkbox);
+        if (checkbox && intent !== 'high' && checkbox.getAttribute('title') !== '已达成合作') {
+          checkbox.style.opacity = '.42';
+          checkbox.style.pointerEvents = 'none';
+          checkbox.setAttribute('aria-disabled', 'true');
+          checkbox.setAttribute('title', '仅高合作意向可批量选择');
+        } else if (checkbox && intent === 'high' && checkbox.getAttribute('title') !== '已达成合作') {
+          checkbox.style.opacity = '1';
+          checkbox.style.pointerEvents = 'auto';
+          checkbox.style.cursor = 'pointer';
+          checkbox.removeAttribute('aria-disabled');
+          if (checkbox.getAttribute('title') === '仅高合作意向可批量选择') checkbox.setAttribute('title', '选择红人');
+        }
+      });
+      const summary = document.getElementById('campaignEmailIntentSummary');
+      const summaryText = '共 '+rows.length+' 封 · 高 '+counts.high+' · 中 '+counts.medium+' · 低 '+counts.low;
+      if (summary && summary.textContent !== summaryText) summary.textContent = summaryText;
+      if (!filter.dataset.bound) {
+        filter.dataset.bound = '1';
+        filter.addEventListener('change', () => {
+          localStorage.setItem(storageKey, filter.value);
+          applyEmailIntents();
+        });
+      }
+      const selectHigh = document.getElementById('campaignEmailSelectHigh');
+      if (selectHigh && !selectHigh.dataset.bound) {
+        selectHigh.dataset.bound = '1';
+        selectHigh.addEventListener('click', () => {
+          localStorage.setItem(storageKey, 'high');
+          filter.value = 'high';
+          rows.filter((row) => row.dataset.intent === 'high').forEach((row) => {
+            const checkbox = row.querySelector('.campaign-email-select');
+            if (checkbox && checkbox.textContent.trim() !== '✓' && checkbox.getAttribute('title') !== '已达成合作') checkbox.click();
+          });
+          applyEmailIntents();
+        });
+      }
+      applying = false;
+    };
+    document.addEventListener('click', (event) => {
+      const checkbox = event.target.closest && event.target.closest('.campaign-email-select');
+      if (!checkbox || checkbox.getAttribute('aria-disabled') === 'true' || checkbox.getAttribute('title') === '已达成合作') return;
+      const selected = !checkbox.classList.contains('is-selected');
+      checkbox.classList.toggle('is-selected', selected);
+      checkbox.setAttribute('aria-checked', selected ? 'true' : 'false');
+      checkbox.setAttribute('title', selected ? '取消选择' : '选择红人');
+      checkbox.textContent = selected ? '✓' : '';
+    }, true);
+    new MutationObserver(applyEmailIntents).observe(document.documentElement, {childList:true, subtree:true});
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyEmailIntents); else applyEmailIntents();
+  })();
+</script>
+</body>
+</html>

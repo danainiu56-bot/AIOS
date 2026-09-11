@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="AI-powered creator operations platform for campaigns, creators, briefs, assets, budgets and reporting.">
+<meta name="theme-color" content="#2457F5">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Influencer Marketing AIOS">
+<meta property="og:description" content="AI-powered creator operations platform">
+<meta property="og:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Influencer Marketing AIOS">
+<meta name="twitter:description" content="AI-powered creator operations platform">
+<meta name="twitter:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
+<title>Contract Mgt · Influencer Marketing AIOS</title>
+<link rel="stylesheet" href="../design-system.css">
+<script>window.AIOS_PAGE = "contracts";</script>
+<script src="../support.js"></script>
+<script src="../mail-nav.js" defer></script>
+</head>
+<body data-page="contracts">
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #F3F6FC; }
+  * { box-sizing: border-box; }
+  a { color: #2457F5; text-decoration: none; }
+  a:hover { color: #1D48D8; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #E2E8F2; border-radius: 6px; border: 3px solid #F3F6FC; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes pulseDot { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+  .contract-primary-tabs { display:flex;align-items:center;gap:4px;overflow-x:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:6px;margin:0 0 16px; }
+  .contract-primary-tab { appearance:none;flex:0 0 auto;border:1px solid transparent;background:transparent;border-radius:9px;padding:7px 13px;color:#647187;font:inherit;font-size:13px;font-weight:600;letter-spacing:-.01em;cursor:pointer;white-space:nowrap; }
+  .contract-primary-tab:hover { background:#F8FAFE; }
+  .contract-primary-tab.is-active { border-color:#2457F5;background:#2457F5;color:#FFFFFF; }
+  .contract-primary-tab.is-active:hover { background:#1D48D8; }
+  .contract-primary-tab.is-active span { color:rgba(255,255,255,.78) !important; }
+  .contract-template-toolbar { display:flex;align-items:center;gap:10px;margin-bottom:14px;position:relative;z-index:40; }
+  .contract-type-filter { position:relative; }
+  .contract-type-filter-button { appearance:none;height:38px;display:flex;align-items:center;gap:8px;border:1px solid #E2E8F2;background:#FFFFFF;border-radius:10px;padding:0 11px;color:#1D2638;font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap; }
+  .contract-type-filter-button:hover,.contract-type-filter-button.is-open { border-color:#B8CBFF;background:#F8FAFE; }
+  .contract-type-filter-label { color:#8792A5;font-size:11.5px; }
+  .contract-type-filter-menu { display:none;position:absolute;left:0;top:calc(100% + 7px);width:224px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:13px;padding:7px;box-shadow:0 14px 34px rgba(29,38,56,.16); }
+  .contract-type-filter-menu.is-open { display:block;animation:fadeUp .14s ease both; }
+  .contract-type-option { display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;color:#647187;font-size:12.5px;cursor:pointer; }
+  .contract-type-option:hover { background:#F8FAFE;color:#1D2638; }
+  .contract-type-option input { width:15px;height:15px;margin:0;accent-color:#2457F5; }
+  .contract-type-filter-foot { display:flex;justify-content:space-between;align-items:center;border-top:1px solid #EDF1F7;margin-top:5px;padding:8px 8px 2px; }
+  .contract-type-filter-foot button { appearance:none;border:0;background:transparent;color:#2457F5;font:inherit;font-size:11.5px;cursor:pointer;padding:2px; }
+  .contract-record-toolbar { display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap; }
+  .contract-search { flex:1 1 260px;min-width:220px;height:38px;border:1px solid #E2E8F2;border-radius:10px;background:#FFFFFF;padding:0 12px;color:#1D2638; }
+  .contract-select { height:38px;border:1px solid #E2E8F2;border-radius:10px;background:#FFFFFF;padding:0 30px 0 11px;color:#647187; }
+  .contract-table-wrap { background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:auto;box-shadow:0 8px 28px rgba(33,58,112,.05); }
+  .contract-table { width:100%;min-width:1080px;border-collapse:collapse; }
+  .contract-table th { padding:10px 14px;background:#F8FAFE;border-bottom:1px solid #E2E8F2;text-align:left;color:#8792A5;font-size:11.5px;font-weight:500;white-space:nowrap; }
+  .contract-table td { padding:13px 14px;border-bottom:1px solid #EDF1F7;vertical-align:middle;font-size:12.5px; }
+  .contract-table tbody tr:last-child td { border-bottom:0; }
+  .contract-table tbody tr:hover { background:#FAFCFF; }
+  .contract-status { display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 9px;font-size:11.5px;white-space:nowrap; }
+  .contract-status::before { content:"";width:5px;height:5px;border-radius:50%;background:currentColor; }
+  .contract-status.active { background:#E4EFE4;color:#4E7156; }
+  .contract-status.pending { background:#FBEEDA;color:#A5762C; }
+  .contract-status.expiring { background:#F7EDEE;color:#B4525E; }
+  .contract-status.ended { background:#F1F4F8;color:#8792A5; }
+  .contract-file { display:flex;align-items:center;gap:8px;min-width:0; }
+  .contract-file-icon { flex:0 0 30px;height:34px;border-radius:8px;background:#F1F5FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700; }
+  .contract-link-btn { appearance:none;border:0;background:transparent;padding:3px;color:#2457F5;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap; }
+  .contract-upload-modal { display:none;position:fixed;inset:0;z-index:220;background:rgba(20,31,52,.34);align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px); }
+  .contract-upload-modal.is-open { display:flex; }
+  .contract-upload-dialog { width:min(680px,100%);max-height:calc(100vh - 48px);overflow:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:20px;box-shadow:0 24px 64px rgba(29,38,56,.22);animation:fadeUp .18s ease both; }
+  .contract-upload-head { display:flex;align-items:flex-start;gap:16px;padding:20px 22px 16px;border-bottom:1px solid #EDF1F7; }
+  .contract-upload-body { padding:18px 22px 22px; }
+  .contract-dropzone { border:1.5px dashed #B8C8E5;border-radius:14px;background:#F8FAFE;padding:18px;text-align:center;cursor:pointer;margin-bottom:17px; }
+  .contract-dropzone.is-dragging { border-color:#2457F5;background:#F1F5FF; }
+  #contract-file-input { display:none !important; }
+  .contract-form-grid { display:grid;grid-template-columns:1fr 1fr;gap:13px 14px; }
+  .contract-field { display:flex;flex-direction:column;gap:5px; }
+  .contract-field.full { grid-column:1 / -1; }
+  .contract-field label { font-size:11.5px;color:#647187; }
+  .contract-field input,.contract-field select { width:100%;height:38px;border:1px solid #DDE5F1;border-radius:10px;background:#FFFFFF;padding:0 11px;color:#1D2638; }
+  .contract-field input[readonly] { background:#F8FAFE;color:#647187;cursor:default; }
+  .contract-modal-actions { display:flex;justify-content:flex-end;gap:9px;margin-top:20px;padding-top:16px;border-top:1px solid #EDF1F7; }
+  .contract-btn { appearance:none;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap; }
+  .contract-btn.primary { border-color:#2457F5;background:#2457F5;color:#FFFFFF; }
+  .contract-btn.primary:hover { background:#1D48D8; }
+  .contract-empty { display:none;padding:38px 20px;text-align:center;color:#8792A5;font-size:13px; }
+  @media (max-width:620px) { .contract-form-grid { grid-template-columns:1fr; }.contract-field.full { grid-column:auto; } }
+</style>
+</helmet>
+
+<div style="display:flex;height:100vh;overflow:hidden;background:#F3F6FC;color:#1D2638;font-family:Inter,'PingFang SC','Noto Sans SC',sans-serif;font-size:15px;line-height:1.6">
+
+  <aside style="width:{{ navWidth }};flex:0 0 {{ navWidth }};background:#F5F8FE;border-right:1px solid #E2E8F2;display:flex;flex-direction:column;padding:{{ navPad }};transition:width .18s ease;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 4px 22px">
+      <div style="width:28px;height:28px;flex:0 0 28px;border-radius:8px;background:#1D2638;color:#F5F8FE;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;font-size:12px;font-weight:700;letter-spacing:-.03em;cursor:pointer" onClick="{{ toggleNav }}">IM</div>
+      <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;min-width:0;overflow:hidden">
+          <div style="font-size:13px;font-weight:700;letter-spacing:-.02em;line-height:1.2;text-wrap:balance">Influencer Marketing AIOS</div>
+          <div style="font-size:8px;letter-spacing:.13em;color:#8792A5;line-height:1.25;margin-top:2px">OPERATIONS PLATFORM</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ toggleNav }}" style="flex:0 0 auto;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#8792A5;cursor:pointer;font-size:13px" style-hover="background:#EAF0FF;color:#1D2638">{{ navToggleIcon }}</div>
+      </sc-if>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden;min-height:0;width:100%;max-width:100%">
+      <sc-for list="{{ nav }}" as="item" hint-placeholder-count="9">
+        <div onClick="{{ item.go }}" title="{{ item.title }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;cursor:pointer;background:{{ item.bg }};color:{{ item.fg }};font-weight:{{ item.fw }};justify-content:{{ item.justify }};position:relative;min-width:0;width:100%;max-width:100%" style-hover="background:#EAF0FF">
+          <sc-if value="{{ navCollapsed }}" hint-placeholder-val="{{ false }}">
+            <span style="width:22px;height:22px;flex:0 0 22px;border-radius:7px;display:flex;align-items:center;justify-content:center;text-align:center;font-variant-numeric:tabular-nums;font-size:10px;font-weight:700;opacity:.82;background:rgba(36,87,245,.07)">{{ item.key }}</span>
+          </sc-if>
+          <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+            <span style="flex:1;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px">{{ item.label }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+
+    <div style="flex:0 0 12px"></div>
+
+    <sc-if value="{{ navCollapsed }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ toggleNav }}" title="展开导航" style="display:flex;align-items:center;justify-content:center;height:30px;border-radius:12px;color:#8792A5;cursor:pointer;font-size:14px;margin-bottom:10px" style-hover="background:#EAF0FF;color:#1D2638">{{ navToggleIcon }}</div>
+    </sc-if>
+
+    <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #E2E8F2;padding-top:14px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-variant-numeric:tabular-nums;font-size:13px;color:#647187;white-space:nowrap">本周 AI 用量</div>
+        <div style="height:5px;background:#E2E8F2;border-radius:3px;overflow:hidden"><div style="height:5px;width:62%;background:#6E8F74;border-radius:3px"></div></div>
+      </div>
+    </sc-if>
+
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="height:58px;flex:0 0 58px;border-bottom:1px solid #E2E8F2;background:#F3F6FC;display:flex;align-items:center;gap:16px;padding:0 26px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#647187;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">
+        <span>{{ crumbRoot }}</span>
+        <sc-if value="{{ crumbLeaf }}" hint-placeholder-val="{{ true }}">
+          <span style="opacity:.5">/</span>
+        </sc-if>
+        <span style="color:#1D2638">{{ crumbLeaf }}</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="flex:0 0 auto;position:relative;margin-right:4px">
+        <div onClick="{{ toggleNotif }}" style="display:flex;align-items:center;gap:7px;border:1px solid {{ notifBd }};background:{{ notifBg }};border-radius:999px;padding:7px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8">
+          <span style="font-size:13.5px;color:#647187">提醒</span>
+          <sc-if value="{{ notifCount }}" hint-placeholder-val="{{ true }}">
+            <span style="font-size:11px;font-weight:600;background:#C4636D;color:#fff;border-radius:999px;padding:1px 7px;font-variant-numeric:tabular-nums">{{ notifCount }}</span>
+          </sc-if>
+        </div>
+        <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:calc(100% + 8px);right:0;z-index:80;width:376px;max-height:440px;overflow-y:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;box-shadow:0 14px 34px rgba(29,38,56,.16);padding:6px;animation:fadeUp .16s ease both">
+            <div style="display:flex;align-items:center;gap:8px;padding:9px 11px 8px">
+              <div style="flex:1;font-size:13.5px;font-weight:600">站内提醒</div>
+              <div onClick="{{ markAllNotif }}" style="flex:0 0 auto;font-size:11.5px;color:#1D48D8;cursor:pointer;white-space:nowrap">全部标为已读</div>
+            </div>
+            <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+              <div onClick="{{ n.go }}" style="display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border-radius:11px;cursor:pointer;background:{{ n.bg }}" style-hover="background:#F8FAFE">
+                <span style="flex:0 0 7px;width:7px;height:7px;border-radius:999px;background:{{ n.dot }};margin-top:5px"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12.5px;font-weight:{{ n.fw }};text-wrap:pretty">{{ n.title }}</div>
+                  <div style="font-size:11.5px;color:#647187;text-wrap:pretty">{{ n.note }}</div>
+                  <div style="font-size:10.5px;color:#A2ABBA;margin-top:2px">{{ n.when }} · {{ n.cta }} →</div>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ notifEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:22px;text-align:center;font-size:12.5px;color:#8792A5">暂无新提醒</div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <div style="flex:1;overflow-y:auto;padding:26px 26px 60px">
+
+      <!-- ══ CONTRACT MGT ══ -->
+      <sc-if value="{{ isContracts }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1080px;margin:0 auto;animation:fadeUp .3s ease both">
+          <div class="contract-primary-tabs compact-view-tabs" role="tablist" aria-label="合同管理视图">
+            <button class="contract-primary-tab is-active" data-contract-tab="templates" role="tab" aria-selected="true">合同模板库</button>
+            <button class="contract-primary-tab" data-contract-tab="records" role="tab" aria-selected="false">合同记录 <span style="margin-left:5px;color:#A2ABBA;font-weight:400">8</span></button>
+          </div>
+
+          <div id="contract-template-view">
+            <div class="contract-template-toolbar">
+              <div class="contract-type-filter">
+                <button id="contract-type-filter-button" class="contract-type-filter-button" type="button" data-contract-action="toggle-type-filter" aria-haspopup="true" aria-expanded="false">
+                  <span class="contract-type-filter-label">合作类型</span><span id="contract-type-filter-value">全部</span><span style="font-size:9px;color:#A2ABBA">▾</span>
+                </button>
+                <div id="contract-type-filter-menu" class="contract-type-filter-menu" role="group" aria-label="筛选合作类型">
+                  <label class="contract-type-option"><input type="checkbox" value="all" data-contract-type-all checked>全部</label>
+                  <label class="contract-type-option"><input type="checkbox" value="付费合作" data-contract-type-option>付费合作</label>
+                  <label class="contract-type-option"><input type="checkbox" value="产品置换" data-contract-type-option>产品置换</label>
+                  <label class="contract-type-option"><input type="checkbox" value="佣金合作" data-contract-type-option>佣金合作</label>
+                  <label class="contract-type-option"><input type="checkbox" value="免费合作" data-contract-type-option>免费合作</label>
+                  <label class="contract-type-option"><input type="checkbox" value="素材授权" data-contract-type-option>素材授权</label>
+                  <label class="contract-type-option"><input type="checkbox" value="长期合作" data-contract-type-option>长期合作</label>
+                  <div class="contract-type-filter-foot"><button type="button" data-contract-action="clear-type-filter">清空</button><button type="button" data-contract-action="close-type-filter">完成</button></div>
+                </div>
+              </div>
+              <div style="flex:1"></div>
+              <div id="contract-template-action" onClick="{{ ctmNew }}" style="background:#2457F5;color:#FFFFFF;border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;white-space:nowrap">+ 新建模板</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ ctmList }}" as="t" hint-placeholder-count="5">
+                <div data-contract-template-card data-deal="{{ t.deal }}" style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden">
+                  <div style="display:flex;gap:12px;align-items:center;padding:13px 16px;background:#F8FAFE;flex-wrap:wrap">
+                    <span style="flex:0 0 auto;width:16px;text-align:right;font-size:12.5px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ t.idx }}</span>
+                    <div style="flex:1 1 220px;min-width:0">
+                      <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.name }}</div>
+                      <div style="font-size:12.5px;color:#647187;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.nameZh }}</div>
+                      <div style="font-size:11.5px;color:#8792A5;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.meta }}</div>
+                    </div>
+                    <span style="flex:0 0 auto;font-size:11.5px;border-radius:999px;padding:2px 10px;background:{{ t.tagBg }};color:{{ t.tagFg }};white-space:nowrap">{{ t.deal }}</span>
+                    <div onClick="{{ t.view }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ t.viewLabel }}</div>
+                    <div onClick="{{ t.edit }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ t.editBd }};background:{{ t.editBg }};color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ t.editLabel }}</div>
+                    <div onClick="{{ t.remove }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C4636D;color:#C4636D">删除</div>
+                  </div>
+                  <sc-if value="{{ t.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="border-top:1px solid #EDF1F7;padding:13px 16px;animation:fadeUp .16s ease both">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+                        <span style="flex:0 0 auto;font-size:11.5px;color:#A2ABBA">{{ t.langHint }}</span>
+                        <div style="flex:1;min-width:0"></div>
+                        <div onClick="{{ t.toggleLang }}" style="flex:0 0 auto;font-size:11.5px;border:1px solid {{ t.langBd }};background:{{ t.langBg }};color:#1D48D8;border-radius:999px;padding:3px 11px;cursor:pointer;white-space:nowrap" style-hover="border-color:#B8CBFF">{{ t.langLabel }}</div>
+                      </div>
+                      <sc-if value="{{ t.editing }}" hint-placeholder-val="{{ false }}">
+                        <textarea value="{{ t.body }}" onChange="{{ t.setBody }}" rows="12" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:12.5px;line-height:1.8;color:#1D2638;background:#FFFFFF;border:1px solid #B8CBFF;border-radius:11px;padding:11px 13px;outline:none;resize:vertical"></textarea>
+                      </sc-if>
+                      <sc-if value="{{ t.reading }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:12.5px;line-height:1.8;white-space:pre-line;text-wrap:pretty;background:#F8FAFE;border:1px solid #EEF2F8;border-radius:11px;padding:11px 13px;max-height:300px;overflow-y:auto">{{ t.body }}</div>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <section id="contract-record-view" style="display:none" aria-label="合同记录">
+            <div class="contract-record-toolbar">
+              <input id="contract-search" class="contract-search" type="search" placeholder="搜索红人、合同编号、Campaign 或 SKU" aria-label="搜索合同记录">
+              <select id="contract-status-filter" class="contract-select" aria-label="按状态筛选"><option value="all">全部状态</option><option value="active">履约中</option><option value="pending">待审核</option><option value="expiring">即将到期</option><option value="ended">已结束</option></select>
+              <select class="contract-select" aria-label="按签署时间筛选"><option>全部签署时间</option><option>本月签署</option><option>近 90 天</option><option>今年签署</option></select>
+              <button id="contract-record-action" data-contract-action="open-upload" class="contract-btn primary">＋ 上传合同</button>
+            </div>
+
+            <div class="contract-table-wrap">
+              <table class="contract-table">
+                <thead><tr><th>合同 / 红人</th><th>Campaign</th><th>SKU</th><th>合作方式 / 金额</th><th>签署与有效期</th><th>状态</th><th>文件</th><th>负责人</th><th></th></tr></thead>
+                <tbody id="contract-records-body">
+                  <tr data-contract-row data-status="active" data-search="ctr-2026-008 mia selfcare q3 北美种草 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-008</div><div style="color:#647187">@mia.selfcare · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 3,600 + 10% 佣金</div></td><td><div>2026-08-20 签署</div><div style="color:#8792A5">至 2027-02-19</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">mia-agreement-v3.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.4 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">08-20 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                  <tr data-contract-row data-status="active" data-search="ctr-2026-007 kayla scalp q3 北美种草 ryze 头皮按摩仪 佣金合作"><td><div style="font-weight:600">CTR-2026-007</div><div style="color:#647187">@kaylascalp · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>佣金合作</div><div style="color:#647187">12% 佣金</div></td><td><div>2026-08-16 签署</div><div style="color:#8792A5">至 2027-02-15</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>kayla-affiliate.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.8 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">08-16 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                  <tr data-contract-row data-status="expiring" data-search="ctr-2026-006 leo calmnight q3 北美种草 ryze 头皮按摩仪 素材授权"><td><div style="font-weight:600">CTR-2026-006</div><div style="color:#647187">@leo.calmnight · YouTube</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>素材授权</div><div style="color:#647187">USD 1,600</div></td><td><div>2026-06-12 签署</div><div style="color:#B4525E">剩余 18 天</div></td><td><span class="contract-status expiring">即将到期</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>leo-license.pdf</div><div style="color:#A2ABBA;font-size:10.5px">3.1 MB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">08-28 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                  <tr data-contract-row data-status="pending" data-search="ctr-2026-009 nora pm 秋季家居氛围 lumo 便携香氛机 产品置换"><td><div style="font-weight:600">CTR-2026-009</div><div style="color:#647187">@nora.pm · Instagram</div></td><td><div>秋季家居氛围</div><div style="color:#8792A5">Lumo 便携香氛机</div></td><td><div>产品置换</div><div style="color:#647187">样品价值 USD 129</div></td><td><div>2026-09-06 上传</div><div style="color:#8792A5">有效期待确认</div></td><td><span class="contract-status pending">待审核</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>nora-barter-signed.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.2 MB</div></div></div></td><td><div>林浩</div><div style="color:#A2ABBA;font-size:10.5px">09-06 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                  <tr data-contract-row data-status="active" data-search="ctr-2026-005 june rests q3 北美种草 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-005</div><div style="color:#647187">@june.rests · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 1,200 + 12% 佣金</div></td><td><div>2026-07-28 签署</div><div style="color:#8792A5">至 2027-01-27</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>june-content-agreement.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.0 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">07-28 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                  <tr data-contract-row data-status="ended" data-search="ctr-2026-004 hairbyandre 春季焕新 lumo 便携香氛机 付费合作"><td><div style="font-weight:600">CTR-2026-004</div><div style="color:#647187">@hairbyandre · Instagram</div></td><td><div>春季焕新</div><div style="color:#8792A5">Lumo 便携香氛机</div></td><td><div>付费合作</div><div style="color:#647187">USD 900</div></td><td><div>2026-04-08 签署</div><div style="color:#8792A5">2026-08-07 到期</div></td><td><span class="contract-status ended">已结束</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>andre-agreement.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.6 MB</div></div></div></td><td><div>林浩</div><div style="color:#A2ABBA;font-size:10.5px">08-07 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                  <tr data-contract-row data-status="active" data-search="ctr-2026-003 dailywithlin q3 北美种草 ryze 头皮按摩仪 产品置换"><td><div style="font-weight:600">CTR-2026-003</div><div style="color:#647187">@dailywithlin · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>产品置换</div><div style="color:#647187">样品价值 USD 99</div></td><td><div>2026-07-19 签署</div><div style="color:#8792A5">至 2027-01-18</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>lin-barter.pdf</div><div style="color:#A2ABBA;font-size:10.5px">980 KB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">07-19 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                  <tr data-contract-row data-status="ended" data-search="ctr-2026-002 thegroomguide 首轮测试 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-002</div><div style="color:#647187">@thegroomguide · YouTube</div></td><td><div>首轮测试</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 2,400</div></td><td><div>2026-03-10 签署</div><div style="color:#8792A5">2026-07-09 到期</div></td><td><span class="contract-status ended">已结束</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>groomguide-v2.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.7 MB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">07-09 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                </tbody>
+              </table>
+              <div id="contract-record-empty" class="contract-empty">没有符合当前条件的合同记录</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:11px;color:#8792A5;font-size:11.5px"><span id="contract-result-count">共 8 条合同记录</span><span>按最近更新排序</span></div>
+          </section>
+        </div>
+      </sc-if>
+
+      <div id="contract-upload-modal" class="contract-upload-modal" role="dialog" aria-modal="true" aria-labelledby="contract-upload-title">
+        <div class="contract-upload-dialog">
+          <div class="contract-upload-head"><div style="flex:1"><div id="contract-upload-title" style="font-size:18px;font-weight:650">上传合同</div><div style="margin-top:2px;color:#8792A5;font-size:12px">选择 Campaign 与红人后，系统会自动关联 SKU 与产品信息</div></div><button class="contract-btn" data-contract-action="close-upload" aria-label="关闭">×</button></div>
+          <div class="contract-upload-body">
+            <div id="contract-dropzone" class="contract-dropzone" data-contract-action="pick-file"><input id="contract-file-input" type="file" accept=".pdf,.doc,.docx" hidden><div style="width:38px;height:38px;margin:0 auto 8px;border-radius:11px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:20px">↑</div><div id="contract-file-label" style="font-weight:600;font-size:13px">选择文件或拖拽到这里</div><div style="margin-top:3px;color:#A2ABBA;font-size:11.5px">支持 PDF、DOC、DOCX，单个文件不超过 20 MB</div></div>
+            <div class="contract-form-grid">
+              <div class="contract-field"><label for="contract-campaign">Campaign *</label><select id="contract-campaign"><option value="" selected disabled>请选择 Campaign</option><option value="Ryze · Q3 北美种草" data-sku="RYZ-SC-01" data-product="Ryze 头皮按摩仪">Ryze · Q3 北美种草</option><option value="Lumo · 秋季家居氛围" data-sku="LUM-AR-02" data-product="Lumo 便携香氛机">Lumo · 秋季家居氛围</option><option value="Ryze · Ambassador 招募" data-sku="RYZ-SC-01" data-product="Ryze 头皮按摩仪">Ryze · Ambassador 招募</option><option value="Ryze · Q2 北美种草" data-sku="RYZ-SC-01" data-product="Ryze 头皮按摩仪">Ryze · Q2 北美种草</option><option value="Nuvia · 合规待确认" data-sku="NUV-SP-07" data-product="Nuvia 头皮精华液">Nuvia · 合规待确认</option><option value="Aura · 推广 Campaign" data-sku="AURA-LP-01" data-product="Aura 落地氛围灯">Aura · 推广 Campaign</option></select></div>
+              <div class="contract-field"><label for="contract-creator">红人 *</label><select id="contract-creator"><option value="" selected disabled>请选择红人</option><option value="@mia.selfcare" data-platform="TikTok">@mia.selfcare · TikTok</option><option value="@kaylascalp" data-platform="TikTok">@kaylascalp · TikTok</option><option value="@leo.calmnight" data-platform="YouTube">@leo.calmnight · YouTube</option><option value="@june.rests" data-platform="TikTok">@june.rests · TikTok</option><option value="@nora.pm" data-platform="Instagram">@nora.pm · Instagram</option><option value="@sofia.homelab" data-platform="Instagram">@sofia.homelab · Instagram</option><option value="@hairbyandre" data-platform="Instagram">@hairbyandre · Instagram</option><option value="@dailywithlin" data-platform="TikTok">@dailywithlin · TikTok</option><option value="@thegroomguide" data-platform="YouTube">@thegroomguide · YouTube</option><option value="@thecalmedit" data-platform="TikTok">@thecalmedit · TikTok</option><option value="@homewithtess" data-platform="Instagram">@homewithtess · Instagram</option><option value="@quietmornings" data-platform="Instagram">@quietmornings · Instagram</option></select></div>
+              <div class="contract-field"><label for="contract-sku">SKU（自动带出）</label><input id="contract-sku" placeholder="选择 Campaign 后自动带出" readonly><div id="contract-sku-note" style="font-size:10.5px;color:#A2ABBA">同时关联产品信息</div></div>
+              <div class="contract-field"><label for="contract-amount">合同金额 *</label><input id="contract-amount" placeholder="例如 USD 1,200 + 10% 佣金"></div>
+              <div class="contract-field"><label for="contract-signed-date">签署日期 *</label><input id="contract-signed-date" type="date"></div>
+              <div class="contract-field"><label for="contract-expiry-date">到期日期 *</label><input id="contract-expiry-date" type="date"></div>
+            </div>
+            <div id="contract-upload-error" style="display:none;margin-top:12px;color:#B4525E;font-size:12px">请完整填写合同信息。</div>
+            <div class="contract-modal-actions"><button class="contract-btn" data-contract-action="close-upload">取消</button><button class="contract-btn primary" data-contract-action="save-upload">确认上传</button></div>
+          </div>
+        </div>
+      </div>
+
+      
+    </div>
+  </main>
+
+  <sc-if value="{{ copilotClosed }}" hint-placeholder-val="{{ true }}">
+    <div onClick="{{ toggleCopilot }}" style="position:fixed;right:24px;bottom:24px;z-index:120;display:flex;align-items:center;gap:9px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:11px 18px;cursor:pointer;font-size:14px;font-weight:500;white-space:nowrap;box-shadow:0 10px 26px rgba(36,87,245,.34)" style-hover="background:#1D48D8">
+      <span style="width:7px;height:7px;border-radius:999px;background:#FFFFFF;opacity:.85;animation:pulseDot 2s infinite"></span>
+      <span>AI Copilot</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ copilotOpen }}" hint-placeholder-val="{{ false }}">
+    <aside style="position:fixed;right:22px;bottom:22px;z-index:120;width:392px;max-width:calc(100vw - 44px);height:min(600px,calc(100vh - 44px));border:1px solid #E2E8F2;border-radius:20px;background:#F8FAFE;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 48px rgba(29,38,56,.22);animation:fadeUp .2s ease both">
+      <div style="flex:0 0 auto;border-bottom:1px solid #E2E8F2;display:flex;align-items:center;gap:9px;padding:13px 16px;background:#FFFFFF">
+        <span style="width:7px;height:7px;border-radius:999px;background:#2457F5;flex:0 0 7px"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;letter-spacing:-.01em">AI Copilot</div>
+          <div style="font-size:11px;color:#8792A5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">当前页面 · {{ copilotCtx }}</div>
+        </div>
+        <div onClick="{{ toggleCopilot }}" style="flex:0 0 auto;font-size:18px;color:#8792A5;cursor:pointer;line-height:1;padding:0 2px" style-hover="color:#1D2638">×</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ chat }}" as="m" hint-placeholder-count="2">
+          <div style="align-self:{{ m.align }};max-width:88%;background:{{ m.bg }};border:1px solid {{ m.bd }};color:{{ m.fg }};border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.7;white-space:pre-line;text-wrap:pretty">{{ m.text }}</div>
+        </sc-for>
+        <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+          <div style="align-self:flex-start;font-variant-numeric:tabular-nums;font-size:12px;color:#8792A5;animation:pulseDot 1.2s infinite">正在结合当前上下文推理…</div>
+        </sc-if>
+      </div>
+      <div style="border-top:1px solid #E2E8F2;padding:14px 16px;display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ prompts }}" as="p" hint-placeholder-count="3">
+            <div onClick="{{ p.send }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;border-radius:999px;padding:4px 10px;cursor:pointer;color:#647187" style-hover="border-color:#C3D0E5;color:#1D2638">{{ p.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 13px">
+          <span style="flex:1;min-width:0;font-size:13.5px;color:#929CAF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ copilotPlaceholder }}</span>
+          <span style="font-variant-numeric:tabular-nums;font-size:12px;color:#A8B1C0">⏎</span>
+        </div>
+      </div>
+    </aside>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
+</script>
+<script src="../app-logic.js"></script>
+<script>
+(() => {
+  let selectedContractFile = null;
+  let nextContractNumber = 10;
+  const selectedContractTypes = new Set();
+
+  const get = (id) => document.getElementById(id);
+  const clean = (value) => String(value || '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
+  const setTypeFilterOpen = (open) => {
+    const button = get('contract-type-filter-button');
+    const menu = get('contract-type-filter-menu');
+    if (!button || !menu) return;
+    button.classList.toggle('is-open', open);
+    menu.classList.toggle('is-open', open);
+    button.setAttribute('aria-expanded', String(open));
+  };
+  const applyTemplateTypeFilter = () => {
+    document.querySelectorAll('[data-contract-template-card]').forEach((card) => {
+      card.style.display = selectedContractTypes.size === 0 || selectedContractTypes.has(card.dataset.deal) ? '' : 'none';
+    });
+    const value = get('contract-type-filter-value');
+    if (value) value.textContent = selectedContractTypes.size === 0 ? '全部' : '已选 ' + selectedContractTypes.size + ' 项';
+  };
+  const clearTemplateTypeFilter = () => {
+    selectedContractTypes.clear();
+    document.querySelectorAll('[data-contract-type-option]').forEach((input) => { input.checked = false; });
+    const all = document.querySelector('[data-contract-type-all]');
+    if (all) all.checked = true;
+    applyTemplateTypeFilter();
+  };
+  const normalizeContractColumns = () => {
+    const skuByProduct = { 'Ryze 头皮按摩仪': 'RYZ-SC-01', 'Lumo 便携香氛机': 'LUM-AR-02', 'Aura 落地氛围灯': 'AURA-LP-01' };
+    document.querySelectorAll('[data-contract-row]:not([data-columns-split])').forEach((row) => {
+      const combinedCell = row.children[1];
+      if (!combinedCell) return;
+      const values = Array.from(combinedCell.children).map((item) => item.textContent.trim());
+      const campaign = values[0] || '—';
+      const product = values[1] || '—';
+      combinedCell.innerHTML = '<div>' + clean(campaign) + '</div>';
+      const skuCell = document.createElement('td');
+      const sku = skuByProduct[product] || 'SKU 待补充';
+      skuCell.innerHTML = '<div style="font-weight:600;font-variant-numeric:tabular-nums">' + clean(sku) + '</div><div style="color:#8792A5">' + clean(product) + '</div>';
+      combinedCell.after(skuCell);
+      row.dataset.search = ((row.dataset.search || '') + ' ' + sku).toLowerCase();
+      row.dataset.columnsSplit = 'true';
+    });
+  };
+  const setContractTab = (name) => {
+    const templates = get('contract-template-view');
+    const records = get('contract-record-view');
+    if (!templates || !records) return;
+    const isRecords = name === 'records';
+    templates.style.display = isRecords ? 'none' : '';
+    records.style.display = isRecords ? '' : 'none';
+    get('contract-template-action').style.display = isRecords ? 'none' : '';
+    get('contract-record-action').style.display = isRecords ? '' : 'none';
+    setTypeFilterOpen(false);
+    if (isRecords) normalizeContractColumns();
+    document.querySelectorAll('[data-contract-tab]').forEach((tab) => {
+      const active = tab.dataset.contractTab === name;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+  };
+
+  const openUpload = () => {
+    const modal = get('contract-upload-modal');
+    if (!modal) return;
+    const signedDate = get('contract-signed-date');
+    if (signedDate && !signedDate.value) signedDate.value = new Date().toISOString().slice(0, 10);
+    if (get('contract-expiry-date')) get('contract-expiry-date').min = signedDate?.value || '';
+    modal.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => get('contract-campaign')?.focus(), 30);
+  };
+
+  const closeUpload = () => {
+    get('contract-upload-modal')?.classList.remove('is-open');
+    document.body.style.overflow = '';
+    const error = get('contract-upload-error');
+    if (error) error.style.display = 'none';
+  };
+
+  const chooseFile = (file) => {
+    if (!file) return;
+    const allowed = /\.(pdf|doc|docx)$/i.test(file.name);
+    if (!allowed || file.size > 20 * 1024 * 1024) {
+      const error = get('contract-upload-error');
+      error.textContent = allowed ? '文件超过 20 MB，请压缩后重新上传。' : '仅支持 PDF、DOC、DOCX 格式。';
+      error.style.display = '';
+      return;
+    }
+    selectedContractFile = file;
+    get('contract-file-label').textContent = file.name + ' · ' + (file.size < 1024 * 1024 ? Math.max(1, Math.round(file.size / 1024)) + ' KB' : (file.size / 1024 / 1024).toFixed(1) + ' MB');
+    get('contract-upload-error').style.display = 'none';
+  };
+
+  const filterRecords = () => {
+    const query = (get('contract-search')?.value || '').trim().toLowerCase();
+    const status = get('contract-status-filter')?.value || 'all';
+    let visible = 0;
+    document.querySelectorAll('[data-contract-row]').forEach((row) => {
+      const matchesQuery = !query || (row.dataset.search || '').includes(query);
+      const matchesStatus = status === 'all' || row.dataset.status === status;
+      row.style.display = matchesQuery && matchesStatus ? '' : 'none';
+      if (matchesQuery && matchesStatus) visible += 1;
+    });
+    const empty = get('contract-record-empty');
+    if (empty) empty.style.display = visible ? 'none' : 'block';
+    const count = get('contract-result-count');
+    if (count) count.textContent = '显示 ' + visible + ' 条合同记录';
+  };
+
+  const syncCampaignSku = () => {
+    const campaign = get('contract-campaign');
+    const option = campaign?.selectedOptions?.[0];
+    const sku = option?.dataset?.sku || '';
+    const product = option?.dataset?.product || '';
+    if (get('contract-sku')) get('contract-sku').value = sku;
+    if (get('contract-sku-note')) get('contract-sku-note').textContent = product || '同时关联产品信息';
+  };
+
+  const openUploadFromCampaign = () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upload') !== '1') return;
+    const campaignSelect = get('contract-campaign');
+    const creatorSelect = get('contract-creator');
+    const modal = get('contract-upload-modal');
+    if (!campaignSelect || !creatorSelect || !modal || modal.closest('x-dc')) {
+      setTimeout(openUploadFromCampaign, 50);
+      return;
+    }
+    setContractTab('records');
+    const campaignName = params.get('campaign') || '';
+    const sku = params.get('sku') || '';
+    const campaignOption = Array.from(campaignSelect.options).find((option) => option.value === campaignName)
+      || Array.from(campaignSelect.options).find((option) => option.dataset.sku === sku);
+    if (campaignOption) campaignSelect.value = campaignOption.value;
+    const handle = params.get('handle') || '';
+    if (Array.from(creatorSelect.options).some((option) => option.value === handle)) creatorSelect.value = handle;
+    syncCampaignSku();
+    openUpload();
+  };
+
+  const saveUpload = () => {
+    const creator = get('contract-creator')?.value.trim();
+    const campaign = get('contract-campaign')?.value.trim();
+    const sku = get('contract-sku')?.value.trim();
+    const campaignOption = get('contract-campaign')?.selectedOptions?.[0];
+    const creatorOption = get('contract-creator')?.selectedOptions?.[0];
+    const product = campaignOption?.dataset?.product || '';
+    const amount = get('contract-amount')?.value.trim();
+    const signedDate = get('contract-signed-date')?.value;
+    const expiryDate = get('contract-expiry-date')?.value;
+    const error = get('contract-upload-error');
+    if (!selectedContractFile || !creator || !campaign || !sku || !amount || !signedDate || !expiryDate) {
+      error.textContent = '请选择合同文件，并完整填写 Campaign、红人、合同金额及日期。';
+      error.style.display = '';
+      return;
+    }
+    if (expiryDate < signedDate) {
+      error.textContent = '到期日期不能早于签署日期。';
+      error.style.display = '';
+      return;
+    }
+
+    const platform = creatorOption?.dataset?.platform || '—';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiry = new Date(expiryDate + 'T00:00:00');
+    const daysRemaining = Math.ceil((expiry - today) / 86400000);
+    const status = daysRemaining < 0 ? 'ended' : daysRemaining <= 30 ? 'expiring' : 'active';
+    const statusText = status === 'ended' ? '已结束' : status === 'expiring' ? '即将到期' : '履约中';
+    const expiryText = status === 'ended' ? clean(expiryDate) + ' 到期' : status === 'expiring' ? '至 ' + clean(expiryDate) + ' · 剩余 ' + daysRemaining + ' 天' : '至 ' + clean(expiryDate);
+    const expiryColor = status === 'expiring' ? '#B4525E' : '#8792A5';
+    const number = 'CTR-2026-' + String(nextContractNumber++).padStart(3, '0');
+    const fileUrl = URL.createObjectURL(selectedContractFile);
+    const size = selectedContractFile.size < 1024 * 1024 ? Math.max(1, Math.round(selectedContractFile.size / 1024)) + ' KB' : (selectedContractFile.size / 1024 / 1024).toFixed(1) + ' MB';
+    const extension = selectedContractFile.name.split('.').pop().toUpperCase();
+    const row = document.createElement('tr');
+    row.setAttribute('data-contract-row', '');
+    row.setAttribute('data-columns-split', 'true');
+    row.dataset.status = status;
+    row.dataset.search = [number, creator, campaign, sku, product, platform, amount].join(' ').toLowerCase();
+    row.innerHTML = '<td><div style="font-weight:600">' + clean(number) + '</div><div style="color:#647187">' + clean(creator) + ' · ' + clean(platform) + '</div></td>' +
+      '<td><div>' + clean(campaign) + '</div></td>' +
+      '<td><div style="font-weight:600;font-variant-numeric:tabular-nums">' + clean(sku) + '</div><div style="color:#8792A5">' + clean(product) + '</div></td>' +
+      '<td><div>合同金额</div><div style="color:#647187">' + clean(amount) + '</div></td>' +
+      '<td><div>' + clean(signedDate) + ' 签署</div><div style="color:' + expiryColor + '">' + expiryText + '</div></td>' +
+      '<td><span class="contract-status ' + clean(status) + '">' + clean(statusText) + '</span></td>' +
+      '<td><div class="contract-file"><span class="contract-file-icon">' + clean(extension) + '</span><div><div style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + clean(selectedContractFile.name) + '</div><div style="color:#A2ABBA;font-size:10.5px">' + clean(size) + '</div></div></div></td>' +
+      '<td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">刚刚上传</div></td>' +
+      '<td><a class="contract-link-btn" href="' + clean(fileUrl) + '" target="_blank" rel="noopener">查看</a></td>';
+    get('contract-records-body').prepend(row);
+
+    const rows = document.querySelectorAll('[data-contract-row]');
+    const countBadge = document.querySelector('[data-contract-tab="records"] span');
+    if (countBadge) countBadge.textContent = String(rows.length);
+    selectedContractFile = null;
+    get('contract-file-input').value = '';
+    get('contract-file-label').textContent = '选择文件或拖拽到这里';
+    ['contract-creator', 'contract-campaign', 'contract-sku', 'contract-amount', 'contract-signed-date', 'contract-expiry-date'].forEach((id) => { if (get(id)) get(id).value = ''; });
+    syncCampaignSku();
+    closeUpload();
+    filterRecords();
+  };
+
+  document.addEventListener('click', (event) => {
+    const tab = event.target.closest('[data-contract-tab]');
+    if (tab) { setContractTab(tab.dataset.contractTab); return; }
+    const action = event.target.closest('[data-contract-action]')?.dataset.contractAction;
+    if (action === 'toggle-type-filter') {
+      const open = !get('contract-type-filter-menu')?.classList.contains('is-open');
+      setTypeFilterOpen(open);
+      return;
+    }
+    if (action === 'clear-type-filter') { clearTemplateTypeFilter(); return; }
+    if (action === 'close-type-filter') { setTypeFilterOpen(false); return; }
+    if (action === 'open-upload') openUpload();
+    if (action === 'close-upload') closeUpload();
+    if (action === 'pick-file') get('contract-file-input')?.click();
+    if (action === 'save-upload') saveUpload();
+    if (event.target.id === 'contract-upload-modal') closeUpload();
+    if (event.target.closest('[data-contract-template-card]')) setTimeout(applyTemplateTypeFilter, 0);
+    if (!event.target.closest('.contract-type-filter')) setTypeFilterOpen(false);
+  });
+  document.addEventListener('input', (event) => { if (event.target.id === 'contract-search') filterRecords(); });
+  document.addEventListener('change', (event) => {
+    if (event.target.id === 'contract-status-filter') filterRecords();
+    if (event.target.id === 'contract-file-input') chooseFile(event.target.files?.[0]);
+    if (event.target.id === 'contract-campaign') syncCampaignSku();
+    if (event.target.id === 'contract-signed-date') {
+      const expiryDate = get('contract-expiry-date');
+      if (expiryDate) expiryDate.min = event.target.value;
+    }
+    if (event.target.matches('[data-contract-type-all]')) {
+      clearTemplateTypeFilter();
+      return;
+    }
+    if (event.target.matches('[data-contract-type-option]')) {
+      if (event.target.checked) selectedContractTypes.add(event.target.value);
+      else selectedContractTypes.delete(event.target.value);
+      const all = document.querySelector('[data-contract-type-all]');
+      if (all) all.checked = selectedContractTypes.size === 0;
+      applyTemplateTypeFilter();
+    }
+  });
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeUpload(); });
+  document.addEventListener('dragover', (event) => {
+    const zone = event.target.closest('#contract-dropzone');
+    if (!zone) return;
+    event.preventDefault();
+    zone.classList.add('is-dragging');
+  });
+  document.addEventListener('dragleave', (event) => event.target.closest('#contract-dropzone')?.classList.remove('is-dragging'));
+  document.addEventListener('drop', (event) => {
+    const zone = event.target.closest('#contract-dropzone');
+    if (!zone) return;
+    event.preventDefault();
+    zone.classList.remove('is-dragging');
+    chooseFile(event.dataTransfer?.files?.[0]);
+  });
+  setTimeout(openUploadFromCampaign, 0);
+})();
+</script>
+</body>
+</html>
