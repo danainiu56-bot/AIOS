@@ -32,9 +32,40 @@
   a:hover { color: #1D48D8; }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-thumb { background: #E2E8F2; border-radius: 6px; border: 3px solid #F3F6FC; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @keyframes pulseDot { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+  .stg-tabs { display:flex;align-items:center;gap:4px;overflow-x:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:6px;margin:0 0 16px; }
+  .stg-note { margin:0 0 14px;color:#8792A5;font-size:12.5px;line-height:1.6; }
+  .stg-card { background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(33,58,112,.05); }
+  .stg-toolbar { display:flex;align-items:center;gap:10px;margin-bottom:14px; }
+  .stg-table { width:100%;border-collapse:collapse; }
+  .stg-table th { padding:10px 14px;background:#F8FAFE;border-bottom:1px solid #E2E8F2;text-align:left;color:#8792A5;font-size:11.5px;font-weight:500;white-space:nowrap; }
+  .stg-table td { padding:12px 14px;border-bottom:1px solid #EDF1F7;vertical-align:middle;font-size:13px; }
+  .stg-table tr:last-child td { border-bottom:0; }
+  .stg-table tbody tr:hover { background:#FAFCFF; }
+  .stg-btn { appearance:none;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap; }
+  .stg-btn.primary { border-color:#2457F5;background:#2457F5;color:#FFFFFF; }
+  .stg-btn.primary:hover { background:#1D48D8; }
+  .stg-btn.ghost { padding:4px 10px;font-size:12px; }
+  .stg-btn.danger:hover { border-color:#C4636D;color:#C4636D; }
+  .stg-input { height:34px;width:100%;box-sizing:border-box;border:1px solid #DDE5F1;border-radius:9px;background:#FFFFFF;padding:0 10px;color:#1D2638;font:inherit;font-size:13px; }
+  .stg-select { height:34px;border:1px solid #DDE5F1;border-radius:9px;background:#FFFFFF;padding:0 8px;color:#1D2638;font:inherit;font-size:12.5px; }
+  .stg-switch { width:38px;height:22px;border-radius:999px;cursor:pointer;display:flex;align-items:center;padding:2px;flex:0 0 38px; }
+  .stg-switch span { width:18px;height:18px;border-radius:999px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.18); }
+  .stg-badge { display:inline-flex;border-radius:999px;padding:3px 9px;font-size:11.5px;white-space:nowrap; }
+  .stg-role { background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;padding:16px 18px;margin-bottom:12px; }
+  .stg-perm { display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px 12px;margin-top:12px; }
+  .stg-perm-item { display:flex;align-items:center;justify-content:space-between;gap:8px;background:#F8FAFE;border:1px solid #EDF1F7;border-radius:10px;padding:8px 10px; }
+  .stg-modal { position:fixed;inset:0;z-index:220;background:rgba(20,31,52,.34);display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px); }
+  .stg-dialog { width:min(520px,100%);background:#FFFFFF;border:1px solid #E2E8F2;border-radius:20px;box-shadow:0 24px 64px rgba(29,38,56,.22);animation:fadeUp .18s ease both; }
+  .stg-dialog.wide { width:min(720px,100%); }
+  .stg-dialog-h { display:flex;align-items:flex-start;gap:16px;padding:20px 22px 16px;border-bottom:1px solid #EDF1F7; }
+  .stg-dialog-b { padding:18px 22px 22px; }
+  .stg-grid { display:grid;grid-template-columns:1fr 1fr;gap:13px 14px; }
+  .stg-field { display:flex;flex-direction:column;gap:5px; }
+  .stg-field.full { grid-column:1 / -1; }
+  .stg-field label { font-size:11.5px;color:#647187; }
+  .stg-field input,.stg-field select { width:100%;height:38px;border:1px solid #DDE5F1;border-radius:10px;background:#FFFFFF;padding:0 11px;color:#1D2638; }
+  .stg-actions { display:flex;justify-content:flex-end;gap:9px;margin-top:20px;padding-top:16px;border-top:1px solid #EDF1F7; }
+  @media (max-width:620px) { .stg-grid { grid-template-columns:1fr; }.stg-field.full { grid-column:auto; } }
 </style>
 </helmet>
 
@@ -127,22 +158,288 @@
 
       <!-- ══ SETTINGS ══ -->
       <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ true }}">
-        <div style="max-width:720px;margin:0 auto;animation:fadeUp .3s ease both">
-          <h1 style="margin:0 0 18px;font-size:28px;font-weight:500;letter-spacing:-.02em">设置</h1>
-          <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden">
-            <sc-for list="{{ settings }}" as="s" hint-placeholder-count="5">
-              <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #EDF1F7">
-                <div style="flex:1">
-                  <div style="font-size:15px;font-weight:500">{{ s.label }}</div>
-                  <div style="font-size:13.5px;color:#647187;text-wrap:pretty">{{ s.desc }}</div>
+        <div style="max-width:1080px;margin:0 auto;animation:fadeUp .3s ease both">
+          <h1 style="margin:0 0 6px;font-size:28px;font-weight:500;letter-spacing:-.02em">设置</h1>
+          <div style="margin:0 0 16px;color:#8792A5;font-size:13px">菜单、角色、人员与邮箱授权。当前演示身份：陈曦 · 运营负责人</div>
+          <div class="stg-tabs">
+            <sc-for list="{{ settingsTabs }}" as="t" hint-placeholder-count="5">
+              <div onClick="{{ t.go }}" style="flex:0 0 auto;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:9px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">{{ t.label }}</div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ settingsIsMenu }}" hint-placeholder-val="{{ true }}">
+            <div class="stg-note">{{ settingsNavNote }}</div>
+            <div class="stg-card">
+              <table class="stg-table">
+                <thead><tr><th style="width:52px">顺序</th><th>模块</th><th>侧栏显示名</th><th>显示</th><th>排序</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ settingsNavRows }}" as="m" hint-placeholder-count="13">
+                    <tr>
+                      <td style="color:#A2ABBA;font-variant-numeric:tabular-nums">{{ m.idx }}</td>
+                      <td style="font-weight:600">{{ m.defaultName }}</td>
+                      <td><input class="stg-input" value="{{ m.label }}" onChange="{{ m.setLabel }}" /></td>
+                      <td>
+                        <div style="display:flex;align-items:center;gap:8px">
+                          <div onClick="{{ m.toggle }}" class="stg-switch" style="background:{{ m.trackBg }};justify-content:{{ m.justify }}"><span></span></div>
+                          <span style="font-size:12px;color:#8792A5">{{ m.visibleLabel }}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div onClick="{{ m.moveUp }}" class="stg-btn ghost">上移</div>
+                        <div onClick="{{ m.moveDown }}" class="stg-btn ghost">下移</div>
+                      </td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ settingsIsRoles }}" hint-placeholder-val="{{ false }}">
+            <div class="stg-toolbar">
+              <div class="stg-note" style="margin:0;flex:1">{{ settingsRoleNote }}</div>
+              <div onClick="{{ settingsNewRole }}" class="stg-btn primary">+ 新建角色</div>
+            </div>
+            <sc-for list="{{ settingsRoleCards }}" as="r" hint-placeholder-count="4">
+              <div class="stg-role">
+                <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+                  <div style="flex:1;min-width:200px">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <div style="font-size:16px;font-weight:650">{{ r.name }}</div>
+                      <span class="stg-badge" style="background:{{ r.tagBg }};color:{{ r.tagFg }}">{{ r.tag }}</span>
+                    </div>
+                    <div style="margin-top:3px;font-size:12.5px;color:#647187">{{ r.desc }}</div>
+                    <div style="margin-top:4px;font-size:11.5px;color:#A2ABBA">{{ r.used }} 人使用</div>
+                  </div>
+                  <div onClick="{{ r.edit }}" class="stg-btn ghost">编辑</div>
+                  <sc-if value="{{ r.unlocked }}" hint-placeholder-val="{{ true }}">
+                    <div onClick="{{ r.remove }}" class="stg-btn ghost danger">删除</div>
+                  </sc-if>
                 </div>
-                <div onClick="{{ s.toggle }}" style="width:38px;height:22px;border-radius:999px;background:{{ s.trackBg }};cursor:pointer;display:flex;align-items:center;padding:2px;justify-content:{{ s.justify }};flex:0 0 38px">
-                  <div style="width:18px;height:18px;border-radius:999px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.18)"></div>
+                <div class="stg-perm">
+                  <sc-for list="{{ r.perms }}" as="p" hint-placeholder-count="13">
+                    <div class="stg-perm-item">
+                      <span style="font-size:12px;color:#1D2638">{{ p.label }}</span>
+                      <select class="stg-select" value="{{ p.value }}" onChange="{{ p.set }}">
+                        <option value="hide">隐藏</option>
+                        <option value="view">只读</option>
+                        <option value="edit">可编辑</option>
+                      </select>
+                    </div>
+                  </sc-for>
                 </div>
               </div>
             </sc-for>
-          </div>
+          </sc-if>
+
+          <sc-if value="{{ settingsIsPeople }}" hint-placeholder-val="{{ false }}">
+            <div class="stg-toolbar">
+              <div class="stg-note" style="margin:0;flex:1">{{ settingsPeopleNote }}</div>
+              <div onClick="{{ settingsNewPerson }}" class="stg-btn primary">+ 添加人员</div>
+            </div>
+            <div class="stg-card">
+              <table class="stg-table">
+                <thead><tr><th>姓名</th><th>邮箱</th><th>角色</th><th>负责范围</th><th>状态</th><th>最近活跃</th><th></th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ settingsPeopleRows }}" as="p" hint-placeholder-count="4">
+                    <tr>
+                      <td style="font-weight:600">{{ p.name }}</td>
+                      <td style="color:#647187">{{ p.email }}</td>
+                      <td>
+                        <select class="stg-select" value="{{ p.roleId }}" onChange="{{ p.setRole }}">
+                          <sc-for list="{{ settingsRoleOptions }}" as="o" hint-placeholder-count="4">
+                            <option value="{{ o.id }}">{{ o.name }}</option>
+                          </sc-for>
+                        </select>
+                      </td>
+                      <td>{{ p.scope }}</td>
+                      <td><span class="stg-badge" style="background:{{ p.statusBg }};color:{{ p.statusFg }}">{{ p.statusLabel }}</span></td>
+                      <td style="color:#A2ABBA;font-size:12px">{{ p.last }}</td>
+                      <td style="white-space:nowrap">
+                        <div onClick="{{ p.toggleStatus }}" class="stg-btn ghost">启停</div>
+                        <div onClick="{{ p.edit }}" class="stg-btn ghost">编辑</div>
+                        <div onClick="{{ p.remove }}" class="stg-btn ghost danger">删除</div>
+                      </td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ settingsIsMail }}" hint-placeholder-val="{{ false }}">
+            <div class="stg-toolbar">
+              <div class="stg-note" style="margin:0;flex:1">{{ settingsMailNote }}</div>
+              <div onClick="{{ settingsNewMail }}" class="stg-btn primary">授权新邮箱</div>
+            </div>
+            <div class="stg-card">
+              <table class="stg-table">
+                <thead><tr><th>品牌</th><th>邮箱</th><th>显示名</th><th>服务商</th><th>状态</th><th>授权人</th><th></th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ settingsMailRows }}" as="m" hint-placeholder-count="3">
+                    <tr>
+                      <td style="font-weight:600">{{ m.brand }}</td>
+                      <td style="font-weight:600">{{ m.email }}</td>
+                      <td>{{ m.name }}</td>
+                      <td>{{ m.provider }}</td>
+                      <td><span class="stg-badge" style="background:{{ m.statusBg }};color:{{ m.statusFg }}">{{ m.statusLabel }}</span></td>
+                      <td style="color:#8792A5;font-size:12px">{{ m.by }} · {{ m.when }}</td>
+                      <td style="white-space:nowrap">
+                        <sc-if value="{{ m.canAuth }}" hint-placeholder-val="{{ false }}">
+                          <div onClick="{{ m.authorize }}" class="stg-btn ghost">去授权</div>
+                        </sc-if>
+                        <div onClick="{{ m.revoke }}" class="stg-btn ghost danger">取消授权</div>
+                      </td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ settingsIsAuto }}" hint-placeholder-val="{{ false }}">
+            <div class="stg-note">这些开关仍按原逻辑保存在本机，只是从整页设置改到了「自动化」分组。</div>
+            <div class="stg-card">
+              <sc-for list="{{ settings }}" as="s" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #EDF1F7">
+                  <div style="flex:1">
+                    <div style="font-size:15px;font-weight:500">{{ s.label }}</div>
+                    <div style="font-size:13.5px;color:#647187;text-wrap:pretty">{{ s.desc }}</div>
+                  </div>
+                  <div onClick="{{ s.toggle }}" class="stg-switch" style="background:{{ s.trackBg }};justify-content:{{ s.justify }}"><span></span></div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
         </div>
+
+        <sc-if value="{{ settingsPersonOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ settingsCloseModals }}" class="stg-modal" role="dialog" aria-modal="true">
+            <div onClick="{{ settingsKeepModal }}" class="stg-dialog">
+              <div class="stg-dialog-h">
+                <div style="flex:1">
+                  <div style="font-size:18px;font-weight:650">{{ settingsPersonTitle }}</div>
+                  <div style="margin-top:2px;color:#8792A5;font-size:12px">人员用于合同负责人、审批提交人等演示字段</div>
+                </div>
+                <div onClick="{{ settingsCloseModals }}" class="stg-btn" style="line-height:1;padding:6px 10px">×</div>
+              </div>
+              <div class="stg-dialog-b">
+                <div class="stg-grid">
+                  <div class="stg-field"><label>姓名 *</label><input value="{{ settingsPersonName }}" onChange="{{ settingsSetPersonName }}" placeholder="陈曦" /></div>
+                  <div class="stg-field"><label>邮箱 *</label><input value="{{ settingsPersonEmail }}" onChange="{{ settingsSetPersonEmail }}" placeholder="name@imaios.com" /></div>
+                  <div class="stg-field"><label>角色</label>
+                    <select value="{{ settingsPersonRoleId }}" onChange="{{ settingsSetPersonRole }}">
+                      <sc-for list="{{ settingsRoleOptions }}" as="o" hint-placeholder-count="4">
+                        <option value="{{ o.id }}">{{ o.name }}</option>
+                      </sc-for>
+                    </select>
+                  </div>
+                  <div class="stg-field"><label>负责范围</label><input value="{{ settingsPersonScope }}" onChange="{{ settingsSetPersonScope }}" placeholder="Ryze / Aura" /></div>
+                  <div class="stg-field"><label>状态</label>
+                    <select value="{{ settingsPersonStatus }}" onChange="{{ settingsSetPersonStatus }}">
+                      <option value="active">在职</option>
+                      <option value="idle">停用</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="stg-actions" style="align-items:center">
+                  <sc-if value="{{ settingsHasError }}" hint-placeholder-val="{{ false }}"><span style="flex:1;color:#B4525E;font-size:12px">{{ settingsFormError }}</span></sc-if>
+                  <sc-if value="{{ settingsNoError }}" hint-placeholder-val="{{ true }}"><span style="flex:1"></span></sc-if>
+                  <div onClick="{{ settingsCloseModals }}" class="stg-btn">取消</div>
+                  <div onClick="{{ settingsSavePerson }}" class="stg-btn primary">保存</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ settingsRoleOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ settingsCloseModals }}" class="stg-modal" role="dialog" aria-modal="true">
+            <div onClick="{{ settingsKeepModal }}" class="stg-dialog">
+              <div class="stg-dialog-h">
+                <div style="flex:1">
+                  <div style="font-size:18px;font-weight:650">{{ settingsRoleTitle }}</div>
+                  <div style="margin-top:2px;color:#8792A5;font-size:12px">权限矩阵在角色卡片里逐项调整</div>
+                </div>
+                <div onClick="{{ settingsCloseModals }}" class="stg-btn" style="line-height:1;padding:6px 10px">×</div>
+              </div>
+              <div class="stg-dialog-b">
+                <div class="stg-grid">
+                  <div class="stg-field full"><label>角色名称 *</label><input value="{{ settingsRoleName }}" onChange="{{ settingsSetRoleName }}" placeholder="运营专员" /></div>
+                  <div class="stg-field full"><label>说明</label><input value="{{ settingsRoleDesc }}" onChange="{{ settingsSetRoleDesc }}" placeholder="简要描述这个角色能做什么" /></div>
+                </div>
+                <div class="stg-actions" style="align-items:center">
+                  <sc-if value="{{ settingsHasError }}" hint-placeholder-val="{{ false }}"><span style="flex:1;color:#B4525E;font-size:12px">{{ settingsFormError }}</span></sc-if>
+                  <sc-if value="{{ settingsNoError }}" hint-placeholder-val="{{ true }}"><span style="flex:1"></span></sc-if>
+                  <div onClick="{{ settingsCloseModals }}" class="stg-btn">取消</div>
+                  <div onClick="{{ settingsSaveRole }}" class="stg-btn primary">保存</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ settingsMailOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ settingsCloseModals }}" class="stg-modal" role="dialog" aria-modal="true">
+            <div onClick="{{ settingsKeepModal }}" class="stg-dialog">
+              <div class="stg-dialog-h">
+                <div style="flex:1">
+                  <div style="font-size:18px;font-weight:650">授权新邮箱</div>
+                  <div style="margin-top:2px;color:#8792A5;font-size:12px">一个品牌对应一个 Gmail。授权为模拟流程，可立即设为发件账号</div>
+                </div>
+                <div onClick="{{ settingsCloseModals }}" class="stg-btn" style="line-height:1;padding:6px 10px">×</div>
+              </div>
+              <div class="stg-dialog-b">
+                <div class="stg-grid">
+                  <div class="stg-field"><label>品牌 *</label>
+                    <select value="{{ settingsMailBrand }}" onChange="{{ settingsSetMailBrand }}">
+                      <option value="">请选择品牌</option>
+                      <sc-for list="{{ settingsMailBrandOptions }}" as="o" hint-placeholder-count="6">
+                        <option value="{{ o.id }}">{{ o.name }}</option>
+                      </sc-for>
+                    </select>
+                  </div>
+                  <div class="stg-field"><label>邮箱地址 *</label><input value="{{ settingsMailEmail }}" onChange="{{ settingsSetMailEmail }}" placeholder="ops@imaios.com" /></div>
+                  <div class="stg-field"><label>显示名</label><input value="{{ settingsMailName }}" onChange="{{ settingsSetMailName }}" placeholder="AIOS Ops" /></div>
+                  <div class="stg-field full"><label>服务商</label>
+                    <select value="{{ settingsMailProvider }}" onChange="{{ settingsSetMailProvider }}">
+                      <option value="Gmail">Gmail</option>
+                      <option value="Outlook">Outlook</option>
+                      <option value="企业邮箱">企业邮箱</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="stg-actions" style="align-items:center">
+                  <sc-if value="{{ settingsHasError }}" hint-placeholder-val="{{ false }}"><span style="flex:1;color:#B4525E;font-size:12px">{{ settingsFormError }}</span></sc-if>
+                  <sc-if value="{{ settingsNoError }}" hint-placeholder-val="{{ true }}"><span style="flex:1"></span></sc-if>
+                  <div onClick="{{ settingsCloseModals }}" class="stg-btn">取消</div>
+                  <div onClick="{{ settingsSaveMail }}" class="stg-btn primary">授权并保存</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ settingsDeleteOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ settingsCloseModals }}" class="stg-modal" role="dialog" aria-modal="true">
+            <div onClick="{{ settingsKeepModal }}" class="stg-dialog" style="width:min(440px,100%)">
+              <div class="stg-dialog-h">
+                <div style="flex:1">
+                  <div style="font-size:18px;font-weight:650">{{ settingsDeleteTitle }}</div>
+                  <div style="margin-top:2px;color:#8792A5;font-size:12px">{{ settingsDeleteName }}</div>
+                </div>
+                <div onClick="{{ settingsCloseModals }}" class="stg-btn" style="line-height:1;padding:6px 10px">×</div>
+              </div>
+              <div class="stg-dialog-b">
+                <div style="font-size:13.5px;line-height:1.7;color:#647187">{{ settingsDeleteText }}</div>
+                <div class="stg-actions">
+                  <div onClick="{{ settingsCloseModals }}" class="stg-btn">取消</div>
+                  <div onClick="{{ settingsDeleteConfirm }}" class="stg-btn primary" style="border-color:#C4636D;background:#C4636D">确认</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
       </sc-if>
 
     </div>

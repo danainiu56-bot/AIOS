@@ -1,6 +1,66 @@
 (() => {
 const defineAiosComponent = () => {
 const SAGE = '#6E8F74', BLUE = '#2457F5', RUST = '#C4636D';
+const SETTINGS_MODULES = [
+  ['dash', 'Dashboard'], ['tasks', 'My Tasks'], ['products', 'Products'], ['campaigns', 'Campaigns'],
+  ['strategy', 'Strategy Studio'], ['brief', 'Brief Studio'], ['creators', 'Influencer CRM'],
+  ['samples', 'Sample Mgt'], ['assets', 'Asset Library'], ['finance', 'Budget Mgt'],
+  ['reports', 'Reports'], ['contracts', 'Contract Mgt'], ['settings', 'Settings']
+];
+const SETTINGS_BRANDS = ['Ryze', 'Aura', 'Lumo', 'Nuvia', 'Verre', 'Pace'];
+const mailboxBrandOf = (m) => String((m && m.brand) || '').trim();
+const isGmailMailbox = (m) => (m && m.provider) === 'Gmail';
+const gmailBrandTaken = (list, brand, exceptId) => !!(brand && (list || []).some((x) => x.id !== exceptId && isGmailMailbox(x) && mailboxBrandOf(x) === brand));
+const settingsOrgSeed = () => {
+  const perms = (pick) => SETTINGS_MODULES.reduce((o, [id]) => { o[id] = pick(id); return o; }, {});
+  return {
+    navHidden: [],
+    navOrder: SETTINGS_MODULES.map((m) => m[0]),
+    navLabels: {},
+    roles: [
+      { id: 'admin', name: '管理员', desc: '全部模块查看与编辑，含系统设置', locked: true, perms: perms(() => 'edit') },
+      { id: 'lead', name: '运营负责人', desc: '业务模块全开，设置只读', locked: false, perms: perms((id) => id === 'settings' ? 'view' : 'edit') },
+      { id: 'specialist', name: '运营专员', desc: '运营模块可编辑，预算只读，设置隐藏', locked: false, perms: perms((id) => id === 'settings' ? 'hide' : (id === 'finance' ? 'view' : 'edit')) },
+      { id: 'finance', name: '财务', desc: '预算、报表、合同可编辑，其余只读', locked: false, perms: perms((id) => id === 'settings' ? 'hide' : (['dash', 'tasks', 'finance', 'reports', 'contracts'].indexOf(id) >= 0 ? 'edit' : 'view')) }
+    ],
+    people: [
+      { id: 'p-chenxi', name: '陈曦', email: 'chenxi@imaios.com', roleId: 'lead', scope: 'Ryze', status: 'active', last: '今天 11:20' },
+      { id: 'p-sumin', name: '苏敏', email: 'sumin@imaios.com', roleId: 'specialist', scope: 'Aura', status: 'active', last: '昨天 18:04' },
+      { id: 'p-linhao', name: '林浩', email: 'linhao@imaios.com', roleId: 'specialist', scope: 'Lumo', status: 'active', last: '08-20 16:12' },
+      { id: 'p-guqing', name: '顾清', email: 'guqing@imaios.com', roleId: 'finance', scope: '集团财务', status: 'active', last: '08-19 09:40' }
+    ],
+    mailboxes: [
+      { id: 'mb-1', email: 'chenxi@imaios.com', name: 'Chen Xi', brand: 'Ryze', provider: 'Gmail', status: 'authorized', by: '陈曦', when: '2026-08-12' },
+      { id: 'mb-2', email: 'ops@imaios.com', name: 'AIOS Ops', brand: 'Aura', provider: '企业邮箱', status: 'authorized', by: '陈曦', when: '2026-07-03' },
+      { id: 'mb-3', email: 'finance@imaios.com', name: 'Finance', brand: '', provider: 'Outlook', status: 'pending', by: '顾清', when: '—' }
+    ],
+    auto: { seed: true, guard: true, autoTag: true, weekly: false, portal: false }
+  };
+};
+const loadSettingsOrg = () => {
+  const seed = settingsOrgSeed();
+  try {
+    const saved = JSON.parse(localStorage.getItem('aios.settingsOrg') || 'null');
+    if (!saved || typeof saved !== 'object') return seed;
+    const fillPerms = seed.roles[0].perms;
+    const roles = Array.isArray(saved.roles) && saved.roles.length ? saved.roles.map((r) => ({ ...r, perms: { ...fillPerms, ...(r.perms || {}) } })) : seed.roles;
+    return {
+      navHidden: Array.isArray(saved.navHidden) ? saved.navHidden.filter((id) => id !== 'settings') : [],
+      navOrder: Array.isArray(saved.navOrder) && saved.navOrder.length ? saved.navOrder : seed.navOrder,
+      navLabels: saved.navLabels && typeof saved.navLabels === 'object' ? saved.navLabels : {},
+      roles,
+      people: Array.isArray(saved.people) && saved.people.length ? saved.people : seed.people,
+      mailboxes: Array.isArray(saved.mailboxes) && saved.mailboxes.length
+        ? saved.mailboxes.map((m) => {
+            const seedMb = seed.mailboxes.find((x) => x.id === m.id) || seed.mailboxes.find((x) => x.email === m.email) || {};
+            return { ...m, brand: mailboxBrandOf(m) || mailboxBrandOf(seedMb) };
+          })
+        : seed.mailboxes,
+      auto: { ...seed.auto, ...(saved.auto && typeof saved.auto === 'object' ? saved.auto : {}) }
+    };
+  } catch (_) { return seed; }
+};
+const SETTINGS_ORG = loadSettingsOrg();
 
 class Component extends DCLogic {
   get accent() { return this.props.accent ?? '#2457F5'; }
@@ -73,6 +133,9 @@ class Component extends DCLogic {
       if (event.key === 'Escape' && this.state.swVersionManagerOpen) this.setState({ swVersionManagerOpen: false, swVersionRenameKey: '', swVersionDeleteKey: '' });
       if (event.key === 'Escape' && this.state.ctmNewOpen) this.setState({ ctmNewOpen: false, ctmNew: { deal: '付费合作', name: '', nameZh: '', ver: 'v1', seed: '', lang: 'en', en: '', zh: '', error: '' } });
       if (event.key === 'Escape' && this.state.ctmDeleteId) this.setState({ ctmDeleteId: null });
+      if (event.key === 'Escape' && (this.state.settingsPersonOpen || this.state.settingsRoleOpen || this.state.settingsMailOpen || this.state.settingsDelete)) {
+        this.setState({ settingsPersonOpen: false, settingsRoleOpen: false, settingsMailOpen: false, settingsDelete: null, settingsFormError: '' });
+      }
     };
     document.addEventListener('keydown', this._productDrawerKeyHandler);
     const directStrategyParams = new URLSearchParams(window.location.search);
@@ -146,6 +209,15 @@ class Component extends DCLogic {
       localStorage.setItem('aios.shipOrders', JSON.stringify(this.state.shipOrders || []));
       localStorage.setItem('aios.ctmCustom', JSON.stringify(this.state.ctmCustom || []));
       localStorage.setItem('aios.ctmRemoved', JSON.stringify(this.state.ctmRemoved || []));
+      localStorage.setItem('aios.settingsOrg', JSON.stringify({
+        navHidden: this.state.settingsNavHidden || [],
+        navOrder: this.state.settingsNavOrder || [],
+        navLabels: this.state.settingsNavLabels || {},
+        roles: this.state.settingsRoles || [],
+        people: this.state.settingsPeople || [],
+        mailboxes: this.state.settingsMailboxes || [],
+        auto: this.state.settings || {}
+      }));
     } catch (_) {}
   }
 
@@ -371,7 +443,24 @@ class Component extends DCLogic {
       { id: 'INV-2026-022', handle: '@thecalmedit', item: '固定费 · Aura 氛围灯首轮', amount: 2400, date: '2026-01-23', status: '已付款', kind: '固定费', sku: 'AURA-LP-01', channel: 'TikTok', applicant: '苏敏', payType: '首款' },
       { id: 'INV-2026-018', handle: '@kaylascalp', item: '佣金结算 · 1月', amount: 1812, date: '2026-01-09', status: '已付款', kind: '佣金', sku: 'RYZ-SC-01', channel: 'TikTok', applicant: '陈曦', payType: '佣金结算' }
     ],
-    settings: { seed: true, guard: true, autoTag: true, weekly: false, portal: false }
+    settings: { ...SETTINGS_ORG.auto },
+    settingsTab: 'menu',
+    settingsNavHidden: SETTINGS_ORG.navHidden,
+    settingsNavOrder: SETTINGS_ORG.navOrder,
+    settingsNavLabels: SETTINGS_ORG.navLabels,
+    settingsRoles: SETTINGS_ORG.roles,
+    settingsPeople: SETTINGS_ORG.people,
+    settingsMailboxes: SETTINGS_ORG.mailboxes,
+    settingsPersonOpen: false,
+    settingsRoleOpen: false,
+    settingsMailOpen: false,
+    settingsPersonEditId: '',
+    settingsRoleEditId: '',
+    settingsPersonDraft: { name: '', email: '', roleId: 'specialist', scope: '', status: 'active' },
+    settingsRoleDraft: { name: '', desc: '' },
+    settingsMailDraft: { email: '', name: '', brand: '', provider: 'Gmail' },
+    settingsFormError: '',
+    settingsDelete: null
   };
 
   LOOKALIKE_POOL = [
@@ -973,10 +1062,18 @@ class Component extends DCLogic {
     const rootOf = { productDetail: 'products', campaignDetail: 'campaigns', newCampaign: 'campaigns', creatorProfile: 'creators', contact: 'creators', assetDetail: 'assets', samples: 'samples', contracts: 'contracts', finance: 'finance' };
     const activeRoot = rootOf[page] || page;
     const collapsed = s.navCollapsed;
-    const nav = navDefs.map(([id, key, label, badge]) => {
+    const navIdList = navDefs.map((d) => d[0]);
+    const rawNavOrder = Array.isArray(s.settingsNavOrder) && s.settingsNavOrder.length ? s.settingsNavOrder : navIdList;
+    const navOrder = rawNavOrder.filter((id) => navIdList.indexOf(id) >= 0).concat(navIdList.filter((id) => rawNavOrder.indexOf(id) < 0));
+    const navHidden = new Set(s.settingsNavHidden || []);
+    const navLabels = s.settingsNavLabels || {};
+    const nav = navOrder.filter((id) => id === 'settings' || id === activeRoot || !navHidden.has(id)).map((id) => {
+      const def = navDefs.find((d) => d[0] === id) || [id, '', id, ''];
+      const label = navLabels[id] || def[2];
+      const badge = def[3];
       const on = id === activeRoot;
       return {
-        key: label.charAt(0), label, badge, go: this.go(id), title: label,
+        key: String(label).charAt(0), label, badge, go: this.go(id), title: label,
         bg: on ? '#EAF0FF' : 'transparent', fg: on ? '#1D2638' : '#59677C', fw: on ? 500 : 400,
         justify: collapsed ? 'center' : 'flex-start',
         badgePos: collapsed ? 'absolute' : 'static'
@@ -6640,6 +6737,25 @@ class Component extends DCLogic {
       label, desc, trackBg: s.settings[k] ? SAGE : '#E2E8F2', justify: s.settings[k] ? 'flex-end' : 'flex-start',
       toggle: () => this.setState(st => ({ settings: { ...st.settings, [k]: !st.settings[k] } }))
     }));
+    const settingsTab = s.settingsTab || 'menu';
+    const settingsRoleList = s.settingsRoles || [];
+    const settingsPeopleList = s.settingsPeople || [];
+    const settingsMailboxList = s.settingsMailboxes || [];
+    const settingsPersonDraft = s.settingsPersonDraft || { name: '', email: '', roleId: 'specialist', scope: '', status: 'active' };
+    const settingsRoleDraft = s.settingsRoleDraft || { name: '', desc: '' };
+    const settingsMailDraft = s.settingsMailDraft || { email: '', name: '', brand: '', provider: 'Gmail' };
+    const gmailBoundBrands = new Set(settingsMailboxList.filter((m) => isGmailMailbox(m) && mailboxBrandOf(m)).map(mailboxBrandOf));
+    const settingsMailBrandOptions = SETTINGS_BRANDS.filter((b) => settingsMailDraft.provider !== 'Gmail' || !gmailBoundBrands.has(b)).map((b) => ({ id: b, name: b }));
+    const settingsDelete = s.settingsDelete;
+    const patchSettingsPerson = (part) => this.setState(st => ({ settingsPersonDraft: { ...(st.settingsPersonDraft || {}), ...part }, settingsFormError: '' }));
+    const patchSettingsRole = (part) => this.setState(st => ({ settingsRoleDraft: { ...(st.settingsRoleDraft || {}), ...part }, settingsFormError: '' }));
+    const patchSettingsMail = (part) => this.setState(st => ({ settingsMailDraft: { ...(st.settingsMailDraft || {}), ...part }, settingsFormError: '' }));
+    const settingsCloseModals = (e) => {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (Date.now() - (this._stgModalAt || 0) < 400) return;
+      this.setState({ settingsPersonOpen: false, settingsRoleOpen: false, settingsMailOpen: false, settingsDelete: null, settingsFormError: '' });
+    };
+    const settingsKeepModal = (e) => { if (e && e.stopPropagation) e.stopPropagation(); };
 
     const ctxRoot = rootOf[page] || page;
     const promptBank = {
@@ -10096,7 +10212,267 @@ class Component extends DCLogic {
       crQuality, crBlacklist,
       rp: reportShell,
       reportHeadline: 'Q2 最大的发现不是哪个红人好，而是「叙事角度」比「粉丝量级」更决定结果：同一层级红人，睡前 routine 角度的 ROAS 比开箱高 41%。下一轮应该先定角度，再选人。',
-      winning, weak, nextRound, settings
+      winning, weak, nextRound, settings,
+      settingsTabs: [['menu', '菜单模块'], ['roles', '角色管理'], ['people', '人员管理'], ['mail', '邮箱授权'], ['auto', '自动化']].map(([id, label]) => {
+        const on = settingsTab === id;
+        return { id, label, go: () => this.setState({ settingsTab: id }), bg: on ? '#2457F5' : 'transparent', fg: on ? '#FFFFFF' : '#647187', bd: on ? '#2457F5' : 'transparent' };
+      }),
+      settingsIsMenu: settingsTab === 'menu',
+      settingsIsRoles: settingsTab === 'roles',
+      settingsIsPeople: settingsTab === 'people',
+      settingsIsMail: settingsTab === 'mail',
+      settingsIsAuto: settingsTab === 'auto',
+      settingsNavNote: '关闭后侧栏立即隐藏该模块；Settings 不可关闭。当前页即使被关闭也会暂时保留，避免把自己锁在外面。',
+      settingsNavRows: navOrder.map((id, idx) => {
+        const def = navDefs.find((d) => d[0] === id) || [id, '', id, ''];
+        const hidden = id !== 'settings' && navHidden.has(id);
+        const locked = id === 'settings';
+        return {
+          id, idx: idx + 1, defaultName: def[2],
+          label: navLabels[id] || def[2],
+          locked, unlocked: !locked,
+          visibleLabel: locked ? '始终显示' : (hidden ? '已隐藏' : '显示中'),
+          trackBg: locked || !hidden ? SAGE : '#E2E8F2',
+          justify: locked || !hidden ? 'flex-end' : 'flex-start',
+          toggle: () => {
+            if (locked) return;
+            this.setState(st => {
+              const cur = new Set(st.settingsNavHidden || []);
+              if (cur.has(id)) cur.delete(id); else cur.add(id);
+              return { settingsNavHidden: Array.from(cur) };
+            });
+          },
+          setLabel: (e) => {
+            const value = e.target.value;
+            this.setState(st => ({ settingsNavLabels: { ...(st.settingsNavLabels || {}), [id]: value } }));
+          },
+          moveUp: () => this.setState(st => {
+            const order = (st.settingsNavOrder && st.settingsNavOrder.length ? st.settingsNavOrder : navIdList).filter((x) => navIdList.indexOf(x) >= 0).concat(navIdList.filter((x) => (st.settingsNavOrder || []).indexOf(x) < 0));
+            const i = order.indexOf(id);
+            if (i <= 0) return {};
+            const next = order.slice();
+            next[i] = next[i - 1]; next[i - 1] = id;
+            return { settingsNavOrder: next };
+          }),
+          moveDown: () => this.setState(st => {
+            const order = (st.settingsNavOrder && st.settingsNavOrder.length ? st.settingsNavOrder : navIdList).filter((x) => navIdList.indexOf(x) >= 0).concat(navIdList.filter((x) => (st.settingsNavOrder || []).indexOf(x) < 0));
+            const i = order.indexOf(id);
+            if (i < 0 || i >= order.length - 1) return {};
+            const next = order.slice();
+            next[i] = next[i + 1]; next[i + 1] = id;
+            return { settingsNavOrder: next };
+          })
+        };
+      }),
+      settingsRoleNote: '第一期只保存权限配置，不拦截各业务页按钮。',
+      settingsRoleOptions: settingsRoleList.map((r) => ({ id: r.id, name: r.name })),
+      settingsRoleCards: settingsRoleList.map((role) => ({
+        id: role.id, name: role.name, desc: role.desc || '',
+        locked: !!role.locked, unlocked: !role.locked,
+        tag: role.locked ? '系统' : '自定义',
+        tagBg: role.locked ? '#EAF0FF' : '#F5F8FE',
+        tagFg: role.locked ? '#2457F5' : '#647187',
+        used: settingsPeopleList.filter((p) => p.roleId === role.id).length,
+        perms: SETTINGS_MODULES.map(([mid, mlabel]) => ({
+          id: mid, label: mlabel, value: (role.perms || {})[mid] || 'view',
+          set: (e) => {
+            const value = e.target.value;
+            if (role.locked && mid === 'settings' && value !== 'edit') return;
+            this.setState(st => ({
+              settingsRoles: (st.settingsRoles || []).map((r) => r.id === role.id ? { ...r, perms: { ...(r.perms || {}), [mid]: value } } : r)
+            }));
+          }
+        })),
+        edit: () => {
+          this._stgModalAt = Date.now();
+          this.setState({ settingsRoleOpen: true, settingsRoleEditId: role.id, settingsRoleDraft: { name: role.name, desc: role.desc || '' }, settingsFormError: '' });
+        },
+        remove: () => {
+          if (role.locked) return;
+          this._stgModalAt = Date.now();
+          this.setState({ settingsDelete: { kind: 'role', id: role.id, name: role.name } });
+        }
+      })),
+      settingsPeopleNote: settingsPeopleList.length + ' 人 · 停用后仍保留记录，不会出现在新任务负责人候选中（演示）。',
+      settingsPeopleRows: settingsPeopleList.map((p) => {
+        const role = settingsRoleList.find((r) => r.id === p.roleId);
+        const active = p.status !== 'idle';
+        return {
+          id: p.id, name: p.name, email: p.email, scope: p.scope || '—', last: p.last || '—',
+          roleName: role ? role.name : '未分配',
+          roleId: p.roleId,
+          statusLabel: active ? '在职' : '停用',
+          statusBg: active ? '#E4EFE4' : '#F1F4F8',
+          statusFg: active ? '#4E7156' : '#8792A5',
+          setRole: (e) => this.setState(st => ({ settingsPeople: (st.settingsPeople || []).map((x) => x.id === p.id ? { ...x, roleId: e.target.value } : x) })),
+          toggleStatus: () => this.setState(st => ({ settingsPeople: (st.settingsPeople || []).map((x) => x.id === p.id ? { ...x, status: x.status === 'idle' ? 'active' : 'idle' } : x) })),
+          edit: () => {
+            this._stgModalAt = Date.now();
+            this.setState({ settingsPersonOpen: true, settingsPersonEditId: p.id, settingsPersonDraft: { name: p.name, email: p.email, roleId: p.roleId, scope: p.scope || '', status: p.status || 'active' }, settingsFormError: '' });
+          },
+          remove: () => {
+            this._stgModalAt = Date.now();
+            this.setState({ settingsDelete: { kind: 'person', id: p.id, name: p.name } });
+          }
+        };
+      }),
+      settingsMailNote: 'Gmail 按品牌绑定，一个品牌只能授权一个 Gmail。授权为模拟流程，不会连接 Google / Microsoft。',
+      settingsMailBrandOptions,
+      settingsMailRows: settingsMailboxList.map((m) => {
+        const stMap = { authorized: ['已授权', '#E4EFE4', '#4E7156'], pending: ['待授权', '#FBEEDA', '#A5762C'], expired: ['已过期', '#F7EDEE', '#B4525E'] };
+        const meta = stMap[m.status] || stMap.pending;
+        return {
+          id: m.id, email: m.email, name: m.name, brand: mailboxBrandOf(m) || '—', provider: m.provider, by: m.by || '—', when: m.when || '—',
+          statusLabel: meta[0], statusBg: meta[1], statusFg: meta[2],
+          canAuth: m.status !== 'authorized',
+          authorize: () => this.setState(st => ({
+            settingsMailboxes: (st.settingsMailboxes || []).map((x) => x.id === m.id ? { ...x, status: 'authorized', when: '2026-09-14' } : x)
+          })),
+          revoke: () => {
+            this._stgModalAt = Date.now();
+            this.setState({ settingsDelete: { kind: 'mail', id: m.id, name: m.email } });
+          }
+        };
+      }),
+      settingsPersonOpen: !!s.settingsPersonOpen,
+      settingsRoleOpen: !!s.settingsRoleOpen,
+      settingsMailOpen: !!s.settingsMailOpen,
+      settingsDeleteOpen: !!settingsDelete,
+      settingsPersonTitle: s.settingsPersonEditId ? '编辑人员' : '添加人员',
+      settingsRoleTitle: s.settingsRoleEditId ? '编辑角色' : '新建角色',
+      settingsDeleteTitle: settingsDelete && settingsDelete.kind === 'role' ? '删除角色' : (settingsDelete && settingsDelete.kind === 'mail' ? '取消邮箱授权' : '删除人员'),
+      settingsDeleteText: settingsDelete && settingsDelete.kind === 'mail'
+        ? '取消后该邮箱将回到待授权，不会删除记录。'
+        : (settingsDelete && settingsDelete.kind === 'role' ? '删除后，使用该角色的人员需要重新分配角色。' : '删除后无法从设置里恢复该人员。'),
+      settingsDeleteName: settingsDelete ? settingsDelete.name : '',
+      settingsFormError: s.settingsFormError || '',
+      settingsHasError: !!(s.settingsFormError || ''),
+      settingsNoError: !(s.settingsFormError || ''),
+      settingsPersonName: settingsPersonDraft.name || '',
+      settingsPersonEmail: settingsPersonDraft.email || '',
+      settingsPersonRoleId: settingsPersonDraft.roleId || 'specialist',
+      settingsPersonScope: settingsPersonDraft.scope || '',
+      settingsPersonStatus: settingsPersonDraft.status || 'active',
+      settingsRoleName: settingsRoleDraft.name || '',
+      settingsRoleDesc: settingsRoleDraft.desc || '',
+      settingsMailEmail: settingsMailDraft.email || '',
+      settingsMailName: settingsMailDraft.name || '',
+      settingsMailBrand: settingsMailDraft.brand || '',
+      settingsMailProvider: settingsMailDraft.provider || 'Gmail',
+      settingsCloseModals,
+      settingsKeepModal,
+      settingsNewPerson: () => {
+        this._stgModalAt = Date.now();
+        this.setState({ settingsPersonOpen: true, settingsPersonEditId: '', settingsPersonDraft: { name: '', email: '', roleId: 'specialist', scope: '', status: 'active' }, settingsFormError: '' });
+      },
+      settingsNewRole: () => {
+        this._stgModalAt = Date.now();
+        this.setState({ settingsRoleOpen: true, settingsRoleEditId: '', settingsRoleDraft: { name: '', desc: '' }, settingsFormError: '' });
+      },
+      settingsNewMail: () => {
+        this._stgModalAt = Date.now();
+        const taken = new Set((this.state.settingsMailboxes || []).filter((x) => isGmailMailbox(x) && mailboxBrandOf(x)).map(mailboxBrandOf));
+        const brand = SETTINGS_BRANDS.find((b) => !taken.has(b)) || '';
+        this.setState({ settingsMailOpen: true, settingsMailDraft: { email: '', name: '', brand, provider: 'Gmail' }, settingsFormError: '' });
+      },
+      settingsSetPersonName: (e) => patchSettingsPerson({ name: e.target.value }),
+      settingsSetPersonEmail: (e) => patchSettingsPerson({ email: e.target.value }),
+      settingsSetPersonRole: (e) => patchSettingsPerson({ roleId: e.target.value }),
+      settingsSetPersonScope: (e) => patchSettingsPerson({ scope: e.target.value }),
+      settingsSetPersonStatus: (e) => patchSettingsPerson({ status: e.target.value }),
+      settingsSetRoleName: (e) => patchSettingsRole({ name: e.target.value }),
+      settingsSetRoleDesc: (e) => patchSettingsRole({ desc: e.target.value }),
+      settingsSetMailEmail: (e) => patchSettingsMail({ email: e.target.value }),
+      settingsSetMailName: (e) => patchSettingsMail({ name: e.target.value }),
+      settingsSetMailBrand: (e) => patchSettingsMail({ brand: e.target.value }),
+      settingsSetMailProvider: (e) => {
+        const provider = e.target.value;
+        this.setState(st => {
+          const draft = { ...(st.settingsMailDraft || {}), provider };
+          if (provider === 'Gmail') {
+            if (gmailBrandTaken(st.settingsMailboxes || [], draft.brand)) {
+              const taken = new Set((st.settingsMailboxes || []).filter((x) => isGmailMailbox(x) && mailboxBrandOf(x)).map(mailboxBrandOf));
+              draft.brand = SETTINGS_BRANDS.find((b) => !taken.has(b)) || '';
+            }
+          }
+          return { settingsMailDraft: draft, settingsFormError: '' };
+        });
+      },
+      settingsSavePerson: () => {
+        const d = this.state.settingsPersonDraft || {};
+        if (!String(d.name || '').trim() || !String(d.email || '').trim()) {
+          this.setState({ settingsFormError: '请填写姓名和邮箱。' });
+          return;
+        }
+        const editId = this.state.settingsPersonEditId;
+        this.setState(st => {
+          const row = { id: editId || ('p-' + Date.now()), name: d.name.trim(), email: d.email.trim(), roleId: d.roleId || 'specialist', scope: (d.scope || '').trim(), status: d.status || 'active', last: editId ? ((st.settingsPeople || []).find((x) => x.id === editId) || {}).last || '刚刚' : '刚刚加入' };
+          const list = st.settingsPeople || [];
+          return { settingsPeople: editId ? list.map((x) => x.id === editId ? row : x) : [row, ...list], settingsPersonOpen: false, settingsPersonEditId: '', settingsFormError: '' };
+        });
+      },
+      settingsSaveRole: () => {
+        const d = this.state.settingsRoleDraft || {};
+        if (!String(d.name || '').trim()) {
+          this.setState({ settingsFormError: '请填写角色名称。' });
+          return;
+        }
+        const editId = this.state.settingsRoleEditId;
+        this.setState(st => {
+          const list = st.settingsRoles || [];
+          if (editId) {
+            return { settingsRoles: list.map((r) => r.id === editId ? { ...r, name: d.name.trim(), desc: (d.desc || '').trim() } : r), settingsRoleOpen: false, settingsRoleEditId: '', settingsFormError: '' };
+          }
+          const perms = SETTINGS_MODULES.reduce((o, [id]) => { o[id] = id === 'settings' ? 'hide' : 'view'; return o; }, {});
+          return { settingsRoles: [...list, { id: 'role-' + Date.now(), name: d.name.trim(), desc: (d.desc || '').trim(), locked: false, perms }], settingsRoleOpen: false, settingsRoleEditId: '', settingsFormError: '' };
+        });
+      },
+      settingsSaveMail: () => {
+        const d = this.state.settingsMailDraft || {};
+        const email = String(d.email || '').trim();
+        const brand = String(d.brand || '').trim();
+        const provider = d.provider || 'Gmail';
+        if (!email) {
+          this.setState({ settingsFormError: '请填写邮箱地址。' });
+          return;
+        }
+        const list = this.state.settingsMailboxes || [];
+        if (list.some((x) => String(x.email || '').toLowerCase() === email.toLowerCase())) {
+          this.setState({ settingsFormError: '该邮箱已授权，请勿重复添加。' });
+          return;
+        }
+        if (provider === 'Gmail') {
+          if (!brand) {
+            this.setState({ settingsFormError: 'Gmail 必须绑定品牌，一个品牌对应一个 Gmail。' });
+            return;
+          }
+          if (gmailBrandTaken(list, brand)) {
+            this.setState({ settingsFormError: brand + ' 已绑定 Gmail，一个品牌只能对应一个 Gmail 邮箱。' });
+            return;
+          }
+        }
+        this.setState(st => ({
+          settingsMailboxes: [{ id: 'mb-' + Date.now(), email, name: (d.name || '').trim() || email, brand, provider, status: 'authorized', by: '陈曦', when: '2026-09-14' }, ...(st.settingsMailboxes || [])],
+          settingsMailOpen: false, settingsFormError: ''
+        }));
+      },
+      settingsDeleteConfirm: (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const del = this.state.settingsDelete;
+        if (!del) return;
+        this.setState(st => {
+          if (del.kind === 'person') return { settingsPeople: (st.settingsPeople || []).filter((x) => x.id !== del.id), settingsDelete: null };
+          if (del.kind === 'role') {
+            const fallback = (st.settingsRoles || []).find((r) => r.id !== del.id && !r.locked) || (st.settingsRoles || []).find((r) => r.id !== del.id);
+            return {
+              settingsRoles: (st.settingsRoles || []).filter((r) => r.id !== del.id),
+              settingsPeople: (st.settingsPeople || []).map((p) => p.roleId === del.id ? { ...p, roleId: fallback ? fallback.id : 'lead' } : p),
+              settingsDelete: null
+            };
+          }
+          return { settingsMailboxes: (st.settingsMailboxes || []).map((m) => m.id === del.id ? { ...m, status: 'pending', when: '—' } : m), settingsDelete: null };
+        });
+      }
     };
   }
 }
