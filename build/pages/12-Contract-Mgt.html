@@ -94,6 +94,11 @@
   .contract-btn.primary:hover { background:#1D48D8; }
   .contract-btn.danger { border-color:#C4636D;background:#C4636D;color:#FFFFFF; }
   .contract-btn.danger:hover { background:#B4525E; }
+  .contract-detail-value { min-height:38px;box-sizing:border-box;border:1px solid #EDF1F7;border-radius:10px;background:#F8FAFE;padding:9px 11px;color:#1D2638;font-size:13.5px;line-height:1.45;word-break:break-word; }
+  .contract-detail-file { display:flex;align-items:center;gap:8px;min-height:38px;box-sizing:border-box;border:1px solid #DDE5F1;border-radius:10px;background:#F8FAFE;padding:6px 11px;color:#2457F5;font-size:13.5px;text-decoration:none;cursor:pointer; }
+  .contract-detail-file:hover { border-color:#B8CBFF;background:#F1F5FF;color:#1D48D8; }
+  .contract-file-preview-dialog { width:min(860px,100%);height:min(86vh,920px);display:flex;flex-direction:column;overflow:hidden; }
+  .contract-file-preview-dialog iframe { flex:1;width:100%;border:0;background:#E8EDF5; }
   .contract-empty { display:none;padding:38px 20px;text-align:center;color:#8792A5;font-size:13px; }
   @media (max-width:620px) { .contract-form-grid { grid-template-columns:1fr; }.contract-field.full { grid-column:auto; } }
 </style>
@@ -263,14 +268,14 @@
               <table class="contract-table">
                 <thead><tr><th>合同 / 红人</th><th>Campaign</th><th>SKU</th><th>合作方式 / 金额</th><th>签署与有效期</th><th>状态</th><th>文件</th><th>负责人</th><th></th></tr></thead>
                 <tbody id="contract-records-body">
-                  <tr data-contract-row data-status="active" data-search="ctr-2026-008 mia selfcare q3 北美种草 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-008</div><div style="color:#647187">@mia.selfcare · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 3,600 + 10% 佣金</div></td><td><div>2026-08-20 签署</div><div style="color:#8792A5">至 2027-02-19</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">mia-agreement-v3.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.4 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">08-20 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
-                  <tr data-contract-row data-status="active" data-search="ctr-2026-007 kayla scalp q3 北美种草 ryze 头皮按摩仪 佣金合作"><td><div style="font-weight:600">CTR-2026-007</div><div style="color:#647187">@kaylascalp · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>佣金合作</div><div style="color:#647187">12% 佣金</div></td><td><div>2026-08-16 签署</div><div style="color:#8792A5">至 2027-02-15</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>kayla-affiliate.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.8 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">08-16 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
-                  <tr data-contract-row data-status="expiring" data-search="ctr-2026-006 leo calmnight q3 北美种草 ryze 头皮按摩仪 素材授权"><td><div style="font-weight:600">CTR-2026-006</div><div style="color:#647187">@leo.calmnight · YouTube</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>素材授权</div><div style="color:#647187">USD 1,600</div></td><td><div>2026-06-12 签署</div><div style="color:#B4525E">剩余 18 天</div></td><td><span class="contract-status expiring">即将到期</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>leo-license.pdf</div><div style="color:#A2ABBA;font-size:10.5px">3.1 MB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">08-28 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
-                  <tr data-contract-row data-status="pending" data-search="ctr-2026-009 nora pm 秋季家居氛围 lumo 便携香氛机 产品置换"><td><div style="font-weight:600">CTR-2026-009</div><div style="color:#647187">@nora.pm · Instagram</div></td><td><div>秋季家居氛围</div><div style="color:#8792A5">Lumo 便携香氛机</div></td><td><div>产品置换</div><div style="color:#647187">样品价值 USD 129</div></td><td><div>2026-09-06 上传</div><div style="color:#8792A5">有效期待确认</div></td><td><span class="contract-status pending">待审核</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>nora-barter-signed.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.2 MB</div></div></div></td><td><div>林浩</div><div style="color:#A2ABBA;font-size:10.5px">09-06 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
-                  <tr data-contract-row data-status="active" data-search="ctr-2026-005 june rests q3 北美种草 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-005</div><div style="color:#647187">@june.rests · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 1,200 + 12% 佣金</div></td><td><div>2026-07-28 签署</div><div style="color:#8792A5">至 2027-01-27</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>june-content-agreement.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.0 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">07-28 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
-                  <tr data-contract-row data-status="ended" data-search="ctr-2026-004 hairbyandre 春季焕新 lumo 便携香氛机 付费合作"><td><div style="font-weight:600">CTR-2026-004</div><div style="color:#647187">@hairbyandre · Instagram</div></td><td><div>春季焕新</div><div style="color:#8792A5">Lumo 便携香氛机</div></td><td><div>付费合作</div><div style="color:#647187">USD 900</div></td><td><div>2026-04-08 签署</div><div style="color:#8792A5">2026-08-07 到期</div></td><td><span class="contract-status ended">已结束</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>andre-agreement.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.6 MB</div></div></div></td><td><div>林浩</div><div style="color:#A2ABBA;font-size:10.5px">08-07 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
-                  <tr data-contract-row data-status="active" data-search="ctr-2026-003 dailywithlin q3 北美种草 ryze 头皮按摩仪 产品置换"><td><div style="font-weight:600">CTR-2026-003</div><div style="color:#647187">@dailywithlin · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>产品置换</div><div style="color:#647187">样品价值 USD 99</div></td><td><div>2026-07-19 签署</div><div style="color:#8792A5">至 2027-01-18</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>lin-barter.pdf</div><div style="color:#A2ABBA;font-size:10.5px">980 KB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">07-19 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
-                  <tr data-contract-row data-status="ended" data-search="ctr-2026-002 thegroomguide 首轮测试 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-002</div><div style="color:#647187">@thegroomguide · YouTube</div></td><td><div>首轮测试</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 2,400</div></td><td><div>2026-03-10 签署</div><div style="color:#8792A5">2026-07-09 到期</div></td><td><span class="contract-status ended">已结束</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>groomguide-v2.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.7 MB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">07-09 更新</div></td><td><button class="contract-link-btn">查看</button></td></tr>
+                  <tr data-contract-row data-status="active" data-search="ctr-2026-008 mia selfcare q3 北美种草 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-008</div><div style="color:#647187">@mia.selfcare · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 3,600 + 10% 佣金</div></td><td><div>2026-08-20 签署</div><div style="color:#8792A5">至 2027-02-19</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">mia-agreement-v3.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.4 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">08-20 更新</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td></tr>
+                  <tr data-contract-row data-status="active" data-search="ctr-2026-007 kayla scalp q3 北美种草 ryze 头皮按摩仪 佣金合作"><td><div style="font-weight:600">CTR-2026-007</div><div style="color:#647187">@kaylascalp · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>佣金合作</div><div style="color:#647187">12% 佣金</div></td><td><div>2026-08-16 签署</div><div style="color:#8792A5">至 2027-02-15</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>kayla-affiliate.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.8 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">08-16 更新</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td></tr>
+                  <tr data-contract-row data-status="expiring" data-search="ctr-2026-006 leo calmnight q3 北美种草 ryze 头皮按摩仪 素材授权"><td><div style="font-weight:600">CTR-2026-006</div><div style="color:#647187">@leo.calmnight · YouTube</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>素材授权</div><div style="color:#647187">USD 1,600</div></td><td><div>2026-06-12 签署</div><div style="color:#B4525E">剩余 18 天</div></td><td><span class="contract-status expiring">即将到期</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>leo-license.pdf</div><div style="color:#A2ABBA;font-size:10.5px">3.1 MB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">08-28 更新</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td></tr>
+                  <tr data-contract-row data-status="pending" data-search="ctr-2026-009 nora pm 秋季家居氛围 lumo 便携香氛机 产品置换"><td><div style="font-weight:600">CTR-2026-009</div><div style="color:#647187">@nora.pm · Instagram</div></td><td><div>秋季家居氛围</div><div style="color:#8792A5">Lumo 便携香氛机</div></td><td><div>产品置换</div><div style="color:#647187">样品价值 USD 129</div></td><td><div>2026-09-06 上传</div><div style="color:#8792A5">有效期待确认</div></td><td><span class="contract-status pending">待审核</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>nora-barter-signed.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.2 MB</div></div></div></td><td><div>林浩</div><div style="color:#A2ABBA;font-size:10.5px">09-06 更新</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td></tr>
+                  <tr data-contract-row data-status="active" data-search="ctr-2026-005 june rests q3 北美种草 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-005</div><div style="color:#647187">@june.rests · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 1,200 + 12% 佣金</div></td><td><div>2026-07-28 签署</div><div style="color:#8792A5">至 2027-01-27</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>june-content-agreement.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.0 MB</div></div></div></td><td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">07-28 更新</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td></tr>
+                  <tr data-contract-row data-status="ended" data-search="ctr-2026-004 hairbyandre 春季焕新 lumo 便携香氛机 付费合作"><td><div style="font-weight:600">CTR-2026-004</div><div style="color:#647187">@hairbyandre · Instagram</div></td><td><div>春季焕新</div><div style="color:#8792A5">Lumo 便携香氛机</div></td><td><div>付费合作</div><div style="color:#647187">USD 900</div></td><td><div>2026-04-08 签署</div><div style="color:#8792A5">2026-08-07 到期</div></td><td><span class="contract-status ended">已结束</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>andre-agreement.pdf</div><div style="color:#A2ABBA;font-size:10.5px">1.6 MB</div></div></div></td><td><div>林浩</div><div style="color:#A2ABBA;font-size:10.5px">08-07 更新</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td></tr>
+                  <tr data-contract-row data-status="active" data-search="ctr-2026-003 dailywithlin q3 北美种草 ryze 头皮按摩仪 产品置换"><td><div style="font-weight:600">CTR-2026-003</div><div style="color:#647187">@dailywithlin · TikTok</div></td><td><div>Q3 北美种草</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>产品置换</div><div style="color:#647187">样品价值 USD 99</div></td><td><div>2026-07-19 签署</div><div style="color:#8792A5">至 2027-01-18</div></td><td><span class="contract-status active">履约中</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>lin-barter.pdf</div><div style="color:#A2ABBA;font-size:10.5px">980 KB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">07-19 更新</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td></tr>
+                  <tr data-contract-row data-status="ended" data-search="ctr-2026-002 thegroomguide 首轮测试 ryze 头皮按摩仪 付费合作"><td><div style="font-weight:600">CTR-2026-002</div><div style="color:#647187">@thegroomguide · YouTube</div></td><td><div>首轮测试</div><div style="color:#8792A5">Ryze 头皮按摩仪</div></td><td><div>付费合作</div><div style="color:#647187">USD 2,400</div></td><td><div>2026-03-10 签署</div><div style="color:#8792A5">2026-07-09 到期</div></td><td><span class="contract-status ended">已结束</span></td><td><div class="contract-file"><span class="contract-file-icon">PDF</span><div><div>groomguide-v2.pdf</div><div style="color:#A2ABBA;font-size:10.5px">2.7 MB</div></div></div></td><td><div>苏敏</div><div style="color:#A2ABBA;font-size:10.5px">07-09 更新</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td></tr>
                 </tbody>
               </table>
               <div id="contract-record-empty" class="contract-empty">没有符合当前条件的合同记录</div>
@@ -339,6 +344,37 @@
           </div>
         </sc-if>
       </sc-if>
+
+      <div id="contract-detail-modal" class="contract-upload-modal" role="dialog" aria-modal="true" aria-labelledby="contract-detail-title">
+        <div class="contract-upload-dialog">
+          <div class="contract-upload-head">
+            <div style="flex:1;min-width:0">
+              <div id="contract-detail-title" style="font-size:18px;font-weight:650">合同详情</div>
+              <div id="contract-detail-sub" style="margin-top:2px;color:#8792A5;font-size:12px">查看当前合同记录的全部字段</div>
+            </div>
+            <button class="contract-btn" data-contract-action="close-detail" aria-label="关闭" type="button">×</button>
+          </div>
+          <div class="contract-upload-body">
+            <div class="contract-form-grid" id="contract-detail-grid"></div>
+            <div class="contract-modal-actions">
+              <button class="contract-btn primary" data-contract-action="close-detail" type="button">关闭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="contract-file-preview" class="contract-upload-modal" role="dialog" aria-modal="true" aria-labelledby="contract-file-preview-title" style="z-index:230">
+        <div class="contract-upload-dialog contract-file-preview-dialog">
+          <div class="contract-upload-head">
+            <div style="flex:1;min-width:0">
+              <div id="contract-file-preview-title" style="font-size:16px;font-weight:650">合同文件</div>
+              <div id="contract-file-preview-sub" style="margin-top:2px;color:#8792A5;font-size:12px">在线预览</div>
+            </div>
+            <button class="contract-btn" data-contract-action="close-file-preview" aria-label="关闭" type="button">×</button>
+          </div>
+          <iframe id="contract-file-preview-frame" title="合同文件预览"></iframe>
+        </div>
+      </div>
 
       <div id="contract-upload-modal" class="contract-upload-modal" role="dialog" aria-modal="true" aria-labelledby="contract-upload-title">
         <div class="contract-upload-dialog">
@@ -485,9 +521,126 @@
 
   const closeUpload = () => {
     get('contract-upload-modal')?.classList.remove('is-open');
-    document.body.style.overflow = '';
+    if (!get('contract-detail-modal')?.classList.contains('is-open')) document.body.style.overflow = '';
     const error = get('contract-upload-error');
     if (error) error.style.display = 'none';
+  };
+
+  let detailOpenedAt = 0;
+  const childTexts = (td) => Array.from(td?.children || []).map((el) => el.textContent.trim()).filter(Boolean);
+  const parseRecordRow = (row) => {
+    normalizeContractColumns();
+    const tds = Array.from(row.querySelectorAll(':scope > td'));
+    const split = row.dataset.columnsSplit === 'true' || tds.length >= 9;
+    const skuCell = split ? tds[2] : null;
+    const dealCell = tds[split ? 3 : 2];
+    const dateCell = tds[split ? 4 : 3];
+    const statusCell = tds[split ? 5 : 4];
+    const fileCell = tds[split ? 6 : 5];
+    const ownerCell = tds[split ? 7 : 6];
+    const idLines = childTexts(tds[0]);
+    const campaignLines = childTexts(tds[1]);
+    const skuLines = skuCell ? childTexts(skuCell) : [];
+    const dealLines = childTexts(dealCell);
+    const dateLines = childTexts(dateCell);
+    const ownerLines = childTexts(ownerCell);
+    const creatorLine = idLines[1] || '—';
+    const creatorParts = creatorLine.split(' · ');
+    const statusEl = statusCell?.querySelector('.contract-status');
+    return {
+      number: idLines[0] || '—',
+      handle: creatorParts[0] || '—',
+      platform: creatorParts.slice(1).join(' · ') || '—',
+      campaign: campaignLines[0] || '—',
+      sku: skuLines[0] || '—',
+      product: skuLines[1] || campaignLines[1] || '—',
+      deal: dealLines[0] || '—',
+      amount: dealLines[1] || '—',
+      signed: dateLines[0] || '—',
+      expiry: dateLines[1] || '—',
+      status: statusEl?.textContent.trim() || '—',
+      statusClass: statusEl ? Array.from(statusEl.classList).filter((cls) => cls !== 'contract-status').join(' ') : '',
+      fileName: fileCell?.querySelector('.contract-file > div > div')?.textContent.trim() || '—',
+      fileSize: fileCell?.querySelector('.contract-file > div > div + div')?.textContent.trim() || '—',
+      fileKind: fileCell?.querySelector('.contract-file-icon')?.textContent.trim() || 'FILE',
+      owner: ownerLines[0] || '—',
+      updated: ownerLines[1] || '—',
+      fileUrl: row.dataset.fileUrl || ''
+    };
+  };
+  const detailField = (label, html, full) =>
+    '<div class="contract-field' + (full ? ' full' : '') + '"><label>' + clean(label) + '</label><div class="contract-detail-value">' + html + '</div></div>';
+  const contractPreviewHtml = (data) => '<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><title>' + clean(data.fileName) + '</title>'
+    + '<style>body{margin:0;background:#E8EDF5;color:#1D2638;font-family:"Times New Roman","Noto Serif SC",serif}'
+    + '.page{width:min(760px,calc(100% - 32px));min-height:calc(100vh - 48px);margin:24px auto;background:#fff;padding:52px 56px 64px;box-shadow:0 12px 40px rgba(29,38,56,.12)}'
+    + '.mark{display:inline-block;margin-bottom:18px;border:1px solid #2457F5;color:#2457F5;font-family:Inter,sans-serif;font-size:10px;letter-spacing:.12em;padding:3px 8px}'
+    + 'h1{font-size:26px;font-weight:600;letter-spacing:-.02em;margin:0 0 8px}p,li{font-size:14.5px;line-height:1.8;margin:0 0 10px}'
+    + '.meta{display:grid;grid-template-columns:160px 1fr;gap:6px 14px;margin:22px 0 28px;font-size:14px}'
+    + '.meta b{color:#8792A5;font-weight:500}.sign{display:flex;gap:48px;margin-top:42px}.sign div{flex:1;border-top:1px solid #1D2638;padding-top:8px;font-size:13px}</style></head><body><div class="page">'
+    + '<div class="mark">' + clean(data.fileKind || 'PDF') + ' · ' + clean(data.fileName) + '</div>'
+    + '<h1>Influencer Collaboration Agreement</h1>'
+    + '<p>合同编号 ' + clean(data.number) + ' · ' + clean(data.deal) + '</p>'
+    + '<div class="meta"><b>红人 / 平台</b><span>' + clean(data.handle) + ' · ' + clean(data.platform) + '</span>'
+    + '<b>Campaign</b><span>' + clean(data.campaign) + '</span>'
+    + '<b>SKU / 产品</b><span>' + clean(data.sku) + ' · ' + clean(data.product) + '</span>'
+    + '<b>合作金额</b><span>' + clean(data.amount) + '</span>'
+    + '<b>签署 / 有效期</b><span>' + clean(data.signed) + ' · ' + clean(data.expiry) + '</span>'
+    + '<b>状态</b><span>' + clean(data.status) + '</span></div>'
+    + '<p>This agreement sets out the collaboration terms between the Brand and the Creator for the campaign above, including deliverables, compensation, usage rights, and the term of the engagement.</p>'
+    + '<p>Creator shall produce and publish content in accordance with brand guidelines. Brand shall pay the agreed consideration and grant a limited product license for content production. Confidential information shall not be disclosed without prior written consent.</p>'
+    + '<div class="sign"><div>Brand authorized signatory<br>Influencer Marketing AIOS</div><div>Creator<br>' + clean(data.handle) + '</div></div>'
+    + '</div></body></html>';
+  const ensureFileUrl = (data) => {
+    if (data.fileUrl) return data.fileUrl;
+    return URL.createObjectURL(new Blob([contractPreviewHtml(data)], { type: 'text/html;charset=utf-8' }));
+  };
+  const fillDetail = (data) => {
+    const fileUrl = ensureFileUrl(data);
+    get('contract-detail-title').textContent = data.number;
+    get('contract-detail-sub').textContent = data.handle + (data.platform !== '—' ? ' · ' + data.platform : '');
+    get('contract-detail-grid').innerHTML =
+      detailField('合同编号', clean(data.number)) +
+      detailField('状态', '<span class="contract-status ' + clean(data.statusClass) + '">' + clean(data.status) + '</span>') +
+      detailField('红人', clean(data.handle)) +
+      detailField('平台', clean(data.platform)) +
+      detailField('Campaign', clean(data.campaign)) +
+      detailField('SKU', clean(data.sku)) +
+      detailField('产品', clean(data.product)) +
+      detailField('合作方式', clean(data.deal)) +
+      detailField('金额', clean(data.amount)) +
+      detailField('签署日期', clean(data.signed)) +
+      detailField('有效期', clean(data.expiry)) +
+      detailField('负责人', clean(data.owner)) +
+      '<div class="contract-field full"><label>文件</label><a class="contract-detail-file" href="' + clean(fileUrl) + '" target="_blank" rel="noopener" data-contract-action="open-detail-file" data-file-name="' + clean(data.fileName) + '"><span class="contract-file-icon">' + clean(data.fileKind) + '</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + clean(data.fileName) + '</span><span style="margin-left:auto;flex:0 0 auto;font-size:12px">打开浏览</span></a></div>';
+  };
+  const openDetail = (row) => {
+    if (!row) return;
+    fillDetail(parseRecordRow(row));
+    detailOpenedAt = Date.now();
+    setTimeout(() => {
+      get('contract-detail-modal')?.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }, 0);
+  };
+  const closeDetail = () => {
+    closeFilePreview();
+    get('contract-detail-modal')?.classList.remove('is-open');
+    if (!get('contract-upload-modal')?.classList.contains('is-open')) document.body.style.overflow = '';
+  };
+  const openFilePreview = (link) => {
+    const preview = get('contract-file-preview');
+    const frame = get('contract-file-preview-frame');
+    if (!preview || !frame || !link?.href) return;
+    get('contract-file-preview-title').textContent = link.dataset.fileName || '合同文件';
+    get('contract-file-preview-sub').textContent = '在线预览';
+    frame.src = link.href;
+    preview.classList.add('is-open');
+  };
+  const closeFilePreview = () => {
+    const preview = get('contract-file-preview');
+    const frame = get('contract-file-preview-frame');
+    preview?.classList.remove('is-open');
+    if (frame) frame.src = 'about:blank';
   };
 
   const chooseFile = (file) => {
@@ -590,6 +743,7 @@
     row.setAttribute('data-contract-row', '');
     row.setAttribute('data-columns-split', 'true');
     row.dataset.status = status;
+    row.dataset.fileUrl = fileUrl;
     row.dataset.search = [number, creator, campaign, sku, product, platform, amount].join(' ').toLowerCase();
     row.innerHTML = '<td><div style="font-weight:600">' + clean(number) + '</div><div style="color:#647187">' + clean(creator) + ' · ' + clean(platform) + '</div></td>' +
       '<td><div>' + clean(campaign) + '</div></td>' +
@@ -599,7 +753,7 @@
       '<td><span class="contract-status ' + clean(status) + '">' + clean(statusText) + '</span></td>' +
       '<td><div class="contract-file"><span class="contract-file-icon">' + clean(extension) + '</span><div><div style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + clean(selectedContractFile.name) + '</div><div style="color:#A2ABBA;font-size:10.5px">' + clean(size) + '</div></div></div></td>' +
       '<td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">刚刚上传</div></td>' +
-      '<td><a class="contract-link-btn" href="' + clean(fileUrl) + '" target="_blank" rel="noopener">查看</a></td>';
+      '<td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td>';
     get('contract-records-body').prepend(row);
 
     const rows = document.querySelectorAll('[data-contract-row]');
@@ -614,10 +768,12 @@
     filterRecords();
   };
 
-  document.addEventListener('click', (event) => {
-    const tab = event.target.closest('[data-contract-tab]');
+  window.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const tab = target.closest('[data-contract-tab]');
     if (tab) { setContractTab(tab.dataset.contractTab); return; }
-    const action = event.target.closest('[data-contract-action]')?.dataset.contractAction;
+    const action = target.closest('[data-contract-action]')?.dataset.contractAction;
     if (action === 'toggle-type-filter') {
       const open = !get('contract-type-filter-menu')?.classList.contains('is-open');
       setTypeFilterOpen(open);
@@ -625,14 +781,32 @@
     }
     if (action === 'clear-type-filter') { clearTemplateTypeFilter(); return; }
     if (action === 'close-type-filter') { setTypeFilterOpen(false); return; }
+    if (action === 'view-record') {
+      event.preventDefault();
+      openDetail(target.closest('[data-contract-row]'));
+      return;
+    }
+    if (action === 'close-detail') { closeDetail(); return; }
+    if (action === 'open-detail-file') {
+      event.preventDefault();
+      openFilePreview(target.closest('a[href]'));
+      return;
+    }
+    if (action === 'close-file-preview') { closeFilePreview(); return; }
     if (action === 'open-upload') openUpload();
     if (action === 'close-upload') closeUpload();
     if (action === 'pick-file') get('contract-file-input')?.click();
     if (action === 'save-upload') saveUpload();
-    if (event.target.id === 'contract-upload-modal') closeUpload();
-    if (event.target.closest('[data-contract-template-card]')) setTimeout(applyTemplateTypeFilter, 0);
-    if (!event.target.closest('.contract-type-filter')) setTypeFilterOpen(false);
-  });
+    if (target.id === 'contract-file-preview') { closeFilePreview(); return; }
+    if (target.id === 'contract-detail-modal') {
+      if (Date.now() - detailOpenedAt < 400) return;
+      closeDetail();
+      return;
+    }
+    if (target.id === 'contract-upload-modal') closeUpload();
+    if (target.closest('[data-contract-template-card]')) setTimeout(applyTemplateTypeFilter, 0);
+    if (!target.closest('.contract-type-filter')) setTypeFilterOpen(false);
+  }, true);
   document.addEventListener('input', (event) => { if (event.target.id === 'contract-search') filterRecords(); });
   document.addEventListener('change', (event) => {
     if (event.target.id === 'contract-status-filter') filterRecords();
@@ -654,7 +828,12 @@
       applyTemplateTypeFilter();
     }
   });
-  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeUpload(); });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (get('contract-file-preview')?.classList.contains('is-open')) { closeFilePreview(); return; }
+    if (get('contract-detail-modal')?.classList.contains('is-open')) { closeDetail(); return; }
+    closeUpload();
+  });
   document.addEventListener('dragover', (event) => {
     const zone = event.target.closest('#contract-dropzone');
     if (!zone) return;
