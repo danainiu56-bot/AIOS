@@ -85,10 +85,15 @@
   .contract-field label { font-size:11.5px;color:#647187; }
   .contract-field input,.contract-field select { width:100%;height:38px;border:1px solid #DDE5F1;border-radius:10px;background:#FFFFFF;padding:0 11px;color:#1D2638; }
   .contract-field input[readonly] { background:#F8FAFE;color:#647187;cursor:default; }
+  .contract-field textarea { width:100%;min-height:220px;box-sizing:border-box;border:1px solid #DDE5F1;border-radius:10px;background:#FFFFFF;padding:11px 13px;color:#1D2638;font:inherit;font-size:12.5px;line-height:1.8;resize:vertical;outline:none; }
+  .contract-new-dialog { width:min(800px,100%); }
+  .contract-delete-dialog { width:min(440px,100%); }
   .contract-modal-actions { display:flex;justify-content:flex-end;gap:9px;margin-top:20px;padding-top:16px;border-top:1px solid #EDF1F7; }
   .contract-btn { appearance:none;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap; }
   .contract-btn.primary { border-color:#2457F5;background:#2457F5;color:#FFFFFF; }
   .contract-btn.primary:hover { background:#1D48D8; }
+  .contract-btn.danger { border-color:#C4636D;background:#C4636D;color:#FFFFFF; }
+  .contract-btn.danger:hover { background:#B4525E; }
   .contract-empty { display:none;padding:38px 20px;text-align:center;color:#8792A5;font-size:13px; }
   @media (max-width:620px) { .contract-form-grid { grid-template-columns:1fr; }.contract-field.full { grid-column:auto; } }
 </style>
@@ -223,6 +228,7 @@
                     <span style="flex:0 0 auto;font-size:11.5px;border-radius:999px;padding:2px 10px;background:{{ t.tagBg }};color:{{ t.tagFg }};white-space:nowrap">{{ t.deal }}</span>
                     <div onClick="{{ t.view }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ t.viewLabel }}</div>
                     <div onClick="{{ t.edit }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ t.editBd }};background:{{ t.editBg }};color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ t.editLabel }}</div>
+                    <div onClick="{{ t.download }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">下载</div>
                     <div onClick="{{ t.remove }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C4636D;color:#C4636D">删除</div>
                   </div>
                   <sc-if value="{{ t.open }}" hint-placeholder-val="{{ false }}">
@@ -272,6 +278,66 @@
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:11px;color:#8792A5;font-size:11.5px"><span id="contract-result-count">共 8 条合同记录</span><span>按最近更新排序</span></div>
           </section>
         </div>
+
+        <sc-if value="{{ ctmNewOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ ctmNewClose }}" class="contract-upload-modal is-open" role="dialog" aria-modal="true" aria-labelledby="contract-new-title">
+            <div onClick="{{ ctmNewKeep }}" class="contract-upload-dialog contract-new-dialog">
+              <div class="contract-upload-head">
+                <div style="flex:1">
+                  <div id="contract-new-title" style="font-size:18px;font-weight:650">新建合同模板</div>
+                  <div style="margin-top:2px;color:#8792A5;font-size:12px">保存后会出现在模板库，并可供 Campaigns 发邮件时选择</div>
+                </div>
+                <div onClick="{{ ctmNewClose }}" class="contract-btn" aria-label="关闭" style="line-height:1;padding:6px 10px">×</div>
+              </div>
+              <div class="contract-upload-body">
+                <div class="contract-form-grid">
+                  <div class="contract-field full"><label>合作类型 *</label><select value="{{ ctmNewDeal }}" onChange="{{ ctmNewSetDeal }}"><option value="付费合作">付费合作</option><option value="产品置换">产品置换</option><option value="佣金合作">佣金合作</option><option value="免费合作">免费合作</option><option value="素材授权">素材授权</option><option value="长期合作">长期合作</option></select></div>
+                  <div class="contract-field"><label>英文名称 *</label><input value="{{ ctmNewName }}" onChange="{{ ctmNewSetName }}" placeholder="Influencer Content Agreement" /></div>
+                  <div class="contract-field"><label>中文名称 *</label><input value="{{ ctmNewNameZh }}" onChange="{{ ctmNewSetNameZh }}" placeholder="红人内容合作协议" /></div>
+                  <div class="contract-field full"><label>从现有模板带入正文（可选）</label><select value="{{ ctmNewSeed }}" onChange="{{ ctmNewSetSeed }}"><option value="">不带入，空白起草</option><sc-for list="{{ ctmNewSeedOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.id }}">{{ o.label }}</option></sc-for></select></div>
+                  <div class="contract-field full">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+                      <label style="margin:0">条款正文 *</label>
+                      <span style="font-size:11px;color:#A2ABBA">{{ ctmNewLangHint }}</span>
+                      <span style="flex:1"></span>
+                      <div onClick="{{ ctmNewToggleLang }}" style="font-size:11.5px;border:1px solid {{ ctmNewLangBd }};background:{{ ctmNewLangBg }};color:#1D48D8;border-radius:999px;padding:3px 11px;cursor:pointer;white-space:nowrap">{{ ctmNewLangLabel }}</div>
+                    </div>
+                    <textarea value="{{ ctmNewBody }}" onChange="{{ ctmNewSetBody }}" placeholder="{{ ctmNewBodyPh }}"></textarea>
+                  </div>
+                </div>
+                <div class="contract-modal-actions" style="align-items:center">
+                  <sc-if value="{{ ctmNewHasError }}" hint-placeholder-val="{{ false }}"><span style="flex:1;color:#B4525E;font-size:12px">{{ ctmNewError }}</span></sc-if>
+                  <sc-if value="{{ ctmNewNoError }}" hint-placeholder-val="{{ true }}"><span style="flex:1"></span></sc-if>
+                  <div onClick="{{ ctmNewClose }}" class="contract-btn">取消</div>
+                  <div onClick="{{ ctmNewSave }}" class="contract-btn primary">保存模板</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ ctmDeleteOpen }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ ctmDeleteClose }}" class="contract-upload-modal is-open" role="dialog" aria-modal="true" aria-labelledby="contract-delete-title">
+            <div onClick="{{ ctmDeleteKeep }}" class="contract-upload-dialog contract-delete-dialog">
+              <div class="contract-upload-head">
+                <div style="flex:1">
+                  <div id="contract-delete-title" style="font-size:18px;font-weight:650">删除合同模板</div>
+                  <div style="margin-top:2px;color:#8792A5;font-size:12px">删除后无法从模板库恢复</div>
+                </div>
+                <div onClick="{{ ctmDeleteClose }}" class="contract-btn" aria-label="关闭" style="line-height:1;padding:6px 10px">×</div>
+              </div>
+              <div class="contract-upload-body">
+                <div style="font-size:14px;font-weight:600;color:#1D2638">{{ ctmDeleteNameZh }}</div>
+                <div style="margin-top:3px;font-size:12.5px;color:#647187">{{ ctmDeleteName }}</div>
+                <div style="margin-top:10px;font-size:13px;line-height:1.7;color:#647187">确定删除这份模板吗？Campaigns 发邮件时也将无法再选用。</div>
+                <div class="contract-modal-actions">
+                  <div onClick="{{ ctmDeleteClose }}" class="contract-btn">取消</div>
+                  <div onClick="{{ ctmDeleteConfirm }}" class="contract-btn danger">确认删除</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
       </sc-if>
 
       <div id="contract-upload-modal" class="contract-upload-modal" role="dialog" aria-modal="true" aria-labelledby="contract-upload-title">

@@ -59,10 +59,20 @@ class Component extends DCLogic {
         });
       }
     } catch (_) {}
+    try {
+      const savedCtmCustom = JSON.parse(localStorage.getItem('aios.ctmCustom') || '[]');
+      const savedCtmRemoved = JSON.parse(localStorage.getItem('aios.ctmRemoved') || '[]');
+      const patch = {};
+      if (Array.isArray(savedCtmCustom) && savedCtmCustom.length) patch.ctmCustom = savedCtmCustom;
+      if (Array.isArray(savedCtmRemoved) && savedCtmRemoved.length) patch.ctmRemoved = savedCtmRemoved;
+      if (Object.keys(patch).length) this.setState(patch);
+    } catch (_) {}
     this._productDrawerKeyHandler = (event) => {
       if (event.key === 'Escape' && this.state.productDrawerOpen) this.setState({ productDrawerOpen: false });
       if (event.key === 'Escape' && this.state.sw && this.state.sw.drawer) this.setState(st => ({ sw: { ...st.sw, drawer: false } }));
       if (event.key === 'Escape' && this.state.swVersionManagerOpen) this.setState({ swVersionManagerOpen: false, swVersionRenameKey: '', swVersionDeleteKey: '' });
+      if (event.key === 'Escape' && this.state.ctmNewOpen) this.setState({ ctmNewOpen: false, ctmNew: { deal: '付费合作', name: '', nameZh: '', ver: 'v1', seed: '', lang: 'en', en: '', zh: '', error: '' } });
+      if (event.key === 'Escape' && this.state.ctmDeleteId) this.setState({ ctmDeleteId: null });
     };
     document.addEventListener('keydown', this._productDrawerKeyHandler);
     const directStrategyParams = new URLSearchParams(window.location.search);
@@ -134,6 +144,8 @@ class Component extends DCLogic {
       localStorage.setItem('aios.strategyVersionNames', JSON.stringify(this.state.strategyVersionNames || {}));
       localStorage.setItem('aios.strategyVersionDeleted', JSON.stringify(this.state.strategyVersionDeleted || []));
       localStorage.setItem('aios.shipOrders', JSON.stringify(this.state.shipOrders || []));
+      localStorage.setItem('aios.ctmCustom', JSON.stringify(this.state.ctmCustom || []));
+      localStorage.setItem('aios.ctmRemoved', JSON.stringify(this.state.ctmRemoved || []));
     } catch (_) {}
   }
 
@@ -276,6 +288,11 @@ class Component extends DCLogic {
     campaignEmailContractDrafts: {},
     campaignEmailContractAttached: {},
     campaignEmailContractEditorOpen: false,
+    ctmCustom: [],
+    ctmRemoved: [],
+    ctmNewOpen: false,
+    ctmDeleteId: null,
+    ctmNew: { deal: '付费合作', name: '', nameZh: '', ver: 'v1', seed: '', lang: 'en', en: '', zh: '', error: '' },
     reportTab: 'campaign',
     showVersions: false,
     coopList: ['@mia.selfcare', '@kaylascalp', '@leo.calmnight', '@june.rests'],
@@ -6530,10 +6547,16 @@ class Component extends DCLogic {
         en: 'BRAND AMBASSADOR AGREEMENT\n\nThis Agreement is made as of {{Effective Date}} between Lingqi Global Inc. ("Brand") and {{Creator Legal Name}} ("Ambassador").\n\n1. TERM\nTwelve (12) months from the Effective Date, renewable by written notice no later than thirty (30) days prior to expiration.\n\n2. CONTENT COMMITMENT\nNot fewer than two (2) pieces of content per calendar quarter; formats agreed quarterly in writing.\n\n3. COMPENSATION\n3.1 Monthly retainer of {{Monthly Fee}} USD, payable on the first business day of each month.\n3.2 Commission of twelve percent (12%) of attributed net sales.\n\n4. EXCLUSIVITY\nDuring the Term, Ambassador shall not promote directly competitive products in the scalp-care device category.\n\n5. LICENSE\nOrganic social use and paid amplification for twelve (12) months.\n\n6. TERMINATION\nEither party may terminate on thirty (30) days\' written notice. Fees accrued through the termination date remain payable.\n\n7. GOVERNING LAW\nLaws of the State of California.\n\nBRAND: ____________________    AMBASSADOR: ____________________',
         zh: '品牌大使（长期合作）协议\n\n本协议于 {{生效日期}} 由灵栖出海（"品牌方"）与 {{红人法定姓名}}（"品牌大使"）签订。\n\n一、期限\n自生效日起 12 个月；如需续约，应于到期前 30 日以书面通知。\n\n二、内容承诺\n每自然季度不少于 2 条内容；形式由双方每季度书面确认。\n\n三、报酬\n3.1 月度固定费 {{月费}} 美元，于每月首个工作日支付。\n3.2 按归因净销售额 12% 计佣。\n\n四、排他\n合作期内，品牌大使不得推广头皮护理器械品类的直接竞品。\n\n五、授权\n自然流量社媒使用与付费投放，期限 12 个月。\n\n六、终止\n任一方可提前 30 日书面通知终止；截至终止日已产生的费用照常支付。\n\n七、适用法律\n美国加利福尼亚州法律。\n\n品牌方：____________________    品牌大使：____________________' }
     ];
+    const ctmAll = [...(s.ctmCustom || []), ...ctmDefs];
     const ctmFilter = s.ctmFilter || '全部';
-    const ctmVisible = ctmDefs
+    const ctmVisible = ctmAll
       .filter(t => (s.ctmRemoved || []).indexOf(t.id) < 0)
       .filter(t => ctmFilter === '全部' || t.deal === ctmFilter);
+    const ctmNewBlank = { deal: '付费合作', name: '', nameZh: '', ver: 'v1', seed: '', lang: 'en', en: '', zh: '', error: '' };
+    const ctmNewDraft = { ...ctmNewBlank, ...(s.ctmNew || {}) };
+    const ctmNewLang = ctmNewDraft.lang === 'zh' ? 'zh' : 'en';
+    const ctmDeleteTarget = ctmAll.find(t => t.id === s.ctmDeleteId) || null;
+    const patchCtmNew = (part) => this.setState(st => ({ ctmNew: { ...ctmNewBlank, ...(st.ctmNew || {}), ...part } }));
     const ctmPalette = {
       '付费合作': ['#EAF0FF', '#2457F5'], '产品置换': ['#E4EFE4', '#4E7156'], '佣金合作': ['#E4EEF7', '#1D48D8'],
       '免费合作': ['#F5F8FE', '#647187'], '素材授权': ['#F1F5FF', '#1D48D8'], '长期合作': ['#FBEEDA', '#A5762C']
@@ -6585,7 +6608,7 @@ class Component extends DCLogic {
         campaignEmailReplies: { ...(st2.campaignEmailReplies || {}), [campaignEmailContractKey]: ((st2.campaignEmailReplies || {})[campaignEmailContractKey] || note) }
       }));
     };
-    const campaignEmailContractTemplates = ctmDefs.filter(t => (s.ctmRemoved || []).indexOf(t.id) < 0).map(t => {
+    const campaignEmailContractTemplates = ctmAll.filter(t => (s.ctmRemoved || []).indexOf(t.id) < 0).map(t => {
       const selected = t.id === campaignEmailContractSelectedId;
       const pal = ctmPalette[t.deal] || ['#F5F8FE', '#647187'];
       return {
@@ -6604,7 +6627,7 @@ class Component extends DCLogic {
         }
       };
     });
-    const campaignEmailContractSelectedTemplate = ctmDefs.find(t => t.id === campaignEmailContractSelectedId);
+    const campaignEmailContractSelectedTemplate = ctmAll.find(t => t.id === campaignEmailContractSelectedId);
 
     const settingDefs = [
       ['seed', '寄样后自动创建跟进任务', '物流签收后 3 天未收到初稿，自动提醒负责人。'],
@@ -8355,7 +8378,7 @@ class Component extends DCLogic {
       campaignEmailCoopCandidatesEmpty: campaignEmailCoopCandidates.length === 0,
       campaignEmailCoopPickerOpen: !!s.campaignEmailCoopPickerOpen,
       campaignEmailCoopSelectedCount: campaignEmailCoopSelected.length,
-      campaignEmailCoopButtonLabel: campaignEmailCoopSelected.length ? '达成合作（' + campaignEmailCoopSelected.length + '）' : '达成合作',
+      campaignEmailCoopButtonLabel: '发送邮件',
       campaignEmailCoopButtonBg: campaignEmailCoopSelected.length ? '#2457F5' : '#F1F4F8',
       campaignEmailCoopButtonFg: campaignEmailCoopSelected.length ? '#FFFFFF' : '#A2ABBA',
       campaignEmailCoopButtonBd: campaignEmailCoopSelected.length ? '#2457F5' : '#E2E8F2',
@@ -9075,7 +9098,93 @@ class Component extends DCLogic {
       }),
       isContracts: page === 'contracts',
       ctmNote: ctmVisible.length + ' 个合同模板 · 按合作类型选择，可查看、编辑与删除',
-      ctmNew: () => this.setState({ ctmFilter: '全部' }),
+      ctmNewOpen: !!s.ctmNewOpen,
+      ctmDeleteOpen: !!ctmDeleteTarget,
+      ctmDeleteName: ctmDeleteTarget ? ctmDeleteTarget.name : '',
+      ctmDeleteNameZh: ctmDeleteTarget ? ctmDeleteTarget.nameZh : '',
+      ctmDeleteClose: (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (Date.now() - (this._ctmDeleteOpenedAt || 0) < 400) return;
+        this.setState({ ctmDeleteId: null });
+      },
+      ctmDeleteKeep: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      ctmDeleteConfirm: (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const id = s.ctmDeleteId;
+        if (!id) return;
+        this.setState(st => ({
+          ctmRemoved: (st.ctmRemoved || []).indexOf(id) < 0 ? [...(st.ctmRemoved || []), id] : (st.ctmRemoved || []),
+          ctmOpen: st.ctmOpen === id ? null : st.ctmOpen,
+          ctmEdit: st.ctmEdit === id ? null : st.ctmEdit,
+          ctmDeleteId: null
+        }));
+      },
+      ctmNewDeal: ctmNewDraft.deal || '付费合作',
+      ctmNewName: ctmNewDraft.name || '',
+      ctmNewNameZh: ctmNewDraft.nameZh || '',
+      ctmNewSeed: ctmNewDraft.seed || '',
+      ctmNewBody: ctmNewLang === 'zh' ? (ctmNewDraft.zh || '') : (ctmNewDraft.en || ''),
+      ctmNewBodyPh: ctmNewLang === 'zh' ? '中文可后补，保存后仍可在卡片里编辑' : '英文正文将用于 Campaigns 发邮件时生成合同',
+      ctmNewLangHint: ctmNewLang === 'zh' ? '当前显示：中文译文（可空）' : '当前显示：English original（必填）',
+      ctmNewLangLabel: ctmNewLang === 'zh' ? '显示英文原文' : '翻译成中文',
+      ctmNewLangBg: ctmNewLang === 'zh' ? '#F1F5FF' : '#FFFFFF',
+      ctmNewLangBd: ctmNewLang === 'zh' ? '#B8CBFF' : '#E2E8F2',
+      ctmNewError: ctmNewDraft.error || '',
+      ctmNewHasError: !!(ctmNewDraft.error || ''),
+      ctmNewNoError: !(ctmNewDraft.error || ''),
+      ctmNewSeedOptions: ctmAll.filter(t => (s.ctmRemoved || []).indexOf(t.id) < 0).map(t => ({
+        id: t.id,
+        label: t.nameZh + ' · ' + t.ver + ' · ' + t.deal
+      })),
+      ctmNew: () => this.setState({
+        ctmNewOpen: true,
+        ctmNew: { ...ctmNewBlank }
+      }),
+      ctmNewClose: (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        this.setState({ ctmNewOpen: false, ctmNew: { ...ctmNewBlank } });
+      },
+      ctmNewKeep: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      ctmNewSetDeal: (e) => patchCtmNew({ deal: e.target.value, error: '' }),
+      ctmNewSetName: (e) => patchCtmNew({ name: e.target.value, error: '' }),
+      ctmNewSetNameZh: (e) => patchCtmNew({ nameZh: e.target.value, error: '' }),
+      ctmNewSetBody: (e) => patchCtmNew({ [ctmNewLang === 'zh' ? 'zh' : 'en']: e.target.value, error: '' }),
+      ctmNewToggleLang: (e) => { if (e && e.stopPropagation) e.stopPropagation(); patchCtmNew({ lang: ctmNewLang === 'zh' ? 'en' : 'zh' }); },
+      ctmNewSetSeed: (e) => {
+        const seedId = e.target.value || '';
+        if (!seedId) { patchCtmNew({ seed: '', error: '' }); return; }
+        const src = ctmAll.find(t => t.id === seedId);
+        if (!src) { patchCtmNew({ seed: seedId, error: '' }); return; }
+        const en = ((s.ctmBodies || {})[src.id + '|en'] !== undefined) ? s.ctmBodies[src.id + '|en'] : (src.en || '');
+        const zh = ((s.ctmBodies || {})[src.id + '|zh'] !== undefined) ? s.ctmBodies[src.id + '|zh'] : (src.zh || '');
+        patchCtmNew({
+          seed: seedId, en, zh, error: '',
+          deal: src.deal || ctmNewDraft.deal,
+          name: ctmNewDraft.name || src.name,
+          nameZh: ctmNewDraft.nameZh || src.nameZh
+        });
+      },
+      ctmNewSave: (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const deal = String(ctmNewDraft.deal || '').trim();
+        const name = String(ctmNewDraft.name || '').trim();
+        const nameZh = String(ctmNewDraft.nameZh || '').trim();
+        const ver = 'v1';
+        const en = String(ctmNewDraft.en || '').trim();
+        const zh = String(ctmNewDraft.zh || '').trim();
+        if (!deal || !name || !nameZh) { patchCtmNew({ error: '请填写合作类型、英文名称和中文名称。' }); return; }
+        if (!en) { patchCtmNew({ error: '请填写英文条款正文。Campaigns 发邮件时会用英文生成合同。' }); return; }
+        const id = 'custom-' + Date.now();
+        const item = { id, deal, name, nameZh, ver, updated: '2026-09-14', by: 'Legal · Chen Xi', en, zh };
+        this.setState(st => ({
+          ctmCustom: [item, ...(st.ctmCustom || [])],
+          ctmFilter: deal,
+          ctmOpen: id,
+          ctmEdit: null,
+          ctmNewOpen: false,
+          ctmNew: { ...ctmNewBlank }
+        }));
+      },
       ctmFilters: ['全部', '付费合作', '产品置换', '佣金合作', '免费合作', '素材授权', '长期合作'].map(d => {
         const on = d === ctmFilter;
         return {
@@ -9103,8 +9212,25 @@ class Component extends DCLogic {
           editBg: isEdit ? '#EAF0FF' : '#FFFFFF', editBd: isEdit ? '#2457F5' : '#E2E8F2',
           view: () => this.setState(st => ({ ctmOpen: (st.ctmOpen === t.id && st.ctmEdit !== t.id) ? null : t.id, ctmEdit: null })),
           edit: () => this.setState(st => ({ ctmEdit: st.ctmEdit === t.id ? null : t.id, ctmOpen: t.id })),
+          download: (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            const bodies = s.ctmBodies || {};
+            const en = bodies[t.id + '|en'] !== undefined ? bodies[t.id + '|en'] : (t.en || '');
+            const zh = bodies[t.id + '|zh'] !== undefined ? bodies[t.id + '|zh'] : (t.zh || '');
+            const paras = (text) => String(text || '').split(/\n/).map(line => line || ' ');
+            const file = String(t.nameZh || t.name || '合同模板').replace(/[\\/:*?"<>|]/g, ' ').trim() + ' ' + t.ver + '.html';
+            this.download(file, this.printableDoc(t.nameZh || t.name, [
+              { h: t.name + ' · ' + t.deal + ' · ' + t.ver, rows: ['更新于 ' + t.updated + ' · ' + t.by] },
+              { h: 'English original', rows: paras(en) },
+              { h: '中文译文', rows: paras(zh).some(line => String(line).trim()) ? paras(zh) : ['（尚未填写中文译文）'] }
+            ]));
+          },
           setBody: (e) => { const v = e.target.value; this.setState(st => ({ ctmBodies: { ...(st.ctmBodies || {}), [t.id + '|' + lang]: v } })); },
-          remove: () => this.setState(st => ({ ctmRemoved: [...(st.ctmRemoved || []), t.id], ctmOpen: null, ctmEdit: null }))
+          remove: (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            this._ctmDeleteOpenedAt = Date.now();
+            this.setState({ ctmDeleteId: t.id });
+          }
         };
       }),
       isSamples: page === 'samples',
