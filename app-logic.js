@@ -8,6 +8,20 @@ const SETTINGS_MODULES = [
   ['reports', 'Reports'], ['contracts', 'Contract Mgt'], ['settings', 'Settings']
 ];
 const SETTINGS_BRANDS = ['Ryze', 'Aura', 'Lumo', 'Nuvia', 'Verre', 'Pace'];
+const US_STATES = [
+  ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'], ['CA', 'California'],
+  ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'], ['DC', 'District of Columbia'], ['FL', 'Florida'],
+  ['GA', 'Georgia'], ['HI', 'Hawaii'], ['ID', 'Idaho'], ['IL', 'Illinois'], ['IN', 'Indiana'],
+  ['IA', 'Iowa'], ['KS', 'Kansas'], ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'],
+  ['MD', 'Maryland'], ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'], ['MS', 'Mississippi'],
+  ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'], ['NV', 'Nevada'], ['NH', 'New Hampshire'],
+  ['NJ', 'New Jersey'], ['NM', 'New Mexico'], ['NY', 'New York'], ['NC', 'North Carolina'], ['ND', 'North Dakota'],
+  ['OH', 'Ohio'], ['OK', 'Oklahoma'], ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'],
+  ['SC', 'South Carolina'], ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'], ['UT', 'Utah'],
+  ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'], ['WV', 'West Virginia'], ['WI', 'Wisconsin'],
+  ['WY', 'Wyoming']
+];
+const US_STATE_CODES = US_STATES.map((x) => x[0]);
 const mailboxBrandOf = (m) => String((m && m.brand) || '').trim();
 const isGmailMailbox = (m) => (m && m.provider) === 'Gmail';
 const gmailBrandTaken = (list, brand, exceptId) => !!(brand && (list || []).some((x) => x.id !== exceptId && isGmailMailbox(x) && mailboxBrandOf(x) === brand));
@@ -96,6 +110,10 @@ class Component extends DCLogic {
         try { localStorage.removeItem('aios.smpStage'); } catch (_) {}
       }
     } catch (_) {}
+    this.setState(st => {
+      if (st.creatorAddresses && Object.keys(st.creatorAddresses).length) return {};
+      return { creatorAddresses: this._seedCreatorAddresses(st.shipOrders || []) };
+    });
     try {
       const savedStrategies = JSON.parse(localStorage.getItem('aios.campaignStrategyVersions') || '[]');
       const savedBriefs = JSON.parse(localStorage.getItem('aios.campaignBriefVersions') || '[]');
@@ -136,6 +154,8 @@ class Component extends DCLogic {
       if (event.key === 'Escape' && (this.state.settingsPersonOpen || this.state.settingsRoleOpen || this.state.settingsMailOpen || this.state.settingsDelete)) {
         this.setState({ settingsPersonOpen: false, settingsRoleOpen: false, settingsMailOpen: false, settingsDelete: null, settingsFormError: '' });
       }
+      if (event.key === 'Escape' && this.state.cpAddrDelete) this.setState({ cpAddrDelete: null });
+      else if (event.key === 'Escape' && this.state.cpAddrOpen) this.setState({ cpAddrOpen: false, cpAddrError: '' });
     };
     document.addEventListener('keydown', this._productDrawerKeyHandler);
     const directStrategyParams = new URLSearchParams(window.location.search);
@@ -218,6 +238,12 @@ class Component extends DCLogic {
         mailboxes: this.state.settingsMailboxes || [],
         auto: this.state.settings || {}
       }));
+      if (this.state.creatorAddresses && typeof this.state.creatorAddresses === 'object') {
+        localStorage.setItem('aios.creatorAddresses', JSON.stringify(this.state.creatorAddresses));
+      }
+      if (this.state.creatorNotes && typeof this.state.creatorNotes === 'object') {
+        localStorage.setItem('aios.creatorNotes', JSON.stringify(this.state.creatorNotes));
+      }
     } catch (_) {}
   }
 
@@ -460,7 +486,28 @@ class Component extends DCLogic {
     settingsRoleDraft: { name: '', desc: '' },
     settingsMailDraft: { email: '', name: '', brand: '', provider: 'Gmail' },
     settingsFormError: '',
-    settingsDelete: null
+    settingsDelete: null,
+    creatorAddresses: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.creatorAddresses') || 'null');
+        if (saved && typeof saved === 'object' && !Array.isArray(saved)) return saved;
+      } catch (_) {}
+      return {};
+    })(),
+    creatorNotes: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.creatorNotes') || 'null');
+        if (saved && typeof saved === 'object' && !Array.isArray(saved)) return saved;
+      } catch (_) {}
+      return {};
+    })(),
+    cpNotesEdit: false,
+    cpNotesDraft: '',
+    cpAddrOpen: false,
+    cpAddrEditId: '',
+    cpAddrDraft: {},
+    cpAddrError: '',
+    cpAddrDelete: null
   };
 
   LOOKALIKE_POOL = [
@@ -530,9 +577,40 @@ class Component extends DCLogic {
     return raw.replace(/\b\w/g, m => m.toUpperCase());
   };
 
-  _addrFromHandle = (handle, orders) => {
-    const list = (orders || []).filter(o => o.handle === handle && o.addr && o.addr.line1 && o.addr.line1 !== '待红人确认');
-    return list.length ? (list[0].addr || null) : null;
+  _blankCreatorAddr = () => ({
+    label: '默认寄样', name: '', phone: '', line1: '', line2: '', city: '', state: '', zip: '', country: 'United States', isDefault: false
+  });
+
+  _normCreatorAddr = (a, i) => ({
+    id: (a && a.id) || ('addr-' + Date.now() + '-' + (i || 0)),
+    label: String((a && a.label) || '默认寄样').trim() || '默认寄样',
+    isDefault: !!(a && a.isDefault),
+    name: String((a && a.name) || '').trim(),
+    phone: String((a && a.phone) || '').trim(),
+    line1: String((a && a.line1) || '').trim(),
+    line2: String((a && a.line2) || '').trim(),
+    city: String((a && a.city) || '').trim(),
+    state: String((a && a.state) || '').trim().toUpperCase(),
+    zip: String((a && a.zip) || '').trim().replace(/\s+/g, ''),
+    country: String((a && a.country) || 'United States').trim() || 'United States'
+  });
+
+  _seedCreatorAddresses = (orders) => {
+    const map = {};
+    (orders || []).forEach((o, i) => {
+      if (!o || !o.handle || !o.addr || !o.addr.line1 || o.addr.line1 === '待红人确认') return;
+      if (map[o.handle]) return;
+      map[o.handle] = [this._normCreatorAddr({ ...o.addr, label: '默认寄样', isDefault: true, id: 'addr-seed-' + String(o.handle).replace(/[^a-z0-9]/gi, '') }, i)];
+    });
+    return map;
+  };
+
+  _addrFromHandle = (handle, orders, book) => {
+    const list = ((book || {})[handle]) || [];
+    const def = list.find(a => a.isDefault) || list[0];
+    if (def && def.line1 && def.line1 !== '待红人确认') return def;
+    const fromOrders = (orders || []).filter(o => o.handle === handle && o.addr && o.addr.line1 && o.addr.line1 !== '待红人确认');
+    return fromOrders.length ? (fromOrders[0].addr || null) : null;
   };
 
   SHIP_CARRIERS = ['DHL Express', 'FedEx', 'UPS', 'USPS', 'SF Express', 'YunExpress', '4PX'];
@@ -890,7 +968,11 @@ class Component extends DCLogic {
 
   toggleCopilot = () => this.setState(s => ({ copilotOpen: !s.copilotOpen }));
 
-  openCreator = (handle) => () => this.setState({ page: 'creatorProfile', creatorHandle: handle });
+  openCreator = (handle) => () => this.setState({
+    page: 'creatorProfile', creatorHandle: handle,
+    cpNotesEdit: false, cpNotesDraft: '',
+    cpAddrOpen: false, cpAddrEditId: '', cpAddrDraft: {}, cpAddrError: '', cpAddrDelete: null
+  });
   openAsset = (i) => () => this.setState({ page: 'assetDetail', assetIdx: i });
   openCampaign = (i, tab) => () => this.setState({ page: 'campaignDetail', campaignIdx: i, campaignSku: '', campaignName: '', campaignTab: tab || 'strategy', campaignAiSummaryOpen: false });
   openCampaignSku = (sku, tab, name) => (e) => {
@@ -3691,9 +3773,16 @@ class Component extends DCLogic {
     })();
 
     const contactAtt = s.contactAtt || (rejectMode ? [] : ['brief', 'sample']);
+    const bookAddr = contactC ? this._addrFromHandle(contactC.handle, s.shipOrders || [], s.creatorAddresses) : null;
     const sampleAddrDefaults = {
-      name: contactC ? contactC.handle.slice(1).replace(/\./g, ' ').replace(/\b\w/g, m => m.toUpperCase()) : '',
-      line1: '', line2: '', city: '', state: '', zip: '', country: 'United States', phone: ''
+      name: (bookAddr && bookAddr.name) || (contactC ? contactC.handle.slice(1).replace(/\./g, ' ').replace(/\b\w/g, m => m.toUpperCase()) : ''),
+      line1: (bookAddr && bookAddr.line1) || '',
+      line2: (bookAddr && bookAddr.line2) || '',
+      city: (bookAddr && bookAddr.city) || '',
+      state: (bookAddr && bookAddr.state) || '',
+      zip: (bookAddr && bookAddr.zip) || '',
+      country: (bookAddr && bookAddr.country) || 'United States',
+      phone: (bookAddr && bookAddr.phone) || ''
     };
     const sampleAddrResolved = Object.keys(sampleAddrDefaults).reduce((acc, k) => {
       const v = (s.sampleAddr || {})[k];
@@ -4163,20 +4252,173 @@ class Component extends DCLogic {
       scores: [['Relationship', Math.max(20, cur.fit - 30)], ['Content Quality', cur.fit - 6], ['交付稳定性', cur.fit - 12]]
     };
     const inList = s.shortlist.includes(cur.handle.slice(1));
+    const profileStatusMap = { '长期合作': ['#E4EFE4', '#4E7156'], '已合作': ['#E4EFE4', '#4E7156'], '沟通中': ['#FBEEDA', '#A5762C'], '待联系': ['#E4EEF7', '#1D48D8'], '暂停': ['#F5F8FE', '#647187'] };
+    const [statusBg, statusFg] = profileStatusMap[cur.status] || ['#F5F8FE', '#647187'];
+    const cpAvatar = creatorAvatarMap[cur.handle] || '';
+    const slug = String(cur.handle || '').replace(/^@/, '');
+    const channelUrl = { TikTok: 'https://www.tiktok.com/@' + slug, Instagram: 'https://www.instagram.com/' + slug, YouTube: 'https://www.youtube.com/@' + slug };
+    const cpLinks = ((crHandles[cur.handle] || {}).links) || (creatorChannelsMap[cur.handle] || []).map((label) => ({ label, url: channelUrl[label] || '#', title: label + ' 主页' }));
+    const notesSaved = (s.creatorNotes || {})[cur.handle];
+    const notesText = notesSaved !== undefined ? notesSaved : ex.notes;
+    const addrList = ((s.creatorAddresses || {})[cur.handle] || []);
+    const addrDraft = s.cpAddrDraft || {};
+    const addrLabels = ['默认寄样', '备用', '工作室'];
+    const addrLabelOptions = addrLabels.indexOf(addrDraft.label) >= 0 || !addrDraft.label
+      ? addrLabels
+      : [addrDraft.label].concat(addrLabels);
+    const addrDeleteRow = addrList.find(a => a.id === s.cpAddrDelete) || null;
+    const patchAddr = (part) => this.setState(st => ({ cpAddrDraft: { ...(st.cpAddrDraft || {}), ...part }, cpAddrError: '' }));
     const cp = {
-      ...cur, color: this.scoreColor(cur.fit), bio: ex.bio, notes: ex.notes,
+      ...cur, color: this.scoreColor(cur.fit), bio: ex.bio, notes: notesText, statusBg, statusFg,
+      avatar: cpAvatar, hasAvatar: !!cpAvatar, noAvatar: !cpAvatar,
+      links: cpLinks, hasLinks: cpLinks.length > 0,
       audience: ex.audience.map(([label, value]) => ({ label, value })),
       style: ex.style,
-      history: ex.history,
+      history: ex.history.map((h) => ({ ...h, dotBg: h.good ? '#6E8F74' : '#C4636D', resFg: h.good ? '#4E7156' : '#B4525E' })),
       hasHistory: ex.history.length > 0,
       noHistory: ex.history.length === 0,
       recProducts: ex.recProducts,
       scores: ex.scores.map(([label, v]) => ({ label, value: v, pct: v, color: this.scoreColor(v) })),
-      stats: [{ label: '粉丝数', value: cur.followers }, { label: '互动率', value: cur.er }, { label: '报价', value: cur.quote }, { label: 'CRM 状态', value: cur.status }],
+      stats: [
+        { label: '粉丝', value: cur.followers }, { label: 'ER', value: cur.er }, { label: '报价', value: cur.quote },
+        { label: '层级', value: this.tierOfFollowers(cur.followers) }, { label: '发布频率', value: freqOf(cur.handle) },
+        { label: '简介/内容定位', value: cur.niche },
+        { label: '社交主页', value: crLinksOf(cur).map(l => l.label).join(' / ') },
+        { label: 'CRM 状态', value: cur.status },
+        { label: '均播', value: cur.avgViews },
+        { label: '联系邮箱', value: cur.handle.slice(1).replace(/[^a-z0-9.]/gi, '') + '@creator-mail.com', span: 2 }
+      ].map(x => ({ ...x, span: x.span || 1 })),
       btnLabel: inList ? '✓ 已在 shortlist' : '加入 Q3 shortlist',
       btnBg: inList ? '#E4EFE4' : '#2457F5', btnFg: inList ? '#4E7156' : '#FFFFFF', btnBd: inList ? '#CFE3D3' : '#2457F5',
       toggle: () => this.setState(st => ({ shortlist: inList ? st.shortlist.filter(x => x !== cur.handle.slice(1)) : [...st.shortlist, cur.handle.slice(1)] })),
-      riskLine: cur.risk || '暂无风险标签'
+      hasRisk: !!cur.risk, noRisk: !cur.risk,
+      riskLine: cur.risk || '暂无风险标签',
+      riskBg: cur.risk ? '#FBF6F4' : '#FFFFFF', riskBd: cur.risk ? '#F0D9D6' : '#E2E8F2', riskFg: cur.risk ? '#9A5858' : '#647187',
+      hasAddr: addrList.length > 0,
+      noAddr: addrList.length === 0,
+      addresses: addrList.map(a => ({
+        ...a,
+        street: [a.line1, a.line2].filter(Boolean).join(', '),
+        cityLine: [a.city, [a.state, a.zip].filter(Boolean).join(' ')].filter(Boolean).join(', '),
+        meta: [a.country || 'United States', a.phone].filter(Boolean).join(' · '),
+        isDefault: !!a.isDefault,
+        notDefault: !a.isDefault,
+        bd: a.isDefault ? '#B8CBFF' : '#E2E8F2',
+        bg: a.isDefault ? '#F5F8FE' : '#F8FAFE',
+        setDefault: () => this.setState(st => {
+          const handle = st.creatorHandle;
+          const book = { ...(st.creatorAddresses || {}) };
+          book[handle] = (book[handle] || []).map(x => ({ ...x, isDefault: x.id === a.id }));
+          return { creatorAddresses: book };
+        }),
+        edit: () => {
+          this._cpAddrOpenedAt = Date.now();
+          this.setState({ cpAddrOpen: true, cpAddrEditId: a.id, cpAddrError: '', cpAddrDraft: { ...a } });
+        },
+        askDelete: () => {
+          this._cpAddrOpenedAt = Date.now();
+          this.setState({ cpAddrDelete: a.id });
+        }
+      })),
+      noteEditing: !!s.cpNotesEdit,
+      noteReading: !s.cpNotesEdit,
+      notesDraft: s.cpNotesDraft || '',
+      editNotes: () => this.setState({ cpNotesEdit: true, cpNotesDraft: notesText }),
+      setNotes: (e) => this.setState({ cpNotesDraft: e.target.value }),
+      saveNotes: () => this.setState(st => ({
+        creatorNotes: { ...(st.creatorNotes || {}), [st.creatorHandle]: st.cpNotesDraft || '' },
+        cpNotesEdit: false
+      })),
+      addrOpen: !!s.cpAddrOpen,
+      deleteOpen: !!s.cpAddrDelete,
+      addrTitle: s.cpAddrEditId ? '编辑地址' : '添加地址',
+      addrLabel: addrDraft.label || '默认寄样',
+      addrName: addrDraft.name || '',
+      addrPhone: addrDraft.phone || '',
+      addrLine1: addrDraft.line1 || '',
+      addrLine2: addrDraft.line2 || '',
+      addrCity: addrDraft.city || '',
+      addrState: addrDraft.state || '',
+      addrZip: addrDraft.zip || '',
+      addrCountry: addrDraft.country || 'United States',
+      addrLabelOptions: addrLabelOptions.map(id => ({ id, name: id })),
+      addrStateOptions: (() => {
+        const cur = String(addrDraft.state || '').trim().toUpperCase();
+        const opts = US_STATES.map(([id, name]) => ({ id, name: id + ' · ' + name }));
+        if (cur && US_STATE_CODES.indexOf(cur) < 0) opts.unshift({ id: cur, name: cur });
+        return [{ id: '', name: '选择州 (State)' }].concat(opts);
+      })(),
+      addrDefaultMark: addrDraft.isDefault ? '✓' : '',
+      addrDefaultBg: addrDraft.isDefault ? '#2457F5' : '#FFFFFF',
+      addrDefaultBd: addrDraft.isDefault ? '#2457F5' : '#C8D4E8',
+      addrError: s.cpAddrError || '',
+      hasAddrError: !!(s.cpAddrError),
+      noAddrError: !s.cpAddrError,
+      deleteLabel: addrDeleteRow ? (addrDeleteRow.label + ' · ' + addrDeleteRow.name) : '该地址',
+      keepModal: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      closeAddr: (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (Date.now() - (this._cpAddrOpenedAt || 0) < 400) return;
+        this.setState({ cpAddrOpen: false, cpAddrError: '' });
+      },
+      closeDelete: (e) => {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (Date.now() - (this._cpAddrOpenedAt || 0) < 400) return;
+        this.setState({ cpAddrDelete: null });
+      },
+      openAdd: () => {
+        this._cpAddrOpenedAt = Date.now();
+        this.setState(st => {
+          const list = ((st.creatorAddresses || {})[st.creatorHandle] || []);
+          return { cpAddrOpen: true, cpAddrEditId: '', cpAddrError: '', cpAddrDraft: { ...this._blankCreatorAddr(), isDefault: list.length === 0 } };
+        });
+      },
+      setAddrLabel: (e) => patchAddr({ label: e.target.value }),
+      setAddrName: (e) => patchAddr({ name: e.target.value }),
+      setAddrPhone: (e) => patchAddr({ phone: e.target.value }),
+      setAddrLine1: (e) => patchAddr({ line1: e.target.value }),
+      setAddrLine2: (e) => patchAddr({ line2: e.target.value }),
+      setAddrCity: (e) => patchAddr({ city: e.target.value }),
+      setAddrState: (e) => patchAddr({ state: e.target.value }),
+      setAddrZip: (e) => patchAddr({ zip: e.target.value }),
+      setAddrCountry: (e) => patchAddr({ country: e.target.value }),
+      toggleAddrDefault: () => this.setState(st => ({
+        cpAddrDraft: { ...(st.cpAddrDraft || {}), isDefault: !(st.cpAddrDraft || {}).isDefault },
+        cpAddrError: ''
+      })),
+      saveAddr: () => {
+        const d = this._normCreatorAddr(this.state.cpAddrDraft || {}, 0);
+        if (!d.name || !d.phone || !d.line1 || !d.city || !d.state || !d.zip) {
+          this.setState({ cpAddrError: '请填写 Full name、Phone、Street address、City、State 和 ZIP code。' });
+          return;
+        }
+        if ((d.country || 'United States') === 'United States' && !/^\d{5}(-\d{4})?$/.test(d.zip)) {
+          this.setState({ cpAddrError: 'ZIP code 需为 5 位数字，或 ZIP+4（如 90026 或 90026-1234）。' });
+          return;
+        }
+        this.setState(st => {
+          const handle = st.creatorHandle;
+          const book = { ...(st.creatorAddresses || {}) };
+          let list = [...(book[handle] || [])];
+          const editId = st.cpAddrEditId;
+          const id = editId || ('addr-' + Date.now());
+          if (editId) list = list.map(a => a.id === editId ? { ...d, id: editId } : a);
+          else list = [{ ...d, id }, ...list];
+          if (d.isDefault || list.length === 1) list = list.map(a => ({ ...a, isDefault: a.id === id }));
+          else if (!list.some(a => a.isDefault)) list = list.map((a, i) => ({ ...a, isDefault: i === 0 }));
+          book[handle] = list;
+          return { creatorAddresses: book, cpAddrOpen: false, cpAddrError: '', cpAddrEditId: '' };
+        });
+      },
+      confirmDelete: () => this.setState(st => {
+        const handle = st.creatorHandle;
+        const id = st.cpAddrDelete;
+        const book = { ...(st.creatorAddresses || {}) };
+        let list = (book[handle] || []).filter(a => a.id !== id);
+        if (list.length && !list.some(a => a.isDefault)) list = list.map((a, i) => ({ ...a, isDefault: i === 0 }));
+        book[handle] = list;
+        return { creatorAddresses: book, cpAddrDelete: null };
+      })
     };
 
     // ── Campaign 时间进度 ──
@@ -9461,7 +9703,7 @@ class Component extends DCLogic {
         const coopHandles = [...new Set([...(s.coopList || []), ...((s.shipOrders || []).map(o => o.handle))])];
         const coopRows = coopHandles.map(h => {
           const def = creatorDefs.find(c => c.handle === h) || {};
-          const addr = this._addrFromHandle(h, s.shipOrders || []);
+          const addr = this._addrFromHandle(h, s.shipOrders || [], s.creatorAddresses);
           const name = (addr && addr.name) || this._nameFromHandle(h);
           const loc = addr ? [addr.city, addr.state].filter(Boolean).join(', ') : '';
           const hay = [h, name, loc, def.niche, def.country].filter(Boolean).join(' ').toLowerCase();
@@ -9715,7 +9957,7 @@ class Component extends DCLogic {
           bkPicked: [],
           shipOrders: [...picked.filter(h => !(st.shipOrders || []).some(o => o.handle === h)).map((h) => this._makeShipOrder({
             handle: h, product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', qty: 1, date: '08/20',
-            addr: this._pendingAddr(h)
+            addr: this._addrFromHandle(h, st.shipOrders || [], st.creatorAddresses) || this._pendingAddr(h)
           })), ...(st.shipOrders || [])],
           notifLog: [{ kind: 'ship', title: '批量寄样单已创建 · ' + picked.length + ' 单', note: picked.join('、') + ' · 待补收件地址', when: '刚刚' }, ...(st.notifLog || [])]
         }));
@@ -10102,7 +10344,7 @@ class Component extends DCLogic {
                   this.setState(st => ({
                     shipOrders: [this._makeShipOrder({
                       handle: h, replyIdx: ri, product: p2Name, qty: 1, date: '08/29',
-                      addr: this._pendingAddr(h)
+                      addr: this._addrFromHandle(h, st.shipOrders || [], st.creatorAddresses) || this._pendingAddr(h)
                     }), ...(st.shipOrders || [])]
                   }));
                 }
