@@ -100,7 +100,16 @@ class Component extends DCLogic {
       const savedSmpStage = JSON.parse(localStorage.getItem('aios.smpStage') || '{}');
       const overlay = (savedSmpStage && typeof savedSmpStage === 'object') ? savedSmpStage : {};
       if (Array.isArray(savedOrders) && savedOrders.length) {
-        this.setState({ shipOrders: savedOrders, smpStage: {} });
+        const migrated = savedOrders.map(o => ({
+          ...o,
+          trackingBound: !!(o.trackingBound || this._orderStage(o) > 0)
+        }));
+        const hasPending = migrated.some(o => this._isPendingShip(o));
+        const extra = hasPending ? [] : (this.state.shipOrders || []).filter(o => this._isPendingShip(o) && !migrated.some(x => this._shipKey(x) === this._shipKey(o)));
+        this.setState({
+          shipOrders: extra.concat(migrated),
+          smpStage: {}
+        });
         try { localStorage.removeItem('aios.smpStage'); } catch (_) {}
       } else if (Object.keys(overlay).length) {
         this.setState(st => ({
@@ -205,13 +214,9 @@ class Component extends DCLogic {
     }
     if (window.AIOS_PAGE === 'samples') {
       const sampleHandle = directStrategyParams.get('handle') || '';
-      const sampleProduct = directStrategyParams.get('product') || '';
-      const sampleSku = directStrategyParams.get('sku') || '';
-      const sampleCampaign = directStrategyParams.get('campaign') || '';
       if (directStrategyParams.get('create') === '1') {
         this.setState({
-          smTab: 'new', smMode: 'single', smSaved: false, smOpen: null,
-          smForm: { handle: sampleHandle, product: sampleProduct, sku: sampleSku, campaign: sampleCampaign, qty: '1' }
+          smTab: 'progress', smpFilter: '待寄样', smSaved: false, smOpen: null
         });
       } else if (sampleHandle) {
         this.setState({ smTab: 'progress', smpQuery: sampleHandle });
@@ -404,18 +409,26 @@ class Component extends DCLogic {
     coopPostUrl: '',
     coopActionNotice: '',
     shipOrders: [
-      { handle: '@mia.selfcare', replyIdx: -1, product: 'Ryze 头皮按摩仪', qty: 1, date: '08/06', tracking: 'TRK419213', carrier: 'DHL Express', stage: 3,
+      { handle: '@mia.selfcare', replyIdx: -1, product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', qty: 1, date: '08/06', tracking: 'TRK419213', carrier: 'DHL Express', stage: 3, trackingBound: true,
         addr: { name: 'Mia Chen', line1: '1847 Sunset Blvd', line2: 'Apt 5B', city: 'Los Angeles', state: 'CA', zip: '90026', country: 'United States', phone: '+1 213 555 0134' } },
-      { handle: '@kaylascalp', replyIdx: -1, product: 'Ryze 头皮按摩仪', qty: 2, date: '08/04', tracking: 'TRK418877', carrier: 'DHL Express', stage: 3,
+      { handle: '@kaylascalp', replyIdx: -1, product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', qty: 2, date: '08/04', tracking: 'TRK418877', carrier: 'DHL Express', stage: 3, trackingBound: true,
         addr: { name: 'Kayla Reed', line1: '920 W 6th St', line2: '', city: 'Austin', state: 'TX', zip: '78703', country: 'United States', phone: '+1 512 555 0177' } },
-      { handle: '@leo.calmnight', replyIdx: -1, product: 'Ryze 头皮按摩仪', qty: 1, date: '08/02', tracking: 'TRK417604', carrier: 'DHL Express', stage: 3,
+      { handle: '@leo.calmnight', replyIdx: -1, product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', qty: 1, date: '08/02', tracking: 'TRK417604', carrier: 'DHL Express', stage: 3, trackingBound: true,
         addr: { name: 'Leo Marsh', line1: '441 Pine St', line2: 'Unit 12', city: 'Portland', state: 'OR', zip: '97204', country: 'United States', phone: '+1 503 555 0188' } },
-      { handle: '@june.rests', replyIdx: -1, product: 'Ryze 头皮按摩仪', qty: 1, date: '08/08', tracking: 'TRK419488', carrier: 'DHL Express', stage: 3,
+      { handle: '@june.rests', replyIdx: -1, product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', qty: 1, date: '08/08', tracking: 'TRK419488', carrier: 'DHL Express', stage: 3, trackingBound: true,
         addr: { name: 'June Alvarez', line1: '77 Bay Ridge Ave', line2: '', city: 'Brooklyn', state: 'NY', zip: '11220', country: 'United States', phone: '+1 646 555 0142' } },
-      { handle: '@dailywithlin', replyIdx: -1, product: 'Ryze 头皮按摩仪', qty: 1, date: '08/17', tracking: 'TRK420356', carrier: 'DHL Express', stage: 2,
+      { handle: '@dailywithlin', replyIdx: -1, product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', qty: 1, date: '08/17', tracking: 'TRK420356', carrier: 'DHL Express', stage: 2, trackingBound: true,
         addr: { name: 'Lin Zhao', line1: '2210 Clement St', line2: '', city: 'San Francisco', state: 'CA', zip: '94121', country: 'United States', phone: '+1 415 555 0163' } },
-      { handle: '@nora.pm', replyIdx: -1, product: 'Lumo 便携香氛机', qty: 1, date: '08/05', tracking: 'TRK419021', carrier: 'DHL Express', stage: 1,
-        addr: { name: 'Nora Pfeiffer', line1: 'Kastanienallee 42', line2: '', city: 'Berlin', state: 'BE', zip: '10435', country: 'Germany', phone: '+49 30 5550 118' } }
+      { handle: '@nora.pm', replyIdx: -1, product: 'Lumo 便携香氛机', sku: 'LUM-AR-02', qty: 1, date: '08/05', tracking: 'TRK419021', carrier: 'DHL Express', stage: 1, trackingBound: true,
+        addr: { name: 'Nora Pfeiffer', line1: 'Kastanienallee 42', line2: '', city: 'Berlin', state: 'BE', zip: '10435', country: 'Germany', phone: '+49 30 5550 118' } },
+      { handle: '@hairbyandre', replyIdx: -1, product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', qty: 1, date: '08/19', stage: 0, trackingBound: false,
+        addr: { name: 'Andre Cole', line1: '88 King St W', line2: 'Suite 410', city: 'Toronto', state: 'ON', zip: 'M5V 1J2', country: 'Canada', phone: '+1 416 555 0108' } },
+      { handle: '@sofia.homelab', replyIdx: -1, product: 'Lumo 便携香氛机', sku: 'LUM-AR-02', qty: 1, date: '08/18', stage: 0, trackingBound: false,
+        addr: { name: 'Sofia Bennett', line1: '1420 N Orange Grove Ave', line2: 'Unit 2', city: 'Los Angeles', state: 'CA', zip: '90046', country: 'United States', phone: '+1 323 555 0166' } },
+      { handle: '@thegroomguide', replyIdx: -1, product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', qty: 2, date: '08/16', stage: 0, trackingBound: false,
+        addr: { name: 'James Whitaker', line1: '14 Clerkenwell Green', line2: 'Flat 3', city: 'London', state: 'England', zip: 'EC1R 0DP', country: 'United Kingdom', phone: '+44 20 7946 0958' } },
+      { handle: '@lena.unwinds', replyIdx: -1, product: 'Aura 落地氛围灯', sku: 'AURA-LP-01', qty: 1, date: '08/20', stage: 0, trackingBound: false,
+        addr: { name: 'Lena Ortiz', line1: '2210 Hyperion Ave', line2: '', city: 'Los Angeles', state: 'CA', zip: '90027', country: 'United States', phone: '+1 213 555 0198' } }
     ],
     contactLog: [
       { handle: '@mia.selfcare', sku: 'RYZ-SC-01', subject: '合作邀请 · Ryze 头皮按摩仪 × @mia.selfcare', when: '2026-08-06 现在', status: '已发送', att: 2 },
@@ -558,15 +571,87 @@ class Component extends DCLogic {
       handle, replyIdx: input.replyIdx !== undefined ? input.replyIdx : -1,
       product: productStr, sku: input.sku || '', campaign: input.campaign || '',
       qty, date: input.date || '08/20',
-      tracking: input.tracking || ('TRK' + String(100000 + trkHash)),
+      tracking: input.trackingBound ? (input.tracking || ('TRK' + String(100000 + trkHash))) : (input.tracking || ''),
       carrier: input.carrier || 'DHL Express',
       stage: input.stage || 0,
+      trackingBound: !!input.trackingBound,
       addr: input.addr || {}
     };
   };
 
   _shipKey = (o) => String(o && o.handle || '') + '|' + String(o && o.date || '');
   _orderStage = (o) => Math.max(0, Math.min(3, Number(o && o.stage) || 0));
+  _isPendingShip = (o) => !o.trackingBound && this._orderStage(o) === 0;
+  _shipEmail = (handle) => String(handle || '').replace(/^@/, '').replace(/[^a-z0-9.]/gi, '') + '@creator-mail.com';
+  _downloadXlsx = (filename, sheetName, headers, rows) => {
+    const enc = new TextEncoder();
+    const xml = (s) => String(s == null ? '' : s)
+      .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const col = (i) => {
+      let n = i + 1, out = '';
+      while (n > 0) { n -= 1; out = String.fromCharCode(65 + (n % 26)) + out; n = Math.floor(n / 26); }
+      return out;
+    };
+    const cell = (r, c, v) => {
+      const ref = col(c) + String(r);
+      if (typeof v === 'number' && isFinite(v)) return '<c r="' + ref + '"><v>' + v + '</v></c>';
+      return '<c r="' + ref + '" t="inlineStr"><is><t>' + xml(v) + '</t></is></c>';
+    };
+    const sheetRows = [headers].concat(rows).map((line, ri) =>
+      '<row r="' + (ri + 1) + '">' + line.map((v, ci) => cell(ri + 1, ci, v)).join('') + '</row>'
+    ).join('');
+    const files = [
+      { name: '[Content_Types].xml', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>' },
+      { name: '_rels/.rels', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+      { name: 'xl/workbook.xml', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + xml(sheetName || 'Sheet1') + '" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+      { name: 'xl/_rels/workbook.xml.rels', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>' },
+      { name: 'xl/worksheets/sheet1.xml', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + sheetRows + '</sheetData></worksheet>' }
+    ];
+    const crcTable = (() => {
+      const t = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+        t[i] = c;
+      }
+      return t;
+    })();
+    const crc32 = (buf) => {
+      let c = 0xffffffff;
+      for (let i = 0; i < buf.length; i++) c = crcTable[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+      return (c ^ 0xffffffff) >>> 0;
+    };
+    const u16 = (n) => { const b = new Uint8Array(2); new DataView(b.buffer).setUint16(0, n, true); return b; };
+    const u32 = (n) => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n, true); return b; };
+    const cat = (parts) => {
+      const out = new Uint8Array(parts.reduce((s, p) => s + p.length, 0));
+      let o = 0;
+      parts.forEach(p => { out.set(p, o); o += p.length; });
+      return out;
+    };
+    const local = [];
+    const central = [];
+    let offset = 0;
+    files.forEach(f => {
+      const name = enc.encode(f.name);
+      const data = enc.encode(f.text);
+      const crc = crc32(data);
+      const lh = cat([u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(0), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), name, data]);
+      local.push(lh);
+      central.push(cat([u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(0), u16(0), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset), name]));
+      offset += lh.length;
+    });
+    const locals = cat(local);
+    const centrals = cat(central);
+    const eocd = cat([u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length), u32(centrals.length), u32(locals.length), u16(0)]);
+    const blob = new Blob([cat([locals, centrals, eocd])], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 800);
+  };
   _pendingAddr = (handle) => {
     const raw = String(handle || '').replace(/^@/, '');
     return { name: raw || '收件人待补充', line1: '待红人确认', line2: '', city: '—', state: '—', zip: '—', country: 'United States', phone: '—' };
@@ -3874,6 +3959,7 @@ class Component extends DCLogic {
       const fromOrders = (s.shipOrders || []).map(o => ({
         handle: o.handle, product: o.product.replace(/ × \d+$/, ''), qty: o.qty || 1, date: o.date, tracking: o.tracking, carrier: o.carrier, sku: o.sku || '',
         stage: this._orderStage(o),
+        trackingBound: !!o.trackingBound,
         addr: o.addr || {}
       }));
       const inRange = (mmdd) => {
@@ -3893,9 +3979,38 @@ class Component extends DCLogic {
         const dparts = String(o.date || '').split('/');
         const created = dparts.length >= 2 ? new Date(2026, Number(dparts[0]) - 1, Number(dparts[1])) : null;
         const daysOut = created ? Math.round((new Date(2026, 7, 20) - created) / 86400000) : 0;
-        const bucket = status === '已签收' ? '已签收' : (daysOut > 7 ? '异常' : '在途');
+        const pending = this._isPendingShip(o);
+        const skuRec = skuAll.find(p => p.sku === o.sku) || skuAll.find(p => p.name === o.product) || {};
+        const email = this._shipEmail(o.handle);
+        const bucket = pending ? '待寄样' : (status === '已签收' ? '已签收' : (daysOut > 7 ? '异常' : '在途'));
         return {
-          idx: i + 1, handle: o.handle, product: o.product, qty: o.qty, status,
+          idx: i + 1, handle: o.handle, product: o.product, qty: o.qty, status: pending ? '待寄样' : status,
+          pending, key,
+          email,
+          country: a.country || '—',
+          region: a.state || '—',
+          city: a.city || '—',
+          zip: a.zip || '—',
+          phone: a.phone || '—',
+          line1: a.line1 || '—',
+          line2: a.line2 || '—',
+          asin: skuRec.asin || '—',
+          msku: skuRec.sku || o.sku || '—',
+          trackDraft: ((s.smpTrackDraft || {})[key] || ''),
+          setTrack: (e) => {
+            const v = e.target.value;
+            this.setState(st => ({ smpTrackDraft: { ...(st.smpTrackDraft || {}), [key]: v } }));
+          },
+          bind: (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            const no = String((this.state.smpTrackDraft || {})[key] || '').trim();
+            if (!no) return;
+            this.setState(st => ({
+              shipOrders: (st.shipOrders || []).map(x => this._shipKey(x) === key ? { ...x, tracking: no, trackingBound: true, stage: Math.max(this._orderStage(x), 1) } : x),
+              smpTrackDraft: { ...(st.smpTrackDraft || {}), [key]: '' },
+              smpFilter: '在途'
+            }));
+          },
           avatar: creatorAvatarMap[o.handle] || '../avatars/mia.jpg',
           recipient: a.name || '收件人待补充',
           createdLabel: '创建 ' + o.date,
@@ -3904,7 +4019,7 @@ class Component extends DCLogic {
           abnormal: bucket === '异常',
           abnormalNote: bucket === '异常' ? '已发出 ' + daysOut + ' 天仍未签收（常规 3–5 天）' : '',
           meta: o.handle + ' · 创建 ' + o.date + ' · ' + (a.city ? a.city + ', ' + (a.state || '') : '地址待补充'),
-          tracking: o.tracking || ('TRK' + String(100000 + (o.handle.length * 7351 + o.qty * 17) % 899999)),
+          tracking: pending ? '' : (o.tracking || ('TRK' + String(100000 + (o.handle.length * 7351 + o.qty * 17) % 899999))),
           tagBg: bucket === '异常' ? '#FBE3E3' : (status === '已签收' ? '#E4EFE4' : (status === '待揽收' ? '#FBEEDA' : '#E4EEF7')),
           tagFg: bucket === '异常' ? '#C4636D' : (status === '已签收' ? '#4E7156' : (status === '待揽收' ? '#A5762C' : '#1D48D8')),
           cardBd: bucket === '异常' ? '#F0C9C9' : '#DDE5F1',
@@ -3945,28 +4060,28 @@ class Component extends DCLogic {
             });
           },
           reshipShow: bucket === '异常',
-          reship: () => this.setState({
-            smTab: 'new', smMode: 'single', smSaved: false, smOpen: null,
-            smForm: {
-              handle: o.handle, product: o.product, qty: String(o.qty || 1),
-              name: (o.addr || {}).name || '',
-              line1: (o.addr || {}).line1 || '', line2: (o.addr || {}).line2 || '',
-              city: (o.addr || {}).city || '', state: (o.addr || {}).state || '',
-              zip: (o.addr || {}).zip || '', phone: (o.addr || {}).phone || ''
-            }
-          })
+          reship: () => this.setState(st => ({
+            smpFilter: '待寄样',
+            shipOrders: [this._makeShipOrder({
+              handle: o.handle, product: o.product, sku: o.sku, qty: o.qty, date: '08/20', addr: o.addr
+            }), ...(st.shipOrders || [])],
+            notifLog: [{ kind: 'ship', title: '已生成补寄待寄样 · ' + o.handle, note: o.product + ' × ' + o.qty, when: '刚刚' }, ...(st.notifLog || [])]
+          }))
         };
       });
     })();
 
+    const smpFilter = (!s.smpFilter || s.smpFilter === '全部') ? '待寄样' : s.smpFilter;
     const smpQueryText = String(s.smpQuery || '').trim().toLowerCase();
     const smpShown = smpArr.filter(x => {
-      const statusMatch = (s.smpFilter || '全部') === '全部' || x.bucket === (s.smpFilter || '全部');
+      const statusMatch = x.bucket === smpFilter;
       if (!statusMatch || !smpQueryText) return statusMatch;
-      const haystack = [x.product, x.handle, x.recipient, x.tracking, x.location, x.address]
+      const haystack = [x.product, x.handle, x.recipient, x.email, x.tracking, x.location, x.address, x.asin, x.msku, x.country, x.region, x.city, x.zip, x.phone, x.line1, x.line2]
         .filter(Boolean).join(' ').toLowerCase();
       return haystack.includes(smpQueryText);
     }).map((x, i) => ({ ...x, idx: i + 1 }));
+    const smpPendingList = smpArr.filter(x => x.pending);
+    const smpProgressList = smpArr.filter(x => !x.pending);
 
     const lkPool = (() => {
       const seed = s.lkSeed || (crQuality[0] ? crQuality[0].handle : '@kaylascalp');
@@ -9670,7 +9785,7 @@ class Component extends DCLogic {
           notifLog: [{ kind: 'mail', title: '催稿邮件已发送 · ' + n.handle, note: n.product || n.subject, when: '刚刚' }, ...(st.notifLog || [])]
         }));
       },
-      smTabProgress: true, smTabNew: s.smTab === 'new',
+      smTabProgress: true, smTabNew: false,
       smModes: [['single', '单个收件人'], ['bulk', '批量填写']].map(([id, label]) => {
         const on = (s.smMode || 'single') === id;
         return {
@@ -9807,7 +9922,7 @@ class Component extends DCLogic {
         if (!handle || !name) return { smCreateError: '请填写红人账号和收件人姓名（灰色是示例，点「填入示例」可一键带入）' };
         return {
           smForm: { qty: '1', carrier: 'DHL Express' }, smSaved: true, smTab: 'progress', smOpen: null,
-          smCreateError: '', smpFilter: '全部', smpQuery: '',
+          smCreateError: '', smpFilter: '待寄样', smpQuery: '',
           shipOrders: [this._makeShipOrder({
             handle, product, sku: fm.sku || '', campaign: fm.campaign || '',
             qty: fm.qty || 1, date: '08/20', carrier: fm.carrier || 'DHL Express',
@@ -9872,11 +9987,14 @@ class Component extends DCLogic {
         return {
           shipOrders: [...created, ...(st.shipOrders || [])],
           smBulkText: '', smTab: 'progress', smBulkError: '',
-          smpFilter: '全部', smpQuery: '',
+          smpFilter: '待寄样', smpQuery: '',
           notifLog: [{ kind: 'ship', title: '批量寄样单已创建 · ' + created.length + ' 单', note: prod + ' · ' + created.map(x => x.handle).join('、'), when: '刚刚' }, ...(st.notifLog || [])]
         };
       }),
       smpOrders: smpShown, smpEmpty: smpShown.length === 0,
+      smpPendingView: smpFilter === '待寄样',
+      smpProgressView: smpFilter !== '待寄样',
+      smpPendingTable: smpFilter === '待寄样' && smpShown.length > 0,
       smpQueryValue: s.smpQuery || '',
       smpQueryActive: !!String(s.smpQuery || '').trim(),
       smpQueryBd: String(s.smpQuery || '').trim() ? '#B8CBFF' : '#E2E8F2',
@@ -9884,14 +10002,14 @@ class Component extends DCLogic {
       clearSmpQuery: () => this.setState({ smpQuery: '' }),
       smpFilterOpen: !!s.smpFilterOpen,
       toggleSmpFilter: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState(st => ({ smpFilterOpen: !st.smpFilterOpen })); },
-      smpFilterBd: s.smpFilterOpen ? '#2457F5' : ((s.smpFilter && s.smpFilter !== '全部') ? '#F0C9B8' : '#E2E8F2'),
-      smpFilterBg: (s.smpFilter && s.smpFilter !== '全部') ? '#EAF0FF' : '#F8FAFE',
-      smpFilterFg: (s.smpFilter && s.smpFilter !== '全部') ? '#2457F5' : '#1D2638',
-      smpFilterCurrent: (s.smpFilter || '全部') + ' ' + ((s.smpFilter || '全部') === '全部' ? smpArr.length : smpArr.filter(x => x.bucket === s.smpFilter).length),
-      smpFilters: ['全部', '在途', '已签收', '异常'].map(k => {
-        const n = k === '全部' ? smpArr.length : smpArr.filter(x => x.bucket === k).length;
-        const on = (s.smpFilter || '全部') === k;
-        const dot = { '全部': '#B7C0CF', '在途': BLUE, '已签收': SAGE, '异常': RUST }[k];
+      smpFilterBd: s.smpFilterOpen ? '#2457F5' : (smpFilter !== '待寄样' ? '#F0C9B8' : '#E2E8F2'),
+      smpFilterBg: smpFilter !== '待寄样' ? '#EAF0FF' : '#F8FAFE',
+      smpFilterFg: smpFilter !== '待寄样' ? '#2457F5' : '#1D2638',
+      smpFilterCurrent: smpFilter + ' ' + smpShown.length,
+      smpFilters: ['待寄样', '在途', '已签收', '异常'].map(k => {
+        const n = smpArr.filter(x => x.bucket === k).length;
+        const on = smpFilter === k;
+        const dot = { '待寄样': '#B7C0CF', '在途': BLUE, '已签收': SAGE, '异常': RUST }[k];
         return {
           name: k, count: n, dot,
           pick: () => this.setState({ smpFilter: k, smpFilterOpen: false }),
@@ -9899,23 +10017,23 @@ class Component extends DCLogic {
         };
       }),
       smpFilterNote: String(s.smpQuery || '').trim()
-        ? '找到 ' + smpShown.length + ' 个寄样单'
-        : ((s.smpFilter || '全部') === '异常'
-            ? '超出常规物流时效'
-            : ((s.smpFilter || '全部') === '全部' ? '共 ' + smpArr.length + ' 个寄样单' : '已筛选 ' + smpShown.length + ' 个')),
-      smpEmptyNote: (s.smpFilter || '全部') === '全部'
-        ? '还没有寄样记录 · 在 Influencer CRM 的邮件界面创建寄样单后会自动同步到这里'
-        : '当前筛选「' + (s.smpFilter || '全部') + '」下没有寄样单。',
+        ? '找到 ' + smpShown.length + ' 条'
+        : (smpFilter === '待寄样'
+            ? '共 ' + smpPendingList.length + ' 条待寄样 · 下载后导入外部发货系统'
+            : (smpFilter === '异常' ? '超出常规物流时效' : '已筛选 ' + smpShown.length + ' 个')),
+      smpEmptyNote: smpFilter === '待寄样'
+        ? '还没有待寄样。从 Influencer CRM 安排寄样后会显示在这里，下载清单导入外部系统发货。'
+        : '当前「' + smpFilter + '」下没有物流记录。回填运单号后会从待寄样转入这里。',
       smpNote: smpArr.length
-        ? smpArr.length + ' 个寄样单 · ' + smpArr.filter(x => x.bucket === '已签收').length + ' 已签收 · ' + smpArr.filter(x => x.bucket === '在途').length + ' 在途 · ' + smpArr.filter(x => x.bucket === '异常').length + ' 异常'
-        : '还没有寄样记录 · 在 Influencer CRM 的邮件界面创建寄样单后会自动同步到这里',
+        ? smpPendingList.length + ' 条待寄样 · ' + smpProgressList.filter(x => x.bucket === '已签收').length + ' 已签收 · ' + smpProgressList.filter(x => x.bucket === '在途').length + ' 在途 · ' + smpProgressList.filter(x => x.bucket === '异常').length + ' 异常'
+        : '还没有寄样记录 · 从 Influencer CRM 安排寄样后会同步到这里',
       smpStatusTabs: [
-        { id: '全部', label: '全部', count: smpArr.length },
+        { id: '待寄样', label: '待寄样', count: smpPendingList.length },
         { id: '在途', label: '在途', count: smpArr.filter(x => x.bucket === '在途').length },
         { id: '已签收', label: '已签收', count: smpArr.filter(x => x.bucket === '已签收').length },
         { id: '异常', label: '异常', count: smpArr.filter(x => x.bucket === '异常').length }
       ].map(t => {
-        const active = (s.smpFilter || '全部') === t.id;
+        const active = smpFilter === t.id;
         return {
           ...t,
           bg: active ? '#2457F5' : 'transparent',
@@ -9926,7 +10044,56 @@ class Component extends DCLogic {
           pick: () => this.setState({ smpFilter: t.id, smpFilterOpen: false })
         };
       }),
-      smpPieceCount: String(smpArr.reduce((t, x) => t + x.qty, 0)),
+      smpPieceCount: String(smpShown.reduce((t, x) => t + x.qty, 0)),
+      smpDownload: () => {
+        const rows = smpShown.filter(x => x.pending);
+        const cols = ['姓名', '收货国家', '收货地区', '收货城市', '邮编', '电话', '收货地址1', '收货地址2', 'ASIN', 'MSKU', '发货数量'];
+        const blank = (v) => (v === '—' ? '' : v);
+        const body = rows.map(r => [r.recipient, r.country, r.region, r.city, blank(r.zip), blank(r.phone), blank(r.line1), blank(r.line2), r.asin, r.msku, Number(r.qty) || 0]);
+        this._downloadXlsx('待寄样清单.xlsx', '待寄样清单', cols, body);
+      },
+      smpBindOpen: !!s.smpBindOpen,
+      openSmpBind: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ smpBindOpen: true, smpBindError: '', smpBindText: s.smpBindText || '' }); },
+      closeSmpBind: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ smpBindOpen: false, smpBindError: '' }); },
+      smpBindText: s.smpBindText || '',
+      setSmpBindText: (e) => this.setState({ smpBindText: e.target.value, smpBindError: '' }),
+      smpBindNote: s.smpBindError || '每行填写：姓名, 电话, MSKU, 运单号。可用逗号或从 Excel 粘贴。',
+      smpBindNoteFg: s.smpBindError ? '#C4636D' : '#A2ABBA',
+      smpBindSubmit: () => {
+        const fold = (v) => String(v || '').trim().toLowerCase();
+        const digits = (v) => String(v || '').replace(/\D/g, '');
+        const sameName = (a, b) => {
+          const x = fold(a), y = fold(b);
+          return !!(x && y && (x === y || x.indexOf(y) >= 0 || y.indexOf(x) >= 0));
+        };
+        const samePhone = (a, b) => {
+          const x = digits(a), y = digits(b);
+          if (!x || !y) return false;
+          return x === y || (x.length >= 7 && y.length >= 7 && (x.endsWith(y) || y.endsWith(x)));
+        };
+        const lines = String(this.state.smpBindText || '').split(/\n+/).map(x => x.trim()).filter(Boolean);
+        const parsed = lines.map(line => {
+          const parts = line.split(/[,，\t]/).map(x => x.trim()).filter(Boolean);
+          if (parts.length < 4) return null;
+          return { name: parts[0], phone: parts[1], msku: parts[2], tracking: parts[parts.length - 1] };
+        }).filter(Boolean);
+        if (!parsed.length) return this.setState({ smpBindError: '没有识别到有效行，每行需要「姓名, 电话, MSKU, 运单号」' });
+        let hit = 0;
+        this.setState(st => {
+          const next = (st.shipOrders || []).map(o => {
+            if (!this._isPendingShip(o)) return o;
+            const a = o.addr || {};
+            const skuRec = skuAll.find(p => p.sku === o.sku) || skuAll.find(p => p.name === o.product) || {};
+            const msku = String(skuRec.sku || o.sku || '');
+            const row = parsed.find(p => sameName(a.name, p.name) && samePhone(a.phone, p.phone) && fold(msku) === fold(p.msku));
+            if (!row) return o;
+            hit += 1;
+            return { ...o, tracking: row.tracking, trackingBound: true, stage: Math.max(this._orderStage(o), 1) };
+          });
+          if (!hit) return { smpBindError: '没有匹配到待寄样行，请核对姓名、电话、MSKU' };
+          return { shipOrders: next, smpBindOpen: false, smpBindText: '', smpBindError: '', smpFilter: '在途' };
+        });
+      },
       crTabs, crTabLib: crTab === 'lib', crTabQuality: crTab === 'quality', crTabBlack: crTab === 'black',
       crTabCoop: crTab === 'coop', crTabLook: crTab === 'lookalike',
       bkAllCheck: (s.bkPicked || []).length ? '✓' : '',
@@ -10105,12 +10272,13 @@ class Component extends DCLogic {
           if (!myOrders.length) return { text: '未寄样', bg: '#F5F8FE', fg: '#8792A5', meta: '等待安排' };
           const o0 = myOrders[0];
           const st0 = this._orderStage(o0);
-          const label = ['待揽收', '已揽收', '运输中', '已签收'][Math.max(0, Math.min(3, st0))];
+          const pending0 = this._isPendingShip(o0);
+          const label = pending0 ? '待寄样' : ['待揽收', '已揽收', '运输中', '已签收'][Math.max(0, Math.min(3, st0))];
           return {
             text: label,
             bg: st0 >= 3 ? '#E4EFE4' : (st0 === 0 ? '#FBEEDA' : '#E4EEF7'),
             fg: st0 >= 3 ? '#4E7156' : (st0 === 0 ? '#A5762C' : '#1D48D8'),
-            meta: (o0.carrier || 'DHL') + ' · ' + o0.date + (st0 >= 3 ? ' 签收' : ' 已创建单号')
+            meta: pending0 ? o0.date + ' 待回填运单号' : ((o0.carrier || 'DHL') + ' · ' + o0.date + (st0 >= 3 ? ' 签收' : ' 已创建单号'))
           };
         })();
         const coopStepDefs = ['红人建联', '谈判', '签约付款', '寄样', '沟通 Brief', '回收素材', '合作评估'];
@@ -10370,10 +10538,13 @@ class Component extends DCLogic {
           coopPctColor: coopStageInfo.pct >= 80 ? SAGE : coopStageInfo.pct >= 40 ? AMBER : BLUE,
           shipRecords: (s.shipOrders || []).filter(o => o.handle === h).map(o => {
             const stg = this._orderStage(o);
-            const stat = ['待揽收', '已揽收', '运输中', '已签收'][Math.max(0, Math.min(3, stg))];
+            const pending = this._isPendingShip(o);
+            const stat = pending ? '待寄样' : ['待揽收', '已揽收', '运输中', '已签收'][Math.max(0, Math.min(3, stg))];
             return {
               product: o.product + ' × ' + (o.qty || 1), status: stat,
-              meta: o.date + ' 寄出 · ' + (o.carrier || 'DHL') + ' · ' + (o.tracking || '') + ' · ' + ((o.addr && o.addr.city) ? o.addr.city + ', ' + (o.addr.state || '') : '地址待补充'),
+              meta: pending
+                ? o.date + ' 待寄样 · ' + ((o.addr && o.addr.city) ? o.addr.city + ', ' + (o.addr.state || '') : '地址待补充')
+                : (o.date + ' 寄出 · ' + (o.carrier || 'DHL') + ' · ' + (o.tracking || '') + ' · ' + ((o.addr && o.addr.city) ? o.addr.city + ', ' + (o.addr.state || '') : '地址待补充')),
               tagBg: stg >= 3 ? '#E4EFE4' : (stg === 0 ? '#FBEEDA' : '#E4EEF7'),
               tagFg: stg >= 3 ? '#4E7156' : (stg === 0 ? '#A5762C' : '#1D48D8')
             };
@@ -10386,13 +10557,14 @@ class Component extends DCLogic {
           shipEmpty: (s.shipOrders || []).filter(o => o.handle === h).length === 0,
           shipments: ((s.shipOrders || []).filter(o => o.handle === h).map(o => {
             const stg = this._orderStage(o);
-            const stat = ['待揽收', '已揽收', '运输中', '已签收'][Math.max(0, Math.min(3, stg))];
+            const pending = this._isPendingShip(o);
+            const stat = pending ? '待寄样' : ['待揽收', '已揽收', '运输中', '已签收'][Math.max(0, Math.min(3, stg))];
             return {
               product: o.product + (o.qty > 1 ? ' × ' + o.qty : ''),
               carrier: o.carrier || 'DHL Express',
-              tracking: o.tracking || ('TRK' + String(100000 + (h.length * 7351 + (o.qty || 1) * 17) % 899999)),
+              tracking: pending ? '未回填' : (o.tracking || ('TRK' + String(100000 + (h.length * 7351 + (o.qty || 1) * 17) % 899999))),
               status: stat, stage: stg,
-              latest: stg >= 3 ? o.date + ' 已签收，可催内容初稿。' : (stg === 0 ? o.date + ' 已创建寄样单，等待仓库揽收。' : o.date + ' 包裹在途，预计 3–5 个工作日送达。')
+              latest: pending ? o.date + ' 待寄样，下载清单后由外部系统发货。' : (stg >= 3 ? o.date + ' 已签收，可催内容初稿。' : (stg === 0 ? o.date + ' 已创建寄样单，等待仓库揽收。' : o.date + ' 包裹在途，预计 3–5 个工作日送达。'))
             };
           })).map(x => ({
               ...x,

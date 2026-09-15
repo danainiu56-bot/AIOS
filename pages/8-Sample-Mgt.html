@@ -35,6 +35,14 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes pulseDot { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+  .smp-table-wrap{overflow-x:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px}
+  .smp-table{width:100%;min-width:1280px;border-collapse:separate;border-spacing:0}
+  .smp-table th{position:sticky;top:0;z-index:1;background:#F8FAFE;font-size:11.5px;font-weight:600;color:#8792A5;text-align:left;padding:10px 12px;border-bottom:1px solid #EDF1F7;white-space:nowrap}
+  .smp-table td{font-size:12.5px;color:#334155;padding:10px 12px;border-bottom:1px solid #F1F4F9;vertical-align:middle}
+  .smp-table tr:last-child td{border-bottom:0}
+  .smp-table .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .smp-track{display:flex;align-items:center;gap:6px;min-width:220px}
+  .smp-track input{flex:1;min-width:120px;font:12.5px Inter,'PingFang SC',sans-serif;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:8px;padding:6px 8px;outline:none}
 </style>
 </helmet>
 
@@ -127,7 +135,7 @@
 
       <!-- ══ SAMPLE MGT ══ -->
       <sc-if value="{{ isSamples }}" hint-placeholder-val="{{ false }}">
-        <div style="max-width:1120px;margin:0 auto">
+        <div style="max-width:1280px;margin:0 auto">
           <div style="display:flex;align-items:center;gap:5px;overflow-x:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:6px;margin-bottom:14px">
             <sc-for list="{{ smpStatusTabs }}" as="t" hint-placeholder-count="4">
               <div onClick="{{ t.pick }}" style="flex:0 0 auto;display:flex;align-items:center;gap:7px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:500;line-height:1;cursor:pointer;white-space:nowrap">
@@ -277,14 +285,17 @@
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 12px;margin-bottom:12px;position:relative;z-index:40">
             <div style="flex:1 1 360px;max-width:520px;min-width:260px;position:relative">
               <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;color:#8792A5;pointer-events:none">⌕</span>
-              <input type="text" value="{{ smpQueryValue }}" onChange="{{ setSmpQuery }}" placeholder="搜索产品、红人、收件人、运单号或城市" aria-label="搜索寄样单" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#F8FAFE;border:1px solid {{ smpQueryBd }};border-radius:999px;padding:10px 38px 10px 38px;outline:none" />
+              <input type="text" value="{{ smpQueryValue }}" onChange="{{ setSmpQuery }}" placeholder="搜索姓名、地址、ASIN 或 MSKU" aria-label="搜索寄样单" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#F8FAFE;border:1px solid {{ smpQueryBd }};border-radius:999px;padding:10px 38px 10px 38px;outline:none" />
               <sc-if value="{{ smpQueryActive }}" hint-placeholder-val="{{ false }}">
                 <div onClick="{{ clearSmpQuery }}" aria-label="清空搜索" title="清空搜索" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:999px;background:#E8EDF5;color:#647187;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer">×</div>
               </sc-if>
             </div>
             <span style="flex:0 0 auto;font-size:11.5px;color:#647187;background:#F5F7FB;border:1px solid #E8EDF5;border-radius:999px;padding:6px 10px;white-space:nowrap">{{ smpFilterNote }}</span>
             <div style="flex:1 1 24px;min-width:0"></div>
-            <div onClick="{{ openSampleCreate }}" style="flex:0 0 auto;font-size:13px;font-weight:600;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:8px 17px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(36,87,245,.16)">创建寄样</div>
+            <sc-if value="{{ smpPendingView }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ openSmpBind }}" style="flex:0 0 auto;font-size:13px;border:1px solid #E2E8F2;background:#FFFFFF;color:#465268;border-radius:999px;padding:8px 15px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8">回填运单</div>
+              <div onClick="{{ smpDownload }}" style="flex:0 0 auto;font-size:13px;font-weight:600;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:8px 17px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(36,87,245,.16)">下载清单</div>
+            </sc-if>
             <div style="flex:0 0 auto;position:relative">
               <div onClick="{{ toggleSmpRange }}" style="display:flex;align-items:center;gap:8px;border:1px solid {{ smpRangeBd }};background:#FFFFFF;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C3D0E5">
                 <span style="font-size:12.5px;color:#A2ABBA">时间</span>
@@ -327,6 +338,53 @@
             <div style="border:1px dashed #E2E8F2;border-radius:16px;padding:22px;text-align:center;font-size:13.5px;color:#8792A5">{{ smpEmptyNote }}</div>
           </sc-if>
 
+          <sc-if value="{{ smpPendingTable }}" hint-placeholder-val="{{ true }}">
+            <div class="smp-table-wrap">
+              <table class="smp-table">
+                <thead>
+                  <tr>
+                    <th>姓名</th>
+                    <th>收货国家</th>
+                    <th>收货地区</th>
+                    <th>收货城市</th>
+                    <th>邮编</th>
+                    <th>电话</th>
+                    <th>收货地址1</th>
+                    <th>收货地址2</th>
+                    <th>ASIN</th>
+                    <th>MSKU</th>
+                    <th>发货数量</th>
+                    <th>外部运单号</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{ smpOrders }}" as="o" hint-placeholder-count="4">
+                    <tr>
+                      <td style="font-weight:600;white-space:nowrap">{{ o.recipient }}</td>
+                      <td style="white-space:nowrap">{{ o.country }}</td>
+                      <td style="white-space:nowrap">{{ o.region }}</td>
+                      <td style="white-space:nowrap">{{ o.city }}</td>
+                      <td class="num">{{ o.zip }}</td>
+                      <td class="num">{{ o.phone }}</td>
+                      <td>{{ o.line1 }}</td>
+                      <td>{{ o.line2 }}</td>
+                      <td class="num">{{ o.asin }}</td>
+                      <td class="num">{{ o.msku }}</td>
+                      <td class="num">{{ o.qty }}</td>
+                      <td>
+                        <div class="smp-track">
+                          <input type="text" value="{{ o.trackDraft }}" onInput="{{ o.setTrack }}" onChange="{{ o.setTrack }}" placeholder="粘贴运单号" aria-label="外部运单号" />
+                          <div onClick="{{ o.bind }}" style="flex:0 0 auto;font-size:12px;background:#2457F5;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap">回填</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ smpProgressView }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:10px">
             <sc-for list="{{ smpOrders }}" as="o" hint-placeholder-count="3">
               <div style="background:#FFFFFF;border:1px solid {{ o.cardBd }};border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(29,38,56,.035)">
@@ -403,12 +461,32 @@
             </sc-for>
           </div>
           </sc-if>
+          </sc-if>
         </div>
       </sc-if>
 
       
     </div>
   </main>
+
+  <sc-if value="{{ smpBindOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeSmpBind }}" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(29,38,56,.28);backdrop-filter:blur(2px);padding:28px">
+      <div onClick="{{ sampleModalKeep }}" style="width:min(560px,calc(100vw - 56px));background:#FFFFFF;border:1px solid #D9E1EF;border-radius:20px;box-shadow:0 22px 60px rgba(29,38,56,.22);padding:20px;animation:fadeUp .18s ease both">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:18px;font-weight:600;color:#1D2638">回填外部运单号</div>
+            <div style="font-size:12px;color:#8792A5;margin-top:2px">每行填写姓名、电话、MSKU、运单号，匹配待寄样后回写物流轨迹</div>
+          </div>
+          <div onClick="{{ closeSmpBind }}" aria-label="关闭回填" title="关闭" style="width:34px;height:34px;flex:0 0 34px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;cursor:pointer">×</div>
+        </div>
+        <textarea value="{{ smpBindText }}" onInput="{{ setSmpBindText }}" onChange="{{ setSmpBindText }}" rows="8" placeholder="Andre Cole, +1 416 555 0108, RYZ-SC-01, 1Z999AA10123456784&#10;Sofia Bennett, +1 323 555 0166, LUM-AR-02, 1Z999AA10123456785" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;line-height:1.7;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:12px;padding:11px 13px;outline:none;resize:vertical"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+          <span style="flex:1;min-width:0;font-size:12px;color:{{ smpBindNoteFg }};text-wrap:pretty">{{ smpBindNote }}</span>
+          <div onClick="{{ smpBindSubmit }}" style="flex:0 0 auto;font-size:13px;background:#2457F5;color:#fff;border-radius:999px;padding:8px 16px;cursor:pointer;white-space:nowrap">匹配并回填</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
 
   <sc-if value="{{ smNudgeOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ smNudgeClose }}" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(29,38,56,.28);backdrop-filter:blur(2px);padding:28px">
