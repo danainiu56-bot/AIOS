@@ -53,10 +53,10 @@
   .cp-id-name h1{margin:0;font-size:26px;font-weight:500;letter-spacing:-.02em}
   .cp-pill{font-size:12px;border:1px solid #E2E8F2;border-radius:999px;padding:2px 9px;color:#647187}
   .cp-bio{margin:8px 0 0;color:#647187;max-width:640px;text-wrap:pretty;line-height:1.65}
-  .cp-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
-  .cp-metric{background:#F8FAFE;border:1px solid #EEF2F8;border-radius:12px;padding:10px 12px}
-  .cp-metric span{display:block;font-size:11.5px;color:#8792A5}
-  .cp-metric strong{display:block;margin-top:2px;font-size:15px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:break-word}
+  .cp-metrics{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .cp-metric{display:inline-flex;align-items:baseline;gap:6px;background:#F8FAFE;border:1px solid #EEF2F8;border-radius:8px;padding:4px 9px;max-width:100%}
+  .cp-metric span{font-size:11px;color:#A2ABBA;white-space:nowrap}
+  .cp-metric strong{font-size:12.5px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:#1D2638;white-space:nowrap}
   .cp-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
   .cp-links a{font-size:12px;border:1px solid #E2E8F2;background:#F8FAFE;border-radius:8px;padding:3px 9px}
   .cp-fit{flex:0 0 148px;width:148px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-left:1px solid #EDF1F7;padding-left:20px}
@@ -117,7 +117,7 @@
   .cp-check{display:flex;align-items:center;gap:8px;font-size:13px;color:#465268;cursor:pointer;user-select:none}
   .cp-check i{width:16px;height:16px;border:1px solid #C8D4E8;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;color:#fff;background:#fff;flex:0 0 16px}
   .cp-check.on i{background:#2457F5;border-color:#2457F5}
-  @media(max-width:860px){.cp-id{flex-wrap:wrap}.cp-fit{flex:1 1 100%;width:auto;border-left:0;border-top:1px solid #EDF1F7;padding:16px 0 0;flex-direction:row;justify-content:space-between}.cp-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.cp-grid{grid-template-columns:1fr}.cp-addr-list,.cp-fields,.cp-us-row{grid-template-columns:1fr}}
+  @media(max-width:860px){.cp-id{flex-wrap:wrap}.cp-fit{flex:1 1 100%;width:auto;border-left:0;border-top:1px solid #EDF1F7;padding:16px 0 0;flex-direction:row;justify-content:space-between}.cp-grid{grid-template-columns:1fr}.cp-addr-list,.cp-fields,.cp-us-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body data-page="creators">
@@ -1488,7 +1488,7 @@
               </sc-if>
               <div class="cp-metrics">
                 <sc-for list="{{ cp.stats }}" as="s" hint-placeholder-count="10">
-                  <div class="cp-metric" style="grid-column:span {{ s.span }}"><span>{{ s.label }}</span><strong>{{ s.value }}</strong></div>
+                  <div class="cp-metric"><span>{{ s.label }}</span><strong>{{ s.value }}</strong></div>
                 </sc-for>
               </div>
             </div>

@@ -385,6 +385,7 @@
               <div class="contract-field"><label for="contract-campaign">Campaign *</label><select id="contract-campaign"><option value="" selected disabled>请选择 Campaign</option><option value="Ryze · Q3 北美种草" data-sku="RYZ-SC-01" data-product="Ryze 头皮按摩仪">Ryze · Q3 北美种草</option><option value="Lumo · 秋季家居氛围" data-sku="LUM-AR-02" data-product="Lumo 便携香氛机">Lumo · 秋季家居氛围</option><option value="Ryze · Ambassador 招募" data-sku="RYZ-SC-01" data-product="Ryze 头皮按摩仪">Ryze · Ambassador 招募</option><option value="Ryze · Q2 北美种草" data-sku="RYZ-SC-01" data-product="Ryze 头皮按摩仪">Ryze · Q2 北美种草</option><option value="Nuvia · 合规待确认" data-sku="NUV-SP-07" data-product="Nuvia 头皮精华液">Nuvia · 合规待确认</option><option value="Aura · 推广 Campaign" data-sku="AURA-LP-01" data-product="Aura 落地氛围灯">Aura · 推广 Campaign</option></select></div>
               <div class="contract-field"><label for="contract-creator">红人 *</label><select id="contract-creator"><option value="" selected disabled>请选择红人</option><option value="@mia.selfcare" data-platform="TikTok">@mia.selfcare · TikTok</option><option value="@kaylascalp" data-platform="TikTok">@kaylascalp · TikTok</option><option value="@leo.calmnight" data-platform="YouTube">@leo.calmnight · YouTube</option><option value="@june.rests" data-platform="TikTok">@june.rests · TikTok</option><option value="@nora.pm" data-platform="Instagram">@nora.pm · Instagram</option><option value="@sofia.homelab" data-platform="Instagram">@sofia.homelab · Instagram</option><option value="@hairbyandre" data-platform="Instagram">@hairbyandre · Instagram</option><option value="@dailywithlin" data-platform="TikTok">@dailywithlin · TikTok</option><option value="@thegroomguide" data-platform="YouTube">@thegroomguide · YouTube</option><option value="@thecalmedit" data-platform="TikTok">@thecalmedit · TikTok</option><option value="@homewithtess" data-platform="Instagram">@homewithtess · Instagram</option><option value="@quietmornings" data-platform="Instagram">@quietmornings · Instagram</option></select></div>
               <div class="contract-field"><label for="contract-sku">SKU（自动带出）</label><input id="contract-sku" placeholder="选择 Campaign 后自动带出" readonly><div id="contract-sku-note" style="font-size:10.5px;color:#A2ABBA">同时关联产品信息</div></div>
+              <div class="contract-field"><label for="contract-deal">合作方式 *</label><select id="contract-deal" aria-label="合作方式"><option value="" selected disabled>请选择合作方式</option></select></div>
               <div class="contract-field"><label for="contract-amount">合同金额 *</label><input id="contract-amount" placeholder="例如 USD 1,200 + 10% 佣金"></div>
               <div class="contract-field"><label for="contract-signed-date">签署日期 *</label><input id="contract-signed-date" type="date"></div>
               <div class="contract-field"><label for="contract-expiry-date">到期日期 *</label><input id="contract-expiry-date" type="date"></div>
@@ -511,6 +512,7 @@
   const openUpload = () => {
     const modal = get('contract-upload-modal');
     if (!modal) return;
+    fillDealSelect();
     const signedDate = get('contract-signed-date');
     if (signedDate && !signedDate.value) signedDate.value = new Date().toISOString().slice(0, 10);
     if (get('contract-expiry-date')) get('contract-expiry-date').min = signedDate?.value || '';
@@ -528,6 +530,22 @@
 
   let detailOpenedAt = 0;
   const childTexts = (td) => Array.from(td?.children || []).map((el) => el.textContent.trim()).filter(Boolean);
+  const fillDealSelect = () => {
+    const select = get('contract-deal');
+    if (!select) return;
+    normalizeContractColumns();
+    const seen = [];
+    document.querySelectorAll('#contract-records-body [data-contract-row]').forEach((row) => {
+      const deal = parseRecordRow(row).deal;
+      if (deal && deal !== '—' && seen.indexOf(deal) < 0) seen.push(deal);
+    });
+    const current = select.value;
+    select.innerHTML = '<option value="" disabled>请选择合作方式</option>' +
+      seen.map((deal) => '<option value="' + clean(deal) + '">' + clean(deal) + '</option>').join('');
+    if (current && seen.indexOf(current) >= 0) select.value = current;
+    else select.selectedIndex = 0;
+  };
+
   const parseRecordRow = (row) => {
     normalizeContractColumns();
     const tds = Array.from(row.querySelectorAll(':scope > td'));
@@ -711,12 +729,13 @@
     const campaignOption = get('contract-campaign')?.selectedOptions?.[0];
     const creatorOption = get('contract-creator')?.selectedOptions?.[0];
     const product = campaignOption?.dataset?.product || '';
+    const deal = get('contract-deal')?.value.trim();
     const amount = get('contract-amount')?.value.trim();
     const signedDate = get('contract-signed-date')?.value;
     const expiryDate = get('contract-expiry-date')?.value;
     const error = get('contract-upload-error');
-    if (!selectedContractFile || !creator || !campaign || !sku || !amount || !signedDate || !expiryDate) {
-      error.textContent = '请选择合同文件，并完整填写 Campaign、红人、合同金额及日期。';
+    if (!selectedContractFile || !creator || !campaign || !sku || !deal || !amount || !signedDate || !expiryDate) {
+      error.textContent = '请选择合同文件，并完整填写 Campaign、红人、合作方式、合同金额及日期。';
       error.style.display = '';
       return;
     }
@@ -744,11 +763,11 @@
     row.setAttribute('data-columns-split', 'true');
     row.dataset.status = status;
     row.dataset.fileUrl = fileUrl;
-    row.dataset.search = [number, creator, campaign, sku, product, platform, amount].join(' ').toLowerCase();
+    row.dataset.search = [number, creator, campaign, sku, product, platform, deal, amount].join(' ').toLowerCase();
     row.innerHTML = '<td><div style="font-weight:600">' + clean(number) + '</div><div style="color:#647187">' + clean(creator) + ' · ' + clean(platform) + '</div></td>' +
       '<td><div>' + clean(campaign) + '</div></td>' +
       '<td><div style="font-weight:600;font-variant-numeric:tabular-nums">' + clean(sku) + '</div><div style="color:#8792A5">' + clean(product) + '</div></td>' +
-      '<td><div>合同金额</div><div style="color:#647187">' + clean(amount) + '</div></td>' +
+      '<td><div>' + clean(deal) + '</div><div style="color:#647187">' + clean(amount) + '</div></td>' +
       '<td><div>' + clean(signedDate) + ' 签署</div><div style="color:' + expiryColor + '">' + expiryText + '</div></td>' +
       '<td><span class="contract-status ' + clean(status) + '">' + clean(statusText) + '</span></td>' +
       '<td><div class="contract-file"><span class="contract-file-icon">' + clean(extension) + '</span><div><div style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + clean(selectedContractFile.name) + '</div><div style="color:#A2ABBA;font-size:10.5px">' + clean(size) + '</div></div></div></td>' +
@@ -762,7 +781,7 @@
     selectedContractFile = null;
     get('contract-file-input').value = '';
     get('contract-file-label').textContent = '选择文件或拖拽到这里';
-    ['contract-creator', 'contract-campaign', 'contract-sku', 'contract-amount', 'contract-signed-date', 'contract-expiry-date'].forEach((id) => { if (get(id)) get(id).value = ''; });
+    ['contract-creator', 'contract-campaign', 'contract-sku', 'contract-deal', 'contract-amount', 'contract-signed-date', 'contract-expiry-date'].forEach((id) => { if (get(id)) get(id).value = ''; });
     syncCampaignSku();
     closeUpload();
     filterRecords();
