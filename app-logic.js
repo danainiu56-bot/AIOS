@@ -173,7 +173,8 @@ class Component extends DCLogic {
     const directStrategySku = directStrategyParams.get('sku');
     if (window.AIOS_PAGE === 'strategy' && directStrategyParams.get('edit') === '1' && directStrategySku) {
       this.switchSku(directStrategySku);
-      const flow = directStrategyParams.get('flow') || 'confirm';
+      const flowRaw = directStrategyParams.get('flow') || 'confirm';
+      const flow = flowRaw === 'submit' ? 'confirm' : flowRaw;
       this.setState(st => ({
         stTab: 'work', benchOpen: true, swFlowStage: flow, docMode: false, spPanel: null,
         sw: { ...st.sw, step: flow === 'prepare' ? 1 : 10, generated: true, editing: null }
@@ -1412,7 +1413,7 @@ class Component extends DCLogic {
       localStorage.setItem('aios.approvals', JSON.stringify(this.state.approvals || {}));
       localStorage.setItem('aios.campaignStrategyVersions', JSON.stringify(this.state.campaignStrategyVersions || []));
     } catch (_) {}
-    window.location.href = './5-Strategy-Studio.html?edit=1&sku=' + encodeURIComponent(sub.sku) + '&flow=submit';
+    window.location.href = './5-Strategy-Studio.html?edit=1&sku=' + encodeURIComponent(sub.sku) + '&flow=confirm';
   };
 
   briefLineKey = (b) => (b.sku || '') + '|' + (b.platform || '') + '|' + (b.mode || 'channel') + '|' + (b.creator || '');
@@ -1740,7 +1741,7 @@ class Component extends DCLogic {
           title: sub.name + ' · ' + (sub.versionName || modeLabel) + ' v' + sub.ver + ' 策略定稿',
           meta: 'SKU ' + sub.sku + ' · ' + modeLabel + ' · ' + sub.confirmed + '/' + sub.sections + ' 章已确认 · 提交人 ' + (sub.by || '陈曦') + ' · 提交 ' + (sub.when || '—'),
           typeBg: sty[0], typeFg: sty[1], viewLabel: '查看策略',
-          goState: { page: 'strategy', benchOpen: true, strategySku: sub.sku, swFlowStage: 'submit' },
+          goState: { page: 'strategy', benchOpen: true, strategySku: sub.sku, swFlowStage: 'confirm' },
           viewGo: this.openStrategySubmitView(sub),
           notifName: 'Strategy · ' + sub.name + ' v' + sub.ver,
           isStrategy: true, strategySubmitId: sub.id, strategyVersionKey: sub.sku + '|v' + sub.ver
@@ -3162,9 +3163,9 @@ class Component extends DCLogic {
     }));
     const swStep = sw.step;
     const swModuleIdx = Math.min(swStep, 8) - 1;
-    const swFlowStage = s.swFlowStage || 'prepare';
+    const swFlowStage = (s.swFlowStage === 'submit' ? 'confirm' : (s.swFlowStage || 'prepare'));
     const swDocMode = !!s.docMode;
-    const swIsForm = swFlowStage === 'prepare', swIsCheck = swFlowStage === 'check', swIsGen = swFlowStage === 'confirm', swIsSubmit = swFlowStage === 'submit' && !swDocMode;
+    const swIsForm = swFlowStage === 'prepare', swIsCheck = swFlowStage === 'check', swIsGen = swFlowStage === 'confirm', swIsSubmit = false;
     const swModuleName = swStepDefs[swStep - 1][0];
     const swModuleFields = swIsForm ? swFields[swModuleIdx] : [];
     const swModuleUploads = swIsForm ? swUploadBank[swModuleIdx].map(label => ({ label })) : [];
@@ -3371,6 +3372,15 @@ class Component extends DCLogic {
     const swStrategyPending = swApprovalStatus === '待审批';
     const swStrategyApproved = swApprovalStatus === '已通过';
     const swStrategyRejected = swApprovalStatus === '已驳回';
+    const swShowSubmitSection = swIsGen && !swDocMode && !swStrategyPending;
+    const swPrimaryReadonly = !swDocMode && (swStrategyPending || swStrategyApproved || (swStrategyRejected && !swCanSubmitStrict));
+    const swPrimaryStatusStyle = swStrategyPending
+      ? { bg: '#FBEEDA', fg: '#A5762C', bd: '#F0D8A8', label: '审核中' }
+      : swStrategyApproved
+        ? { bg: '#E4EFE4', fg: '#4E7156', bd: '#C8DEC9', label: '已通过' }
+        : swStrategyRejected && !swCanSubmitStrict
+          ? { bg: '#F7EDEE', fg: '#C4636D', bd: '#EFD5D8', label: '已驳回' }
+          : null;
     const swSubmitRec = (s.strategySubmits || []).find(x => x.sku === sSku.sku && Number(x.ver) === swCurrentVersion);
     const swRejectApproval = swSubmitRec ? (s.approvals || {})['str-' + swSubmitRec.id] : null;
     const swRejectNote = swStrategyRejected && swRejectApproval ? (((swRejectApproval.when || '') + ' 驳回 · ' + ((swRejectApproval.comment || '').trim() || '无具体意见')).trim()) : '';
@@ -3390,7 +3400,7 @@ class Component extends DCLogic {
       stateBg: x.stateBg,
       srcLine: x.hasSrc ? ('来源 ' + x.src) : ''
     }));
-    const swSubmitPreviewTitle = sSku.name + ' · ' + swModeName + ' · 共 ' + swSections.length + ' 章（与「生成与确认」正文一致）';
+    const swSubmitPreviewTitle = sSku.name + ' · ' + swModeName + ' · 共 ' + swSections.length + ' 章（与上方策略正文一致）';
     const makeCurrentSwSnapshot = (version, source) => ({
       sku: sSku.sku, product: sSku.name, brand: sSku.brand, owner: sSku.owner,
       ver: version, title: sSku.name + ' 红人种草策略', mode: sw.mode,
@@ -9096,7 +9106,7 @@ class Component extends DCLogic {
                 localStorage.setItem('aios.approvals', JSON.stringify(s.approvals || {}));
                 localStorage.setItem('aios.campaignStrategyVersions', JSON.stringify(s.campaignStrategyVersions || []));
               } catch (_) {}
-              window.location.href = './5-Strategy-Studio.html?edit=1&sku=' + encodeURIComponent(strSub.sku) + '&flow=submit';
+              window.location.href = './5-Strategy-Studio.html?edit=1&sku=' + encodeURIComponent(strSub.sku) + '&flow=confirm';
             } : () => {},
             openCampInCampaigns: campSub ? () => {
               try {
@@ -9178,17 +9188,15 @@ class Component extends DCLogic {
       swFlowStages: [
         { id: 'prepare', label: '准备输入', note: '8 组资料' },
         { id: 'check', label: '完整性检查', note: '证据与缺失' },
-        { id: 'confirm', label: '生成与确认', note: '策略正文' },
-        { id: 'submit', label: '提交审核', note: '定稿送审' }
+        { id: 'confirm', label: '生成与审核', note: '正文与送审' }
       ].map(t => {
         const on = swFlowStage === t.id;
-        const submitLocked = t.id === 'submit' && !swCanSubmitStrict && !swStrategyPending && !swStrategyApproved;
         return {
           ...t,
           bg: on ? '#2457F5' : 'transparent', bd: on ? '#2457F5' : '#E2E8F2',
-          fg: on ? '#FFFFFF' : (submitLocked ? '#A2ABBA' : '#647187'),
+          fg: on ? '#FFFFFF' : '#647187',
           noteFg: on ? 'rgba(255,255,255,.82)' : '#8792A5',
-          pick: submitLocked ? () => {} : () => {
+          pick: () => {
             this.setState(st2 => {
               let step = st2.sw.step;
               if (t.id === 'prepare') step = Math.min(Math.max(step, 1), 8);
@@ -9203,7 +9211,8 @@ class Component extends DCLogic {
           }
         };
       }),
-      swStatusStrip: swCurrentVersionName + ' v' + swCurrentVersion + ' · ' + swApprovalStatus + ' · 章节 ' + swConfirmedCount + '/' + swSections.length + ' 已确认 · 输入 ' + swInputPct + '% · 门禁 ' + (swGateLevel === 'green' ? '绿色' : swGateLevel === 'yellow' ? '黄色' : '红色'),
+      swShowSubmitSection,
+      swStatusStrip: swCurrentVersionName + ' v' + swCurrentVersion + ' · ' + (swStrategyPending ? '审核中' : swApprovalStatus) + ' · 章节 ' + swConfirmedCount + '/' + swSections.length + ' 已确认 · 输入 ' + swInputPct + '% · 门禁 ' + (swGateLevel === 'green' ? '绿色' : swGateLevel === 'yellow' ? '黄色' : '红色'),
       swShowRejectBanner: swStrategyRejected && !!swRejectNote,
       swRejectBannerText: swRejectNote,
       swStrategyPending, swStrategyPendingClosed: !swStrategyPending, swStrategyApproved, swCanSubmitStrict,
@@ -9228,7 +9237,7 @@ class Component extends DCLogic {
             strategyApproved: { ...(st2.strategyApproved || {}), [swVersionKey]: '待审批' },
             approvals: { ...(st2.approvals || {}), ['str-' + id]: { status: '待审批', comment: '', by: '', when: '2026-09-08' } },
             campaignStrategyVersions: upsertSwSnapshot(st2.campaignStrategyVersions || [], snapshot),
-            swFlowStage: 'submit',
+            swFlowStage: 'confirm',
             doneTaskKeys: (st2.doneTaskKeys || []).filter(x => x !== 'str-' + id),
             notifLog: [{ kind: 'approval', title: '策略已提交审核 · ' + sSku.name + ' v' + swCurrentVersion, note: swCurrentVersionName + ' · 等待 Marketing Lead 定稿审批', when: '刚刚' }, ...(st2.notifLog || [])],
             sw: { ...st2.sw, savedAt: '刚刚' }
@@ -9237,19 +9246,19 @@ class Component extends DCLogic {
       },
       swPrimaryLabel: (() => {
         if (swDocMode) return '退出只读查看';
-        if (swStrategyPending) return '审核中 · 查看提交';
-        if (swFlowStage === 'submit') return swCanSubmitStrict ? '提交策略审核' : '提交条件未满足';
+        if (swPrimaryReadonly && swPrimaryStatusStyle) return swPrimaryStatusStyle.label;
         if (swFlowStage === 'prepare') return '下一步：完整性检查';
-        if (swFlowStage === 'check') return '下一步：生成与确认';
+        if (swFlowStage === 'check') return '下一步：生成与审核';
         if (!sw.generated) return '生成策略（' + swModeName + '）';
         if (swCanSubmitStrict) return '提交策略审核';
-        if (swAllChaptersConfirmed) return '前往提交审核';
         return '继续确认章节';
       })(),
-      swPrimaryBg: (swFlowStage === 'submit' && !swCanSubmitStrict && !swStrategyPending) ? '#F8FAFE' : '#2457F5',
-      swPrimaryFg: (swFlowStage === 'submit' && !swCanSubmitStrict && !swStrategyPending) ? '#A2ABBA' : '#FFFFFF',
-      swPrimaryBd: (swFlowStage === 'submit' && !swCanSubmitStrict && !swStrategyPending) ? '#E2E8F2' : '#2457F5',
+      swPrimaryBg: swPrimaryReadonly && swPrimaryStatusStyle ? swPrimaryStatusStyle.bg : '#2457F5',
+      swPrimaryFg: swPrimaryReadonly && swPrimaryStatusStyle ? swPrimaryStatusStyle.fg : '#FFFFFF',
+      swPrimaryBd: swPrimaryReadonly && swPrimaryStatusStyle ? swPrimaryStatusStyle.bd : '#2457F5',
+      swPrimaryCursor: swPrimaryReadonly ? 'default' : 'pointer',
       swPrimaryGo: () => {
+        if (swPrimaryReadonly) return;
         if (swDocMode) {
           const rec = (this.state.library || []).find(x => x.sku === sSku.sku);
           const latestVer = rec ? Number(rec.ver) || 1 : swCurrentVersion;
@@ -9257,7 +9266,6 @@ class Component extends DCLogic {
           if (latestVer !== swCurrentVersion) this.switchSku(sSku.sku);
           return;
         }
-        if (swStrategyPending) { this.setState({ swFlowStage: 'submit' }); return; }
         if (swFlowStage === 'prepare') { this.setState(st2 => ({ swFlowStage: 'check', sw: { ...st2.sw, step: 9 } })); return; }
         if (swFlowStage === 'check') {
           this.setState(st2 => ({ swFlowStage: 'confirm', sw: { ...st2.sw, step: 10 } }));
@@ -9275,31 +9283,29 @@ class Component extends DCLogic {
             }));
             return;
           }
-          if (swCanSubmitStrict) { this.setState({ swFlowStage: 'submit' }); return; }
-          if (swAllChaptersConfirmed) { this.setState({ swFlowStage: 'submit' }); return; }
+          if (swCanSubmitStrict) {
+            const id = sSku.sku + '-v' + swCurrentVersion;
+            const snapshot = makeCurrentSwSnapshot(swCurrentVersion, 'Strategy Studio · 提交审核');
+            this.setState(st2 => {
+              const submit = {
+                id, sku: sSku.sku, name: sSku.name, ver: swCurrentVersion,
+                versionName: swCurrentVersionName, mode: st2.sw.mode,
+                sections: swSections.length, confirmed: swConfirmedCount,
+                by: sSku.owner || '陈曦', when: '2026-09-08'
+              };
+              return {
+                strategySubmits: [submit, ...(st2.strategySubmits || []).filter(x => x.id !== id)],
+                strategyApproved: { ...(st2.strategyApproved || {}), [swVersionKey]: '待审批' },
+                approvals: { ...(st2.approvals || {}), ['str-' + id]: { status: '待审批', comment: '', by: '', when: '2026-09-08' } },
+                campaignStrategyVersions: upsertSwSnapshot(st2.campaignStrategyVersions || [], snapshot),
+                swFlowStage: 'confirm',
+                doneTaskKeys: (st2.doneTaskKeys || []).filter(x => x !== 'str-' + id),
+                notifLog: [{ kind: 'approval', title: '策略已提交审核 · ' + sSku.name + ' v' + swCurrentVersion, note: swCurrentVersionName + ' · 等待 Marketing Lead 定稿审批', when: '刚刚' }, ...(st2.notifLog || [])],
+                sw: { ...st2.sw, savedAt: '刚刚' }
+              };
+            });
+          }
           return;
-        }
-        if (swFlowStage === 'submit' && swCanSubmitStrict) {
-          const id = sSku.sku + '-v' + swCurrentVersion;
-          const snapshot = makeCurrentSwSnapshot(swCurrentVersion, 'Strategy Studio · 提交审核');
-          this.setState(st2 => {
-            const submit = {
-              id, sku: sSku.sku, name: sSku.name, ver: swCurrentVersion,
-              versionName: swCurrentVersionName, mode: st2.sw.mode,
-              sections: swSections.length, confirmed: swConfirmedCount,
-              by: sSku.owner || '陈曦', when: '2026-09-08'
-            };
-            return {
-              strategySubmits: [submit, ...(st2.strategySubmits || []).filter(x => x.id !== id)],
-              strategyApproved: { ...(st2.strategyApproved || {}), [swVersionKey]: '待审批' },
-              approvals: { ...(st2.approvals || {}), ['str-' + id]: { status: '待审批', comment: '', by: '', when: '2026-09-08' } },
-              campaignStrategyVersions: upsertSwSnapshot(st2.campaignStrategyVersions || [], snapshot),
-              swFlowStage: 'submit',
-              doneTaskKeys: (st2.doneTaskKeys || []).filter(x => x !== 'str-' + id),
-              notifLog: [{ kind: 'approval', title: '策略已提交审核 · ' + sSku.name + ' v' + swCurrentVersion, note: swCurrentVersionName + ' · 等待 Marketing Lead 定稿审批', when: '刚刚' }, ...(st2.notifLog || [])],
-              sw: { ...st2.sw, savedAt: '刚刚' }
-            };
-          });
         }
       },
       swIsForm, swIsCheck, swIsGen, swScores, swRisks, swSources, swSourceCount: swSources.length,
