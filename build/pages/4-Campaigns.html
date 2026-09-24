@@ -36,11 +36,17 @@
   @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes pulseDot { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
   .campaign-email-select { appearance: none; -webkit-appearance: none; min-width: 20px; width: 20px !important; height: 20px !important; margin: 0; padding: 0; border: 2px solid #7EA3FF !important; background: #FFFFFF; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #FFFFFF; font: 700 12px/1 Inter, sans-serif; box-shadow: 0 0 0 2px rgba(36,87,245,.08); }
-  .campaign-email-select[title="取消选择"] { background: #2457F5 !important; border-color: #2457F5 !important; box-shadow: 0 0 0 3px rgba(36,87,245,.13); }
+  .campaign-email-select[title="取消选择"]:not([aria-disabled="true"]) { background: #2457F5 !important; border-color: #2457F5 !important; box-shadow: 0 0 0 3px rgba(36,87,245,.13); }
   .campaign-email-select[title="已达成合作"] { background: #6E9778 !important; border-color: #6E9778 !important; box-shadow: none; }
-  .campaign-email-select.is-selected,.campaign-email-select[aria-checked="true"] { background: #2457F5 !important; border-color: #2457F5 !important; color:#FFFFFF !important; box-shadow:0 0 0 3px rgba(36,87,245,.13); }
+  .campaign-email-select[title="合作申请审批中"],.campaign-email-select[aria-label="合作申请审批中"] { background: #FFFFFF !important; border-color: #C8D4E8 !important; box-shadow: none !important; color: transparent !important; }
+  .campaign-email-select.is-selected:not([aria-disabled="true"]),.campaign-email-select[aria-checked="true"]:not([aria-disabled="true"]) { background: #2457F5 !important; border-color: #2457F5 !important; color:#FFFFFF !important; box-shadow:0 0 0 3px rgba(36,87,245,.13); }
+  .campaign-email-select[aria-disabled="true"] { cursor: default !important; opacity: .42; box-shadow: none !important; }
   .campaign-email-select.is-cooperated { background:#6E9778 !important;border-color:#6E9778 !important;color:#FFFFFF !important;box-shadow:none; }
   .campaign-email-coop-status { display: inline-flex; align-items: center; justify-self: start; border-radius: 999px; padding: 3px 10px; font-size: 11.5px; line-height: 1.6; white-space: nowrap; }
+  .campaign-brief-list-card { border: 1px solid #E2E8F2; background: #FFF; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: border-color .16s ease, box-shadow .16s ease; }
+  .campaign-brief-list-card:hover { border-color: #C8D4E8; }
+  .campaign-outreach-card { border: 1px solid #E2E8F2; background: #FFF; border-radius: 14px; padding: 14px 16px; }
+  .campaign-outreach-card:hover { border-color: #C8D4E8; }
 </style>
 </helmet>
 
@@ -135,10 +141,22 @@
       <sc-if value="{{ isNewCampaign }}" hint-placeholder-val="{{ false }}">
         <div style="max-width:1080px;margin:0 auto;animation:fadeUp .3s ease both">
           <div onClick="{{ ncClose }}" style="font-size:13px;color:#8792A5;cursor:pointer;margin-bottom:12px;display:inline-block" style-hover="color:#1D2638">← 返回 Campaigns</div>
+            <sc-if value="{{ ncResubmit }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#FEF6F6;border:1px solid #F0C9C9;border-radius:14px;padding:12px 16px;margin-bottom:14px">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+                  <span style="font-size:11px;font-weight:600;border-radius:999px;padding:2px 10px;background:#F7EDEE;color:#C4636D">立项被驳回 · 修改后重新提交</span>
+                </div>
+                <sc-if value="{{ ncResubmitComment }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px;color:#647187;margin-bottom:4px">驳回意见</div>
+                  <div style="font-size:13.5px;color:#1D2638;line-height:1.55;text-wrap:pretty">{{ ncResubmitComment }}</div>
+                </sc-if>
+                <div style="font-size:12px;color:#8792A5;margin-top:6px;text-wrap:pretty">表单已带入上次提交内容，修改后点击「提交 Campaign 审核」将再次进入审批。</div>
+              </div>
+            </sc-if>
             <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:18px;margin-bottom:18px;box-shadow:0 8px 24px rgba(29,38,56,.05);animation:fadeUp .18s ease both">
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
                 <div style="flex:1 1 220px;min-width:0">
-                  <div style="font-size:17px;font-weight:600;letter-spacing:-.015em;color:#1D2638">新建 Campaign</div>
+                  <div style="font-size:17px;font-weight:600;letter-spacing:-.015em;color:#1D2638">{{ ncResubmit ? '修改 Campaign 立项' : '新建 Campaign' }}</div>
                   <div style="font-size:12.5px;color:#647187;margin-top:2px;text-wrap:pretty">选择已提交推广的产品，自动带出产品库资料，只需手动填写营销目标、内容数量、播放量、预算与时间目标。</div>
                 </div>
                 <div onClick="{{ ncClose }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#F8FAFE;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">关闭</div>
@@ -225,7 +243,7 @@
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid #EDF1F7">
                   <span style="flex:1 1 160px;min-width:0;font-size:12px;color:#A2ABBA;text-wrap:pretty">{{ ncSummary }}</span>
                   <div onClick="{{ ncClose }}" style="flex:0 0 auto;font-size:13px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 15px;cursor:pointer;white-space:nowrap">取消</div>
-                  <div onClick="{{ ncCreate }}" style="flex:0 0 auto;font-size:13px;background:{{ ncBtnBg }};color:{{ ncBtnFg }};border:1px solid {{ ncBtnBd }};border-radius:999px;padding:7px 17px;cursor:pointer;white-space:nowrap">创建 Campaign</div>
+                  <div onClick="{{ ncCreate }}" style="flex:0 0 auto;font-size:13px;background:{{ ncBtnBg }};color:{{ ncBtnFg }};border:1px solid {{ ncBtnBd }};border-radius:999px;padding:7px 17px;cursor:pointer;white-space:nowrap">提交 Campaign 审核</div>
                 </div>
               </sc-if>
             </div>
@@ -625,17 +643,28 @@
             <div style="display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.65fr);gap:14px;align-items:stretch">
               <div style="min-width:0;display:flex">
                 <div style="height:720px;box-sizing:border-box;flex:1;min-width:0;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
-                  <div style="min-height:34px;padding:10px 12px;border-bottom:1px solid #EDF1F7;background:#F8FAFE;display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-                    <sc-for list="{{ campaignBriefTabs }}" as="t" hint-placeholder-count="2"><div onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap"><span>{{ t.label }}</span><span style="font-size:10.5px;background:{{ t.countBg }};color:{{ t.countFg }};border-radius:999px;padding:1px 6px">{{ t.count }}</span></div></sc-for>
+                  <div style="padding:14px 16px;border-bottom:1px solid #EDF1F7;background:#FFFFFF">
+                    <div style="font-size:14px;font-weight:600;color:#1D2638">已审核通过的 Brief</div>
+                    <div style="font-size:12px;color:#8792A5;margin-top:3px;text-wrap:pretty">{{ campaignBriefPanelNote }}</div>
                   </div>
-                  <div style="flex:1;min-height:0;padding:7px;display:flex;flex-direction:column;gap:5px;overflow:auto">
-                    <sc-if value="{{ campaignBriefListEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#A2ABBA;background:#F8FAFE;border:1px dashed #D9E1EF;border-radius:10px;padding:18px 12px;text-align:center">{{ campaignBriefListEmptyText }}</div></sc-if>
-                      <sc-for list="{{ campaignBriefVisibleRows }}" as="b" hint-placeholder-count="4">
-                        <div onClick="{{ b.select }}" style="background:{{ b.rowBg }};border:1px solid {{ b.rowBd }};border-radius:11px;padding:10px;cursor:{{ b.cursor }};box-shadow:{{ b.shadow }}">
-                          <div style="display:flex;gap:9px;align-items:flex-start"><span style="width:30px;height:30px;flex:0 0 30px;border-radius:8px;background:{{ b.iconBg }};color:{{ b.iconFg }};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600">{{ b.channelShort }}</span>
-                          <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;color:{{ b.titleFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.title }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.meta }}</div><div style="font-size:10.5px;color:{{ b.viewFg }};margin-top:6px">{{ b.viewLabel }}</div></div></div>
+                  <div style="flex:1;min-height:0;padding:10px;display:flex;flex-direction:column;gap:9px;overflow:auto;background:#F8FAFE">
+                    <sc-if value="{{ campaignBriefListEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;background:#FFFFFF;border:1px dashed #D9E1EF;border-radius:14px;padding:22px 14px;text-align:center;text-wrap:pretty">{{ campaignBriefListEmptyText }}</div></sc-if>
+                    <sc-for list="{{ campaignBriefVisibleRows }}" as="b" hint-placeholder-count="4">
+                      <div class="campaign-brief-list-card" onClick="{{ b.select }}" style="background:{{ b.rowBg }};border-color:{{ b.rowBd }};box-shadow:{{ b.shadow }}">
+                        <div style="display:flex;align-items:flex-start;gap:11px">
+                          <span style="width:36px;height:36px;flex:0 0 36px;border-radius:10px;background:{{ b.iconBg }};color:{{ b.iconFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{ b.channelShort }}</span>
+                          <div style="flex:1;min-width:0">
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+                              <span style="font-size:10.5px;font-weight:600;border-radius:999px;padding:2px 8px;background:{{ b.kindBg }};color:{{ b.kindFg }};white-space:nowrap">{{ b.kindLabel }}</span>
+                              <span style="font-size:10.5px;border-radius:999px;padding:2px 8px;background:{{ b.statusBg }};color:{{ b.statusFg }};white-space:nowrap">{{ b.status }}</span>
+                            </div>
+                            <div style="font-size:13.5px;font-weight:600;color:{{ b.titleFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.title }}</div>
+                            <div style="font-size:11.5px;color:#8792A5;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.meta }}</div>
+                            <div style="font-size:11px;color:{{ b.viewFg }};margin-top:8px">{{ b.viewLabel }}</div>
+                          </div>
                         </div>
-                      </sc-for>
+                      </div>
+                    </sc-for>
                   </div>
                 </div>
               </div>
@@ -677,39 +706,75 @@
           </sc-if>
 
 	          <sc-if value="{{ campaignTabEmail }}" hint-placeholder-val="{{ false }}">
-	            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden">
-              <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #EDF1F7;background:#F8FAFE;flex-wrap:wrap">
-                <div style="font-size:14px;font-weight:600;color:#1D2638;white-space:nowrap">已发送邮件</div>
-                <div id="campaignEmailIntentSummary" style="font-size:11.5px;color:#8792A5;white-space:nowrap">AI 自动分析合作意向</div>
-                <div style="flex:1"></div>
-                <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#8792A5;white-space:nowrap">合作意向<select id="campaignEmailIntentFilter" style="font:inherit;color:#334155;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:9px;padding:6px 28px 6px 9px;outline:none"><option value="all">全部</option><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select></label>
-                <button id="campaignEmailSelectHigh" type="button" style="font:600 12px/1.6 Inter,'PingFang SC',sans-serif;background:#FFFFFF;color:#2457F5;border:1px solid #B8CBFF;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap">批量选择高意向</button>
-                <div onClick="{{ campaignEmailCoopOpen }}" style="font-size:12.5px;font-weight:600;background:{{ campaignEmailCoopButtonBg }};color:{{ campaignEmailCoopButtonFg }};border:1px solid {{ campaignEmailCoopButtonBd }};border-radius:999px;padding:7px 14px;cursor:{{ campaignEmailCoopButtonCursor }};white-space:nowrap;box-shadow:{{ campaignEmailCoopButtonShadow }}">{{ campaignEmailCoopButtonLabel }}</div>
-              </div>
-              <div style="overflow-x:auto">
-                <div style="min-width:920px">
-                  <div style="display:grid;grid-template-columns:32px 42px minmax(320px,1fr) 135px 145px 90px 90px;align-items:center;gap:10px;padding:9px 16px;background:#FBFCFF;border-bottom:1px solid #EEF2F8;font-size:11px;font-weight:600;color:#8792A5"><span>选择</span><span></span><span>红人与邮件主题</span><span>发送时间</span><span>合作意向（AI）</span><span>邮件状态</span><span>合作状态</span></div>
-	                <sc-for list="{{ campaignSentEmails }}" as="m" hint-placeholder-count="4">
-	                  <div class="campaign-sent-email-row" data-email-handle="{{ m.handle }}" onClick="{{ m.open }}" style="display:grid;grid-template-columns:32px 42px minmax(320px,1fr) 135px 145px 90px 90px;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid #EEF2F8;cursor:pointer" style-hover="background:#F8FAFE"><div role="checkbox" class="campaign-email-select" onClick="{{ m.toggleSelect }}" title="{{ m.selectTitle }}" aria-label="{{ m.selectTitle }}" aria-checked="{{ m.selectMark }}" style="background:{{ m.selectBg }};cursor:{{ m.selectCursor }}">{{ m.selectMark }}</div><div style="width:32px;height:32px;border-radius:999px;background:#F5F8FE;display:flex;align-items:center;justify-content:center;font-size:12px;color:#647187">{{ m.initial }}</div><div style="min-width:0"><div style="font-size:13.5px;font-weight:500;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.handle }} · {{ m.subject }}</div><div style="font-size:11.5px;color:#8792A5;margin-top:2px">点击打开当前已发送邮件</div></div><span style="font-size:11.5px;color:#647187">{{ m.when }}</span><span class="campaign-email-intent"></span><span style="font-size:11.5px;border-radius:999px;padding:3px 10px;background:{{ m.bg }};color:{{ m.fg }};justify-self:start">{{ m.status }}</span><span class="campaign-email-coop-status" style="border:1px solid {{ m.coopBd }};background:{{ m.coopBg }};color:{{ m.coopFg }};font-weight:{{ m.coopWeight }}">{{ m.coopLabel }}</span></div>
-	                </sc-for>
-                <sc-if value="{{ campaignSentEmailsEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:28px;text-align:center;color:#8792A5;font-size:13px">暂无已发送邮件。待发送邮件确认后会进入这里，并可打开邮件往来弹窗。</div></sc-if>
+	            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(29,38,56,.03)">
+              <div style="padding:14px 16px;border-bottom:1px solid #EDF1F7;background:#FFFFFF">
+                <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+                  <div style="flex:1;min-width:220px">
+                    <div style="font-size:15px;font-weight:600;color:#1D2638">已建联红人</div>
+                    <div style="font-size:12px;color:#8792A5;margin-top:3px;text-wrap:pretty">{{ campaignOutreachSummary }}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+                    <sc-for list="{{ campaignEmailIntentFilters }}" as="f" hint-placeholder-count="4">
+                      <div onClick="{{ f.pick }}" style="font-size:12px;font-weight:600;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }};border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap">{{ f.label }}</div>
+                    </sc-for>
+                    <div onClick="{{ campaignEmailSelectHighIntent }}" style="font-size:12px;background:#FFFFFF;color:#2457F5;border:1px solid #B8CBFF;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap">批量选择高意向</div>
+                    <div onClick="{{ campaignEmailCoopSubmit }}" style="font-size:12.5px;font-weight:600;background:{{ campaignEmailCoopButtonBg }};color:{{ campaignEmailCoopButtonFg }};border:1px solid {{ campaignEmailCoopButtonBd }};border-radius:999px;padding:7px 14px;cursor:{{ campaignEmailCoopButtonCursor }};white-space:nowrap;box-shadow:{{ campaignEmailCoopButtonShadow }}">{{ campaignEmailCoopButtonLabel }}</div>
+                  </div>
                 </div>
+              </div>
+              <div style="padding:12px 14px 16px;display:flex;flex-direction:column;gap:10px;background:#F8FAFE">
+                <sc-if value="{{ campaignOutreachEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12.5px;color:#8792A5;background:#FFFFFF;border:1px dashed #D9E1EF;border-radius:14px;padding:24px 16px;text-align:center;text-wrap:pretty">{{ campaignOutreachEmptyText }}</div>
+                </sc-if>
+                <sc-for list="{{ campaignOutreachCreators }}" as="c" hint-placeholder-count="4">
+                  <div class="campaign-outreach-card" data-email-handle="{{ c.handle }}" style="border-color:{{ c.cardBd }}">
+                    <div style="display:flex;align-items:flex-start;gap:10px">
+                      <div role="checkbox" class="campaign-email-select" onClick="{{ c.toggleSelect }}" title="{{ c.selectTitle }}" aria-label="{{ c.selectTitle }}" aria-disabled="{{ c.selectDisabled }}" aria-checked="{{ c.selectChecked }}" style="width:22px;height:22px;flex:0 0 22px;margin-top:10px;border-radius:6px;border:1px solid {{ c.selectBd }};background:{{ c.selectBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:{{ c.selectCursor }};opacity:{{ c.selectOpacity }};pointer-events:{{ c.selectPointerEvents }}">{{ c.selectMark }}</div>
+                      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+                        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+                          <sc-if value="{{ c.hasAvatar }}" hint-placeholder-val="{{ false }}">
+                            <img src="{{ c.avatar }}" alt="" loading="lazy" style="width:42px;height:42px;flex:0 0 42px;border-radius:10px;object-fit:cover;border:1px solid #E2E8F2;background:#F5F8FE" />
+                          </sc-if>
+                          <sc-if value="{{ c.showInitial }}" hint-placeholder-val="{{ false }}">
+                            <div style="width:42px;height:42px;flex:0 0 42px;border-radius:10px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">{{ c.initial }}</div>
+                          </sc-if>
+                          <div style="flex:1;min-width:220px">
+                            <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+                              <div style="flex:1;min-width:180px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                                <div style="font-size:15px;font-weight:600;color:#1D2638">{{ c.handle }}</div>
+                                <span style="font-size:11.5px;border:1px solid {{ c.coopBd }};background:{{ c.coopBg }};color:{{ c.coopFg }};font-weight:{{ c.coopWeight }};border-radius:999px;padding:3px 10px;white-space:nowrap">{{ c.coopLabel }}</span>
+                                <span style="font-size:11px;color:#647187;background:#F8FAFE;border:1px solid #EEF2F8;border-radius:999px;padding:2px 8px">{{ c.platform }}</span>
+                                <span style="font-size:11px;color:#647187">{{ c.followers }} 粉丝</span>
+                                <sc-if value="{{ c.fitText }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#2457F5">{{ c.fitText }}</span></sc-if>
+                                <sc-if value="{{ c.erText }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#8792A5">{{ c.erText }}</span></sc-if>
+                              </div>
+                              <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto;margin-left:auto">
+                                <div onClick="{{ c.openThread }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap">{{ c.viewMailLabel }}</div>
+                              </div>
+                            </div>
+                            <div style="font-size:12px;color:#8792A5;margin-top:3px">{{ c.niche }} · 最近联系 {{ c.lastContact }} · {{ c.threadLabel }}</div>
+                            <div style="font-size:12.5px;color:#465268;margin-top:6px;text-wrap:pretty">最新回复：{{ c.replyPreview }}</div>
+                          </div>
+                        </div>
+                        <div style="padding:12px 13px;border-radius:12px;background:#F1F5FF;border:1px solid #D9E4FF">
+                          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                            <span style="font-size:11px;font-weight:600;color:#1D48D8">AI 合作意向</span>
+                            <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid {{ c.intentBd }};background:{{ c.intentBg }};color:{{ c.intentFg }};border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:50%;background:{{ c.intentFg }}"></span>{{ c.intentLabel }}<span style="font-size:10px;font-weight:400;opacity:.8">{{ c.intentConfidence }}</span></span>
+                          </div>
+                          <div style="font-size:12.5px;color:#465268;line-height:1.6;text-wrap:pretty;margin-bottom:8px">{{ c.aiNote }}</div>
+                          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                            <span style="font-size:11px;color:#8792A5">关键词</span>
+                            <sc-for list="{{ c.keywords }}" as="kw" hint-placeholder-count="4">
+                              <span style="font-size:11px;color:#647187;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:999px;padding:3px 9px;white-space:nowrap">{{ kw.label }}</span>
+                            </sc-for>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </sc-for>
               </div>
             </div>
-            <sc-if value="{{ campaignEmailCoopPickerOpen }}" hint-placeholder-val="{{ false }}">
-              <div onClick="{{ campaignEmailCoopClose }}" style="position:fixed;inset:0;z-index:132;background:rgba(29,38,56,.28);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px">
-                <div onClick="{{ campaignEmailCoopKeep }}" style="width:min(460px,100%);max-height:min(620px,calc(100vh - 40px));background:#FFFFFF;border:1px solid #D9E1EF;border-radius:18px;box-shadow:0 24px 64px rgba(29,38,56,.2);overflow:hidden;display:flex;flex-direction:column">
-                  <div style="padding:18px 20px 14px;border-bottom:1px solid #EDF1F7;display:flex;align-items:flex-start;gap:12px"><div style="width:36px;height:36px;border-radius:11px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 36px">✓</div><div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:600;color:#1D2638">确认达成合作</div><div style="font-size:12px;color:#8792A5;margin-top:3px">选择已确认合作意向的红人，可一次选择多位</div></div><div onClick="{{ campaignEmailCoopClose }}" style="font-size:19px;color:#8792A5;cursor:pointer;line-height:1">×</div></div>
-                  <div style="padding:10px;overflow:auto;display:flex;flex-direction:column;gap:6px">
-                    <sc-for list="{{ campaignEmailCoopCandidates }}" as="c" hint-placeholder-count="4">
-                      <div onClick="{{ c.toggle }}" style="display:flex;align-items:center;gap:10px;border:1px solid {{ c.bd }};background:{{ c.bg }};border-radius:12px;padding:10px 11px;cursor:{{ c.cursor }}"><span style="width:30px;height:30px;border-radius:999px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:0 0 30px">{{ c.initial }}</span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#1D2638">{{ c.handle }}</div><div style="font-size:11px;color:#8792A5;margin-top:2px">{{ c.meta }}</div></div><span style="width:19px;height:19px;border-radius:6px;background:{{ c.checkBg }};border:1px solid {{ c.checkBd }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:11px;flex:0 0 19px">{{ c.mark }}</span></div>
-                    </sc-for>
-                    <sc-if value="{{ campaignEmailCoopCandidatesEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:24px;text-align:center;font-size:12.5px;color:#8792A5">当前邮件列表暂无可选择的红人</div></sc-if>
-                  </div>
-                  <div style="padding:13px 16px;border-top:1px solid #EDF1F7;background:#FBFCFF;display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#8792A5;flex:1">已选择 {{ campaignEmailCoopSelectedCount }} 位</span><div onClick="{{ campaignEmailCoopClose }}" style="font-size:12.5px;color:#647187;border:1px solid #E2E8F2;background:#FFFFFF;border-radius:999px;padding:7px 14px;cursor:pointer">取消</div><div onClick="{{ campaignEmailCoopConfirm }}" style="font-size:12.5px;color:{{ campaignEmailCoopConfirmFg }};border:1px solid {{ campaignEmailCoopConfirmBd }};background:{{ campaignEmailCoopConfirmBg }};border-radius:999px;padding:7px 15px;cursor:{{ campaignEmailCoopConfirmCursor }}">确认达成合作</div></div>
-                </div>
-              </div>
-            </sc-if>
             <sc-if value="{{ mailThread }}" hint-placeholder-val="{{ false }}">
               <div onClick="{{ campaignMailThreadClose }}" style="position:fixed;inset:0;z-index:310;background:rgba(20,29,46,.52);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;backdrop-filter:blur(1px)">
                 <section onClick="{{ coopActionKeep }}" role="dialog" aria-modal="true" aria-label="回复邮件" style="width:min(1560px,calc(100vw - 28px));height:min(940px,calc(100vh - 28px));background:#FFFFFF;border:1px solid #D8E0ED;border-radius:22px;box-shadow:0 32px 96px rgba(20,29,46,.32);overflow:hidden;display:flex;flex-direction:column;color:#1D2638;animation:fadeUp .18s ease both">
@@ -1057,109 +1122,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js"></script>
-<script>
-  (() => {
-    const storageKey = 'aios.campaignEmailIntentFilter';
-    const intentMap = {
-      '@mia.selfcare': 'high', '@kaylascalp': 'high', '@sofia.homelab': 'high',
-      '@hairbyandre': 'medium', '@june.rests': 'medium', '@leo.calmnight': 'medium',
-      '@dailywithlin': 'low', '@nora.pm': 'low'
-    };
-    const meta = {
-      high: {label:'高', bg:'#E4EFE4', fg:'#4E7156', bd:'#CFE3D3', confidence:'92%', title:'AI 分析：回复积极、主动确认档期与合作方式'},
-      medium: {label:'中', bg:'#FBEEDA', fg:'#A5762C', bd:'#F0DCB8', confidence:'76%', title:'AI 分析：已表达兴趣，但仍需确认报价或排期'},
-      low: {label:'低', bg:'#F7EDEE', fg:'#C4636D', bd:'#F0C9C9', confidence:'61%', title:'AI 分析：回复意愿较弱，或关键合作条件未响应'}
-    };
-    let applying = false;
-    const intentOf = (handle) => {
-      if (intentMap[handle]) return intentMap[handle];
-      const score = Array.from(handle || '').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 6;
-      return score < 3 ? 'high' : (score < 5 ? 'medium' : 'low');
-    };
-    const syncEmailCheckbox = (checkbox) => {
-      if (!checkbox) return;
-      const cooperated = checkbox.getAttribute('title') === '已达成合作';
-      const selected = cooperated || checkbox.textContent.trim() === '✓' || checkbox.getAttribute('title') === '取消选择';
-      checkbox.classList.toggle('is-selected', selected && !cooperated);
-      checkbox.classList.toggle('is-cooperated', cooperated);
-      checkbox.setAttribute('aria-checked', selected ? 'true' : 'false');
-      if (selected && checkbox.textContent.trim() !== '✓') checkbox.textContent = '✓';
-      if (!selected && checkbox.textContent.trim()) checkbox.textContent = '';
-    };
-    const applyEmailIntents = () => {
-      if (applying) return;
-      const filter = document.getElementById('campaignEmailIntentFilter');
-      if (!filter) return;
-      applying = true;
-      const current = localStorage.getItem(storageKey) || 'all';
-      filter.value = current;
-      const rows = Array.from(document.querySelectorAll('.campaign-sent-email-row'));
-      const counts = {high:0, medium:0, low:0};
-      rows.forEach((row) => {
-        const intent = intentOf(row.dataset.emailHandle || '');
-        const style = meta[intent];
-        counts[intent] += 1;
-        row.dataset.intent = intent;
-        row.style.display = current === 'all' || current === intent ? 'grid' : 'none';
-        const slot = row.querySelector('.campaign-email-intent');
-        if (slot && slot.dataset.intentApplied !== intent) {
-          slot.dataset.intentApplied = intent;
-          slot.title = style.title;
-          slot.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;border:1px solid '+style.bd+';background:'+style.bg+';color:'+style.fg+';border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:600"><span style="width:6px;height:6px;border-radius:50%;background:'+style.fg+'"></span>'+style.label+'<span style="font-size:10px;font-weight:400;opacity:.75">AI '+style.confidence+'</span></span>';
-        }
-        const checkbox = row.querySelector('.campaign-email-select');
-        syncEmailCheckbox(checkbox);
-        if (checkbox && intent !== 'high' && checkbox.getAttribute('title') !== '已达成合作') {
-          checkbox.style.opacity = '.42';
-          checkbox.style.pointerEvents = 'none';
-          checkbox.setAttribute('aria-disabled', 'true');
-          checkbox.setAttribute('title', '仅高合作意向可批量选择');
-        } else if (checkbox && intent === 'high' && checkbox.getAttribute('title') !== '已达成合作') {
-          checkbox.style.opacity = '1';
-          checkbox.style.pointerEvents = 'auto';
-          checkbox.style.cursor = 'pointer';
-          checkbox.removeAttribute('aria-disabled');
-          if (checkbox.getAttribute('title') === '仅高合作意向可批量选择') checkbox.setAttribute('title', '选择红人');
-        }
-      });
-      const summary = document.getElementById('campaignEmailIntentSummary');
-      const summaryText = '共 '+rows.length+' 封 · 高 '+counts.high+' · 中 '+counts.medium+' · 低 '+counts.low;
-      if (summary && summary.textContent !== summaryText) summary.textContent = summaryText;
-      if (!filter.dataset.bound) {
-        filter.dataset.bound = '1';
-        filter.addEventListener('change', () => {
-          localStorage.setItem(storageKey, filter.value);
-          applyEmailIntents();
-        });
-      }
-      const selectHigh = document.getElementById('campaignEmailSelectHigh');
-      if (selectHigh && !selectHigh.dataset.bound) {
-        selectHigh.dataset.bound = '1';
-        selectHigh.addEventListener('click', () => {
-          localStorage.setItem(storageKey, 'high');
-          filter.value = 'high';
-          rows.filter((row) => row.dataset.intent === 'high').forEach((row) => {
-            const checkbox = row.querySelector('.campaign-email-select');
-            if (checkbox && checkbox.textContent.trim() !== '✓' && checkbox.getAttribute('title') !== '已达成合作') checkbox.click();
-          });
-          applyEmailIntents();
-        });
-      }
-      applying = false;
-    };
-    document.addEventListener('click', (event) => {
-      const checkbox = event.target.closest && event.target.closest('.campaign-email-select');
-      if (!checkbox || checkbox.getAttribute('aria-disabled') === 'true' || checkbox.getAttribute('title') === '已达成合作') return;
-      const selected = !checkbox.classList.contains('is-selected');
-      checkbox.classList.toggle('is-selected', selected);
-      checkbox.setAttribute('aria-checked', selected ? 'true' : 'false');
-      checkbox.setAttribute('title', selected ? '取消选择' : '选择红人');
-      checkbox.textContent = selected ? '✓' : '';
-    }, true);
-    new MutationObserver(applyEmailIntents).observe(document.documentElement, {childList:true, subtree:true});
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyEmailIntents); else applyEmailIntents();
-  })();
-</script>
+<script src="../app-logic.js?v=9"></script>
 </body>
 </html>

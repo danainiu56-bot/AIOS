@@ -191,7 +191,101 @@
                       <span style="font-size:11.5px;border-radius:999px;padding:1px 9px;background:{{ r.typeBg }};color:{{ r.typeFg }};white-space:nowrap">{{ r.typeText }}</span>
                       <span style="font-size:11.5px;border-radius:999px;padding:1px 9px;background:{{ r.statusBg }};color:{{ r.statusFg }};white-space:nowrap">{{ r.status }}</span>
                     </div>
-                    <div style="font-size:12px;color:#647187;margin-top:3px;font-variant-numeric:tabular-nums">{{ r.meta }}</div>
+                    <sc-if value="{{ r.campDetailClosed }}" hint-placeholder-val="{{ true }}">
+                      <div style="font-size:12px;color:#647187;margin-top:3px;font-variant-numeric:tabular-nums">{{ r.meta }}</div>
+                    </sc-if>
+                    <sc-if value="{{ r.campDetailOpen }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:12px;background:linear-gradient(135deg,#EAF0FF 0%,#F5F8FE 100%);border:1px solid #C8D4FF;border-radius:14px;padding:14px 16px">
+                        <div style="font-size:11px;font-weight:600;color:#1D48D8;margin-bottom:10px;letter-spacing:.03em">立项核心信息</div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 14px">
+                          <sc-for list="{{ r.campPreviewHighlights }}" as="h" hint-placeholder-count="5">
+                            <div style="min-width:0">
+                              <div style="font-size:11px;color:#647187;margin-bottom:3px">{{ h.label }}</div>
+                              <div style="font-size:15px;font-weight:600;color:#1D2638;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.3">{{ h.value }}</div>
+                            </div>
+                          </sc-for>
+                        </div>
+                        <sc-if value="{{ r.campPreviewKpi }}" hint-placeholder-val="{{ false }}">
+                          <div style="margin-top:12px;padding-top:11px;border-top:1px solid rgba(36,87,245,.12);font-size:13px;font-weight:500;color:#2457F5;text-wrap:pretty">推广 KPI · {{ r.campPreviewKpi }}</div>
+                        </sc-if>
+                      </div>
+                      <div style="font-size:12px;color:#8792A5;line-height:1.55;margin-top:10px;text-wrap:pretty">{{ r.campPreviewNote }}</div>
+                      <div style="margin-top:10px;display:flex;justify-content:flex-end">
+                        <div onClick="{{ r.openCampInCampaigns }}" style="font-size:12.5px;border:1px solid #2457F5;background:#FFFFFF;color:#2457F5;border-radius:999px;padding:6px 13px;cursor:pointer">在 Campaigns 打开完整页</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ r.briefDetailOpen }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:12px;background:linear-gradient(135deg,#EAF0FF 0%,#F5F8FE 100%);border:1px solid #C8D4FF;border-radius:14px;padding:14px 16px">
+                        <div style="font-size:11px;font-weight:600;color:#1D48D8;margin-bottom:10px;letter-spacing:.03em">Brief 打包摘要</div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 14px">
+                          <sc-for list="{{ r.briefPreviewHighlights }}" as="h" hint-placeholder-count="4">
+                            <div style="min-width:0">
+                              <div style="font-size:11px;color:#647187;margin-bottom:3px">{{ h.label }}</div>
+                              <div style="font-size:15px;font-weight:600;color:#1D2638;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.3">{{ h.value }}</div>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </div>
+                      <div style="font-size:12px;color:#8792A5;line-height:1.55;margin-top:10px;text-wrap:pretty">{{ r.briefPreviewNote }}</div>
+                      <div style="font-size:12px;font-weight:600;color:#1D2638;margin-top:12px;margin-bottom:8px">Brief 全文预览</div>
+                      <sc-if value="{{ r.briefPreviewShowKindTabs }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px">
+                          <sc-for list="{{ r.briefPreviewTabs }}" as="t" hint-placeholder-count="2">
+                            <div onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:999px;padding:6px 10px;cursor:pointer;white-space:nowrap">
+                              <span>{{ t.label }}</span>
+                              <span style="font-size:10px;background:{{ t.countBg }};color:{{ t.countFg }};border-radius:999px;padding:1px 6px">{{ t.count }}</span>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ r.briefPreviewShowItemTabs }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+                          <sc-for list="{{ r.briefPreviewItemTabs }}" as="it" hint-placeholder-count="4">
+                            <div onClick="{{ it.pick }}" style="font-size:12px;font-weight:600;border:1px solid {{ it.bd }};background:{{ it.bg }};color:{{ it.fg }};border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap">{{ it.label }}</div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                      <div style="font-size:12px;color:#8792A5;margin-bottom:8px;text-wrap:pretty">{{ r.briefPreviewTitle }}</div>
+                      <div style="max-height:min(420px,50vh);overflow-y:auto;border:1px solid {{ r.briefPreviewPaneBd }};border-radius:12px;padding:8px 10px;background:{{ r.briefPreviewPaneBg }}">
+                        <sc-for list="{{ r.briefPreviewSections }}" as="p" hint-placeholder-count="8">
+                          <div style="margin-bottom:8px">
+                            <div style="font-size:13px;font-weight:600;color:#1D2638;margin:0 0 8px;text-wrap:pretty">{{ p.title }}</div>
+                            <sc-if value="{{ p.body }}" hint-placeholder-val="{{ false }}">
+                              <div style="background:#FFFFFF;border:1px solid #EEF2F8;border-radius:11px;padding:12px 14px;font-size:13px;color:#334155;line-height:1.65;text-wrap:pretty;white-space:pre-wrap">{{ p.body }}</div>
+                            </sc-if>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="margin-top:10px;display:flex;justify-content:flex-end">
+                        <div onClick="{{ r.openBriefInStudio }}" style="font-size:12.5px;border:1px solid #2457F5;background:#FFFFFF;color:#2457F5;border-radius:999px;padding:6px 13px;cursor:pointer">在 Brief Studio 打开</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ r.strDetailOpen }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:12px;background:linear-gradient(135deg,#EAF0FF 0%,#F5F8FE 100%);border:1px solid #C8D4FF;border-radius:14px;padding:14px 16px">
+                        <div style="font-size:11px;font-weight:600;color:#1D48D8;margin-bottom:10px;letter-spacing:.03em">策略定稿摘要</div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 14px">
+                          <sc-for list="{{ r.strPreviewHighlights }}" as="h" hint-placeholder-count="5">
+                            <div style="min-width:0">
+                              <div style="font-size:11px;color:#647187;margin-bottom:3px">{{ h.label }}</div>
+                              <div style="font-size:15px;font-weight:600;color:#1D2638;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.3">{{ h.value }}</div>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </div>
+                      <div style="font-size:12px;color:#8792A5;line-height:1.55;margin-top:10px;text-wrap:pretty">{{ r.strPreviewNote }}</div>
+                      <div style="margin-top:12px;font-size:12px;color:#8792A5;margin-bottom:8px;text-wrap:pretty">{{ r.strPreviewTitle }}</div>
+                      <div style="max-height:min(420px,50vh);overflow-y:auto;border:1px solid #EDF1F7;border-radius:12px;padding:8px 10px;background:#F8FAFE">
+                        <sc-for list="{{ r.strPreviewSections }}" as="p" hint-placeholder-count="15">
+                          <div style="background:#FFFFFF;border:1px solid #EEF2F8;border-radius:11px;padding:12px 14px;margin-bottom:8px">
+                            <div style="font-size:13px;font-weight:600;color:#1D2638;margin-bottom:8px;text-wrap:pretty">{{ p.title }}</div>
+                            <div style="font-size:13px;color:#334155;line-height:1.65;text-wrap:pretty">{{ p.body }}</div>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="margin-top:10px;display:flex;justify-content:flex-end">
+                        <div onClick="{{ r.openStrategyInStudio }}" style="font-size:12.5px;border:1px solid #2457F5;background:#FFFFFF;color:#2457F5;border-radius:999px;padding:6px 13px;cursor:pointer">在 Strategy Studio 打开完整页</div>
+                      </div>
+                    </sc-if>
                     <sc-if value="{{ r.comment }}" hint-placeholder-val="{{ false }}">
                       <div style="margin-top:8px;background:#F8FAFE;border:1px solid #EEF2F8;border-radius:10px;padding:8px 11px">
                         <div style="font-size:11px;color:#A2ABBA">{{ r.commentLabel }}</div>
@@ -325,17 +419,54 @@
             </div>
           </div>
 
-          <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:8px 20px;box-shadow:0 8px 24px rgba(29,38,56,.04)">
-            <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="7">
-              <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid #EDF1F7">
-                <div onClick="{{ t.toggle }}" style="width:18px;height:18px;border-radius:6px;border:1.5px solid {{ t.boxBorder }};background:{{ t.boxBg }};margin-top:2px;flex:0 0 18px;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ t.check }}</div>
-                <div style="flex:1;min-width:0">
-                  <div style="font-size:15px;color:{{ t.fg }};text-decoration:{{ t.deco }};text-wrap:pretty">{{ t.title }}</div>
-                  <div style="font-size:12.5px;color:{{ t.dueColor }};margin-top:2px">{{ t.due }}</div>
+          <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:8px 20px 12px;box-shadow:0 8px 24px rgba(29,38,56,.04)">
+            <sc-if value="{{ hasTaskApprovalResults }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:10px 0 6px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div>
+                  <div style="font-size:14px;font-weight:600;color:#1D2638">审批结果</div>
+                  <div style="font-size:12px;color:#8792A5;margin-top:2px;text-wrap:pretty">你提交的立项等，审批通过或驳回后会出现在这里（与下方日常待办不同）</div>
                 </div>
-                <div onClick="{{ t.go }}" style="flex:0 0 auto;font-size:12px;border:1px solid #E2E8F2;background:#F8FAFE;border-radius:999px;padding:4px 12px;color:#647187;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ t.tag }} →</div>
+                <span style="flex:0 0 auto;font-size:11.5px;color:#A2ABBA">{{ taskApprovalSectionNote }}</span>
               </div>
-            </sc-for>
+              <sc-for list="{{ taskApprovalResults }}" as="t" hint-placeholder-count="2">
+                <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid #EDF1F7">
+                  <div onClick="{{ t.toggle }}" style="width:18px;height:18px;border-radius:6px;border:1.5px solid {{ t.boxBorder }};background:{{ t.boxBg }};margin-top:2px;flex:0 0 18px;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ t.check }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                      <sc-if value="{{ t.isRejected }}" hint-placeholder-val="{{ false }}">
+                        <span style="flex:0 0 auto;font-size:11px;font-weight:500;border-radius:999px;padding:2px 8px;background:#F8FAFE;border:1px solid #E2E8F2;color:#C4636D;white-space:nowrap">已驳回</span>
+                      </sc-if>
+                      <sc-if value="{{ t.isApproved }}" hint-placeholder-val="{{ false }}">
+                        <span style="flex:0 0 auto;font-size:11px;font-weight:500;border-radius:999px;padding:2px 8px;background:#F8FAFE;border:1px solid #E2E8F2;color:#4E7156;white-space:nowrap">已通过</span>
+                      </sc-if>
+                      <div style="font-size:15px;color:{{ t.fg }};text-decoration:{{ t.deco }};text-wrap:pretty">{{ t.title }}</div>
+                    </div>
+                    <div style="font-size:12.5px;color:{{ t.dueColor }};margin-top:2px">{{ t.due }}</div>
+                  </div>
+                  <div onClick="{{ t.go }}" style="flex:0 0 auto;font-size:12px;border:1px solid #E2E8F2;background:#F8FAFE;border-radius:999px;padding:4px 12px;color:#647187;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ t.ctaLabel }}</div>
+                </div>
+              </sc-for>
+            </sc-if>
+
+            <sc-if value="{{ hasTaskTodos }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:{{ taskTodoHeadPadTop }} 0 6px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:{{ taskTodoHeadBorderTop }};margin-top:{{ taskTodoHeadMarginTop }}">
+                <div>
+                  <div style="font-size:14px;font-weight:600;color:#1D2638">我的待办</div>
+                  <div style="font-size:12px;color:#8792A5;margin-top:2px;text-wrap:pretty">业务跟进、截止提醒与需要你主动处理的事项</div>
+                </div>
+                <span style="flex:0 0 auto;font-size:11.5px;color:#A2ABBA">{{ taskTodoSectionNote }}</span>
+              </div>
+              <sc-for list="{{ taskTodos }}" as="t" hint-placeholder-count="6">
+                <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid #EDF1F7">
+                  <div onClick="{{ t.toggle }}" style="width:18px;height:18px;border-radius:6px;border:1.5px solid {{ t.boxBorder }};background:{{ t.boxBg }};margin-top:2px;flex:0 0 18px;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ t.check }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:15px;color:{{ t.fg }};text-decoration:{{ t.deco }};text-wrap:pretty">{{ t.title }}</div>
+                    <div style="font-size:12.5px;color:{{ t.dueColor }};margin-top:2px">{{ t.due }}</div>
+                  </div>
+                  <div onClick="{{ t.go }}" style="flex:0 0 auto;font-size:12px;border:1px solid #E2E8F2;background:#F8FAFE;border-radius:999px;padding:4px 12px;color:#647187;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ t.tag }} →</div>
+                </div>
+              </sc-for>
+            </sc-if>
           </div>
           </sc-if>
         </div>
@@ -388,6 +519,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js"></script>
+<script src="../app-logic.js?v=12"></script>
 </body>
 </html>

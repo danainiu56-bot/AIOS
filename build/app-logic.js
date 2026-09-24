@@ -8,6 +8,8 @@ const SETTINGS_MODULES = [
   ['reports', 'Reports'], ['contracts', 'Contract Mgt'], ['settings', 'Settings']
 ];
 const SETTINGS_BRANDS = ['Ryze', 'Aura', 'Lumo', 'Nuvia', 'Verre', 'Pace'];
+/** 待生成队列 UI 示例（无 library 记录时始终展示，便于调页面） */
+const PROMO_QUEUE_DEMO_SKUS = ['RYZ-SC-02', 'RYZ-SC-03', 'VER-GL-04', 'LUM-AR-05', 'LUM-CD-08'];
 const US_STATES = [
   ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'], ['CA', 'California'],
   ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'], ['DC', 'District of Columbia'], ['FL', 'Florida'],
@@ -171,9 +173,10 @@ class Component extends DCLogic {
     const directStrategySku = directStrategyParams.get('sku');
     if (window.AIOS_PAGE === 'strategy' && directStrategyParams.get('edit') === '1' && directStrategySku) {
       this.switchSku(directStrategySku);
+      const flow = directStrategyParams.get('flow') || 'confirm';
       this.setState(st => ({
-        stTab: 'work', benchOpen: true, docMode: false, spPanel: null,
-        sw: { ...st.sw, step: 1, generated: true, editing: null }
+        stTab: 'work', benchOpen: true, swFlowStage: flow, docMode: false, spPanel: null,
+        sw: { ...st.sw, step: flow === 'prepare' ? 1 : 10, generated: true, editing: null }
       }));
     }
     if (window.AIOS_PAGE === 'brief' && directStrategyParams.get('edit') === '1' && directStrategySku) {
@@ -182,6 +185,7 @@ class Component extends DCLogic {
       const ver = directStrategyParams.get('ver') || '';
       const creator = directStrategyParams.get('creator') || '';
       const creatorStyle = directStrategyParams.get('style') || '';
+      const openSubmit = directStrategyParams.get('flow') === 'submit';
       this.setState(st => {
         const existingBrief = (st.briefVersions || []).find(x => x.sku === directStrategySku);
         const hasProduct = (st.briefFromStrategy || []).some(x => x.sku === directStrategySku);
@@ -192,7 +196,8 @@ class Component extends DCLogic {
           viewedVersion: ver ? directStrategySku + '|' + platform + '|' + mode + '|' + ver : null,
           briefStudioNewKeys: [],
           briefStudioExistingKeys: (st.briefVersions || []).filter(x => x.sku === directStrategySku).map(x => directStrategySku + '|' + x.platform + '|' + (x.mode || 'channel') + '|' + x.ver),
-          briefFromStrategy: hasProduct ? st.briefFromStrategy : [{ sku: directStrategySku, name: existingBrief ? existingBrief.name : directStrategySku, platform }, ...(st.briefFromStrategy || [])]
+          briefFromStrategy: hasProduct ? st.briefFromStrategy : [{ sku: directStrategySku, name: existingBrief ? existingBrief.name : directStrategySku, platform }, ...(st.briefFromStrategy || [])],
+          briefSubmitOpen: openSubmit || st.briefSubmitOpen
         };
       });
     }
@@ -222,6 +227,35 @@ class Component extends DCLogic {
         this.setState({ smTab: 'progress', smpQuery: sampleHandle });
       }
     }
+    if (window.AIOS_PAGE === 'campaigns' && directStrategyParams.get('view') === 'campaignDetail') {
+      this.setState({
+        page: 'campaignDetail',
+        campaignSubmitId: directStrategyParams.get('campaignSubmitId') || '',
+        campaignName: directStrategyParams.get('campaignName') || '',
+        campaignSku: directStrategyParams.get('campaignSku') || '',
+        campaignTab: directStrategyParams.get('campaignTab') || 'goals',
+        campaignAiSummaryOpen: false
+      });
+    }
+    const resubmitId = directStrategyParams.get('resubmit');
+    if (window.AIOS_PAGE === 'campaigns' && resubmitId) {
+      const sub = (this.state.campaignSubmits || []).find(x => x.id === resubmitId);
+      const rej = (this.state.approvals || {})['cmp-' + resubmitId];
+      if (sub && rej && rej.status === '已驳回') {
+        this.setState({
+          page: 'newCampaign',
+          campaignResubmitId: resubmitId,
+          ncSku: sub.sku,
+          ncGoal: sub.goal || '',
+          ncContentTarget: sub.contentTarget != null ? String(sub.contentTarget) : '',
+          ncViewsTarget: sub.viewsTarget || '',
+          ncBudget: sub.budget != null ? String(sub.budget) : '',
+          ncStart: sub.start || '',
+          ncEnd: sub.end || ''
+        });
+      }
+    }
+    this.purgeLegacyBriefDeletes();
   }
 
   componentDidUpdate() {
@@ -234,6 +268,13 @@ class Component extends DCLogic {
       localStorage.setItem('aios.shipOrders', JSON.stringify(this.state.shipOrders || []));
       localStorage.setItem('aios.ctmCustom', JSON.stringify(this.state.ctmCustom || []));
       localStorage.setItem('aios.ctmRemoved', JSON.stringify(this.state.ctmRemoved || []));
+      localStorage.setItem('aios.campaignSubmits', JSON.stringify(this.state.campaignSubmits || []));
+      localStorage.setItem('aios.strategySubmits', JSON.stringify(this.state.strategySubmits || []));
+      localStorage.setItem('aios.briefSubmits', JSON.stringify(this.state.briefSubmits || []));
+      localStorage.setItem('aios.campaignCoopSubmits', JSON.stringify(this.state.campaignCoopSubmits || []));
+      localStorage.setItem('aios.campaignCoopDeals', JSON.stringify(this.state.campaignCoopDeals || {}));
+      localStorage.setItem('aios.approvals', JSON.stringify(this.state.approvals || {}));
+      localStorage.setItem('aios.newCampaigns', JSON.stringify(this.state.newCampaigns || []));
       localStorage.setItem('aios.settingsOrg', JSON.stringify({
         navHidden: this.state.settingsNavHidden || [],
         navOrder: this.state.settingsNavOrder || [],
@@ -258,7 +299,11 @@ class Component extends DCLogic {
     if (this._productDrawerKeyHandler) document.removeEventListener('keydown', this._productDrawerKeyHandler);
   }
   state = {
-    page: window.AIOS_PAGE || new URLSearchParams(window.location.search).get('page') || 'dash',
+    page: (() => {
+      const p = new URLSearchParams(window.location.search);
+      if (window.AIOS_PAGE === 'campaigns' && p.get('view') === 'campaignDetail') return 'campaignDetail';
+      return window.AIOS_PAGE || p.get('page') || 'dash';
+    })(),
     navCollapsed: false,
     period: 'quarter',
     pipeAiOpen: false,
@@ -283,6 +328,35 @@ class Component extends DCLogic {
     ],
     strategySku: 'RYZ-SC-01',
     stTab: 'work',
+    swFlowStage: 'prepare',
+    briefSubmits: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.briefSubmits') || 'null');
+        if (Array.isArray(saved)) return saved;
+      } catch (_) {}
+      return [];
+    })(),
+    campaignCoopSubmits: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.campaignCoopSubmits') || 'null');
+        if (Array.isArray(saved)) return saved;
+      } catch (_) {}
+      return [];
+    })(),
+    campaignCoopDeals: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.campaignCoopDeals') || 'null');
+        if (saved && typeof saved === 'object' && !Array.isArray(saved)) return saved;
+      } catch (_) {}
+      return {};
+    })(),
+    strategySubmits: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.strategySubmits') || 'null');
+        if (Array.isArray(saved)) return saved;
+      } catch (_) {}
+      return [];
+    })(),
     swVersionMenu: false,
     swSaveAsOpen: false,
     swSaveAsDraft: '',
@@ -341,9 +415,24 @@ class Component extends DCLogic {
     assetEntryCampaign: '',
     assetEntryNotice: '',
     campaignIdx: 0,
-    campaignSku: '',
-    campaignName: '',
-    campaignTab: 'strategy',
+    campaignName: (() => {
+      const p = new URLSearchParams(window.location.search);
+      return window.AIOS_PAGE === 'campaigns' && p.get('view') === 'campaignDetail' ? (p.get('campaignName') || '') : '';
+    })(),
+    campaignSubmitId: (() => {
+      const p = new URLSearchParams(window.location.search);
+      return window.AIOS_PAGE === 'campaigns' && p.get('view') === 'campaignDetail' ? (p.get('campaignSubmitId') || '') : '';
+    })(),
+    campaignSku: (() => {
+      const p = new URLSearchParams(window.location.search);
+      return window.AIOS_PAGE === 'campaigns' && p.get('view') === 'campaignDetail' ? (p.get('campaignSku') || '') : '';
+    })(),
+    campaignTab: (() => {
+      const p = new URLSearchParams(window.location.search);
+      return window.AIOS_PAGE === 'campaigns' && p.get('view') === 'campaignDetail' ? (p.get('campaignTab') || 'goals') : 'strategy';
+    })(),
+    apCampaignExpandedKey: '',
+    campaignResubmitId: '',
     campaignAiSummaryOpen: false,
     campaignStrategyVersions: [],
     campaignStrategySelected: {},
@@ -373,6 +462,7 @@ class Component extends DCLogic {
     campaignBriefSetupOpen: true,
     campaignBriefCreatorPickerOpen: true,
     campaignBriefCreatorQuery: '',
+    campaignEmailIntentFilter: 'all',
     campaignBriefListTab: 'channel',
     campaignBriefSelectedKey: '',
     campaignBriefNotice: '',
@@ -450,8 +540,42 @@ class Component extends DCLogic {
     briefStudioCreatorPickerOpen: false,
     briefStudioCreatorQuery: '',
     briefStudioNotice: '',
+    briefSubmitOpen: false,
+    briefSubmitPreviewTab: 'channel',
+    briefSubmitPreviewItemKey: '',
+    apBriefPreviewTab: 'channel',
+    apBriefPreviewItemKey: '',
+    briefDeletePending: null,
     apTab: 'pending',
     tagSubmits: [],
+    campaignSubmits: (() => {
+      const seed = {
+        id: 'seed-cmp-1', sku: 'RYZ-SC-01', name: 'Ryze 头皮按摩仪', brand: 'Ryze', owner: '陈曦',
+        goal: '爆品打造', kpi: '90 条内容 · 3.5M 播放', contentTarget: 90, viewsTarget: '3.5M',
+        budget: 56000, start: '2026-10-01', end: '2026-12-15', timelineKey: 'seed-ryz-q4', timelinePhases: [],
+        by: '陈曦', when: '2026-08-18'
+      };
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.campaignSubmits') || 'null');
+        if (Array.isArray(saved) && saved.length) return saved;
+      } catch (_) {}
+      return [seed];
+    })(),
+    approvals: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.approvals') || 'null');
+        if (saved && typeof saved === 'object' && !Array.isArray(saved)) return saved;
+      } catch (_) {}
+      return {};
+    })(),
+    newCampaigns: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.newCampaigns') || 'null');
+        if (Array.isArray(saved)) return saved;
+      } catch (_) {}
+      return [];
+    })(),
+    doneTaskKeys: [],
     notifSeen: [],
     notifLog: [],
     budget: { pool: 69000, committed: 41200, paid: 25900 },
@@ -1059,10 +1183,366 @@ class Component extends DCLogic {
     cpAddrOpen: false, cpAddrEditId: '', cpAddrDraft: {}, cpAddrError: '', cpAddrDelete: null
   });
   openAsset = (i) => () => this.setState({ page: 'assetDetail', assetIdx: i });
-  openCampaign = (i, tab) => () => this.setState({ page: 'campaignDetail', campaignIdx: i, campaignSku: '', campaignName: '', campaignTab: tab || 'strategy', campaignAiSummaryOpen: false });
+  openCampaign = (i, tab) => () => this.setState({ page: 'campaignDetail', campaignIdx: i, campaignSku: '', campaignName: '', campaignSubmitId: '', campaignTab: tab || 'strategy', campaignAiSummaryOpen: false });
   openCampaignSku = (sku, tab, name) => (e) => {
     if (e && e.stopPropagation) e.stopPropagation();
-    this.setState({ page: 'campaignDetail', campaignSku: sku || '', campaignName: name || '', campaignTab: tab || 'strategy', campaignAiSummaryOpen: false });
+    this.setState({ page: 'campaignDetail', campaignSku: sku || '', campaignName: name || '', campaignSubmitId: '', campaignTab: tab || 'strategy', campaignAiSummaryOpen: false });
+  };
+  buildCampaignSubmitPreview = (sub) => {
+    const ap = (this.state.approvals || {})['cmp-' + sub.id];
+    const st2 = ap ? ap.status : '待审批';
+    const statusStyle = st2 === '已通过' ? ['#E4EFE4', '#4E7156'] : st2 === '已驳回' ? ['#F7EDEE', '#C4636D'] : ['#FBEEDA', '#A5762C'];
+    const fmtWin = (start, end) => {
+      const short = (iso) => {
+        const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(iso || '').trim());
+        return m ? (+m[2]) + '/' + (+m[3]) : (iso || '—');
+      };
+      return start && end ? short(start) + ' – ' + short(end) : '未排期';
+    };
+    const budgetText = '$' + Number(sub.budget || 0).toLocaleString('en-US');
+    const kpiText = sub.kpi || (sub.contentTarget + ' 条内容 · ' + sub.viewsTarget + ' 播放');
+    const windowText = fmtWin(sub.start, sub.end);
+    return {
+      submitId: sub.id,
+      title: sub.name + ' · ' + sub.goal,
+      statusText: st2 === '待审批' ? '立项待审批' : st2,
+      statusBg: statusStyle[0], statusFg: statusStyle[1],
+      note: st2 === '待审批'
+        ? '审批通过前不会出现在 Campaign 列表；通过后会写入 Budget Mgt 并进入正式 Campaign。'
+        : (st2 === '已通过' ? '已通过立项，可在 Campaigns 模块跟进执行。' : '立项被驳回，请修改后重新提交审核。'),
+      highlights: [
+        { label: 'SKU', value: sub.sku },
+        { label: '内容目标', value: String(sub.contentTarget) + ' 条内容' },
+        { label: '播放量', value: String(sub.viewsTarget) + ' 播放' },
+        { label: '预算', value: budgetText },
+        { label: '周期', value: windowText }
+      ],
+      kpiLine: kpiText,
+      submitter: sub.by || '陈曦'
+    };
+  };
+  buildCoopDealSubmitPreview = (sub) => {
+    const ap = (this.state.approvals || {})['cdeal-' + sub.id];
+    const st2 = ap ? ap.status : '待审批';
+    const statusStyle = st2 === '已通过' ? ['#E4EFE4', '#4E7156'] : st2 === '已驳回' ? ['#F7EDEE', '#C4636D'] : ['#FBEEDA', '#A5762C'];
+    const handles = (sub.handles || []).filter(Boolean);
+    return {
+      submitId: sub.id,
+      statusText: st2 === '待审批' ? '合作申请待审批' : st2,
+      statusBg: statusStyle[0], statusFg: statusStyle[1],
+      note: st2 === '待审批'
+        ? '审批通过前红人不会进入 Campaign「合作」模块；驳回后可修改人选后重新提交。'
+        : (st2 === '已通过' ? '已通过，相关红人已进入合作履约流程。' : '申请被驳回，请调整后再提交。'),
+      highlights: [
+        { label: 'Campaign', value: sub.campaignName || '—' },
+        { label: 'SKU', value: sub.sku || '—' },
+        { label: '申请人数', value: String(handles.length) + ' 位' },
+        { label: '红人', value: handles.length ? handles.join('、') : '—' },
+        { label: '提交人', value: sub.by || '陈曦' }
+      ],
+      handles
+    };
+  };
+  openCoopDealSubmitView = (sub) => () => {
+    if (window.AIOS_PAGE === 'tasks') {
+      this.setState({ apCampaignExpandedKey: 'cdeal-' + sub.id, tkTab: 'approval' });
+      return;
+    }
+    const q = new URLSearchParams({
+      view: 'campaignDetail',
+      campaignSku: sub.sku || '',
+      campaignName: sub.campaignName || '',
+      campaignTab: 'email'
+    });
+    try {
+      localStorage.setItem('aios.campaignCoopSubmits', JSON.stringify(this.state.campaignCoopSubmits || []));
+      localStorage.setItem('aios.approvals', JSON.stringify(this.state.approvals || {}));
+      localStorage.setItem('aios.campaignCoopDeals', JSON.stringify(this.state.campaignCoopDeals || {}));
+    } catch (_) {}
+    window.location.href = './4-Campaigns.html?' + q.toString();
+  };
+  openCampaignResubmit = (sub) => () => {
+    try {
+      localStorage.setItem('aios.campaignSubmits', JSON.stringify(this.state.campaignSubmits || []));
+      localStorage.setItem('aios.approvals', JSON.stringify(this.state.approvals || {}));
+      localStorage.setItem('aios.newCampaigns', JSON.stringify(this.state.newCampaigns || []));
+    } catch (_) {}
+    window.location.href = './4-Campaigns.html?resubmit=' + encodeURIComponent(sub.id);
+  };
+  openCampaignSubmitView = (sub) => () => {
+    const preview = this.buildCampaignSubmitPreview(sub);
+    if (window.AIOS_PAGE === 'tasks') {
+      this.setState({ apCampaignExpandedKey: 'cmp-' + sub.id, tkTab: 'approval' });
+      return;
+    }
+    const detailState = {
+      page: 'campaignDetail',
+      campaignSubmitId: sub.id,
+      campaignSku: sub.sku,
+      campaignName: sub.name + ' · ' + sub.goal,
+      campaignTab: 'goals',
+      campaignAiSummaryOpen: false,
+      apCampaignExpandedKey: ''
+    };
+    if (window.AIOS_PAGE === 'campaigns') {
+      this.setState(detailState);
+      return;
+    }
+    try {
+      localStorage.setItem('aios.campaignSubmits', JSON.stringify(this.state.campaignSubmits || []));
+      localStorage.setItem('aios.approvals', JSON.stringify(this.state.approvals || {}));
+      localStorage.setItem('aios.newCampaigns', JSON.stringify(this.state.newCampaigns || []));
+    } catch (_) {}
+    const q = new URLSearchParams({
+      view: 'campaignDetail',
+      campaignSubmitId: sub.id,
+      campaignName: sub.name + ' · ' + sub.goal,
+      campaignSku: sub.sku,
+      campaignTab: 'goals'
+    });
+    const prefix = window.AIOS_ROUTE_PREFIX || '';
+    const href = prefix && !window.location.pathname.includes('/pages/')
+      ? './' + prefix + '4-Campaigns.html?' + q.toString()
+      : './4-Campaigns.html?' + q.toString();
+    window.location.href = href;
+  };
+  buildStrategySubmitPreview = (sub) => {
+    const ap = (this.state.approvals || {})['str-' + sub.id];
+    const st2 = ap ? ap.status : '待审批';
+    const statusStyle = st2 === '已通过' ? ['#E4EFE4', '#4E7156'] : st2 === '已驳回' ? ['#F7EDEE', '#C4636D'] : ['#FBEEDA', '#A5762C'];
+    const modeLabel = { quick: '快速版', standard: '标准版', deep: '深度版' }[sub.mode] || sub.mode;
+    const versionName = sub.versionName || modeLabel;
+    const snapshot = (this.state.campaignStrategyVersions || []).find(x => x.sku === sub.sku && Number(x.ver) === Number(sub.ver));
+    const sections = snapshot && Array.isArray(snapshot.sections) && snapshot.sections.length
+      ? snapshot.sections.map(sec => ({ title: sec.no + '. ' + sec.title, body: sec.body || '' }))
+      : [{ title: '正文快照', body: '提交时未保存完整章节，请在 Strategy Studio 打开查看。' }];
+    return {
+      submitId: sub.id,
+      title: sub.name + ' · ' + versionName + ' v' + sub.ver,
+      statusText: st2 === '待审批' ? '策略定稿待审批' : st2,
+      statusBg: statusStyle[0], statusFg: statusStyle[1],
+      note: st2 === '待审批'
+        ? '审批通过前不会写入 Brief 引用链；通过后可作为定稿策略使用。'
+        : (st2 === '已通过' ? '已定稿通过，可在 Brief Studio 引用该策略。' : '定稿被驳回，请修改章节后重新提交审核。'),
+      highlights: [
+        { label: 'SKU', value: sub.sku },
+        { label: '版本', value: versionName + ' v' + sub.ver },
+        { label: '章节', value: (sub.confirmed || 0) + ' / ' + (sub.sections || sections.length) + ' 已确认' },
+        { label: '模式', value: modeLabel },
+        { label: '提交人', value: sub.by || '陈曦' }
+      ],
+      previewTitle: sub.name + ' · ' + versionName + ' · 共 ' + sections.length + ' 章',
+      sections,
+      submitter: sub.by || '陈曦'
+    };
+  };
+  /** 策略定稿通过后：冻结当前版本并自动开启下一版草稿（无需人工「另存版本」） */
+  bumpStrategyVersionAfterApproval = (st, versionKey, strSub) => {
+    const m = String(versionKey || '').match(/^(.+)\|v(\d+)$/);
+    if (!m) return {};
+    const sku = m[1];
+    const approvedVer = Number(m[2]);
+    const rec = (st.library || []).find(x => x.sku === sku);
+    if (!rec || approvedVer !== Number(rec.ver || 0)) return {};
+    const nextVer = approvedVer + 1;
+    const snapshots = st.campaignStrategyVersions || [];
+    if (snapshots.some(x => x.sku === sku && Number(x.ver) === nextVer)) return {};
+    let approvedSnap = snapshots.find(x => x.sku === sku && Number(x.ver) === approvedVer);
+    if ((!approvedSnap || !Array.isArray(approvedSnap.sections) || !approvedSnap.sections.length) && strSub) {
+      const preview = this.buildStrategySubmitPreview(strSub);
+      if (preview && preview.sections && preview.sections.length) {
+        approvedSnap = {
+          sku, product: rec.name, brand: rec.brand, owner: rec.owner,
+          ver: approvedVer, title: rec.name + ' 红人种草策略', mode: strSub.mode || rec.mode || 'standard',
+          sections: preview.sections.map((sec, idx) => ({
+            no: idx + 1, title: String(sec.title || '').replace(/^\d+\.\s*/, ''), body: sec.body || '', src: ''
+          })),
+          confirmed: strSub.confirmed || preview.sections.length, date: '2026-09-08', status: '已通过', source: 'My Tasks · 定稿通过'
+        };
+      }
+    }
+    const mode = (approvedSnap && approvedSnap.mode) || strSub?.mode || rec.mode || 'standard';
+    const sectionRows = approvedSnap && Array.isArray(approvedSnap.sections) ? approvedSnap.sections : [];
+    const confirmedCount = approvedSnap ? (approvedSnap.confirmed || sectionRows.length) : 0;
+    const newSnap = {
+      sku, product: rec.name, brand: rec.brand, owner: rec.owner,
+      ver: nextVer, title: rec.name + ' 红人种草策略', mode,
+      sections: sectionRows.map(sec => ({ no: sec.no, title: sec.title, body: sec.body || '', src: sec.src || '' })),
+      confirmed: 0, date: '2026-09-08', status: '草稿', source: '审核通过 · 自动 v' + nextVer
+    };
+    const upsertSnapshot = (rows, snap) => [snap, ...(rows || []).filter(x => !(x.sku === snap.sku && Number(x.ver) === Number(snap.ver)))];
+    let nextSnapshots = snapshots;
+    if (approvedSnap) nextSnapshots = upsertSnapshot(nextSnapshots, { ...approvedSnap, status: '已通过', source: approvedSnap.source || '定稿快照' });
+    nextSnapshots = upsertSnapshot(nextSnapshots, newSnap);
+    const approvals = { ...(st.strategyApproved || {}) };
+    for (let v = 1; v <= approvedVer; v++) approvals[sku + '|v' + v] = '已通过';
+    approvals[sku + '|v' + nextVer] = '草稿';
+    const library = (st.library || []).map(x => x.sku === sku ? {
+      ...x, ver: nextVer, date: '2026-09-08', mode, sections: sectionRows.length || x.sections,
+      confirmed: 0, status: 'draft'
+    } : x);
+    const patch = {
+      campaignStrategyVersions: nextSnapshots,
+      strategyApproved: approvals,
+      library,
+      campaignStrategySelected: { ...(st.campaignStrategySelected || {}), [sku]: sku + '|v' + nextVer },
+      notifLog: [{ kind: 'approval', title: '策略 v' + approvedVer + ' 已通过 · 已自动开启 v' + nextVer, note: rec.name + ' · 可在工作台继续编辑新版本', when: '刚刚' }, ...(st.notifLog || [])]
+    };
+    if (st.strategySku === sku) {
+      const targetEdits = sectionRows.reduce((acc, sec, idx) => ({ ...acc, [idx + 1]: sec.body || '' }), {});
+      patch.docMode = false;
+      patch.swFlowStage = 'confirm';
+      patch.swVersionNotice = 'v' + approvedVer + ' 已定稿 · 已自动开启 v' + nextVer + ' 草稿，可继续编辑。';
+      patch.sw = {
+        ...st.sw,
+        verBase: nextVer, mode, generated: true, step: 10, editing: null,
+        edits: targetEdits, regen: {}, locked: [], confirmed: [],
+        loadedStatus: 'draft', savedAt: '刚刚'
+      };
+    }
+    return patch;
+  };
+  openStrategySubmitView = (sub) => () => {
+    if (window.AIOS_PAGE === 'tasks') {
+      this.setState({ apCampaignExpandedKey: 'str-' + sub.id, tkTab: 'approval' });
+      return;
+    }
+    try {
+      localStorage.setItem('aios.strategySubmits', JSON.stringify(this.state.strategySubmits || []));
+      localStorage.setItem('aios.approvals', JSON.stringify(this.state.approvals || {}));
+      localStorage.setItem('aios.campaignStrategyVersions', JSON.stringify(this.state.campaignStrategyVersions || []));
+    } catch (_) {}
+    window.location.href = './5-Strategy-Studio.html?edit=1&sku=' + encodeURIComponent(sub.sku) + '&flow=submit';
+  };
+
+  briefLineKey = (b) => (b.sku || '') + '|' + (b.platform || '') + '|' + (b.mode || 'channel') + '|' + (b.creator || '');
+  briefRowKind = (v) => ((v.mode || 'channel') === 'creator' || v.mode === 'style') ? 'creator' : 'channel';
+  briefVersionCardKey = (v) => (v.sku || '') + '|' + (v.platform || '') + '|' + (v.mode || 'channel') + '|' + (v.ver || '') + '|' + (v.creator || '');
+
+  purgeLegacyBriefDeletes = () => {
+    try {
+      const raw = JSON.parse(localStorage.getItem('aios.deletedBriefEntries') || '[]');
+      if (!Array.isArray(raw) || !raw.length) return;
+      const keys = new Set(raw.map(x => x.key).filter(Boolean));
+      if (!keys.size) return;
+      this.setState(st => ({
+        briefVersions: (st.briefVersions || []).filter(v => !keys.has(this.briefVersionCardKey(v)))
+      }));
+      localStorage.removeItem('aios.deletedBriefEntries');
+    } catch (_) {}
+  };
+  briefVerNum = (ver) => parseInt(String(ver || '').replace(/\D/g, ''), 10) || 0;
+  briefVerLabel = (n) => 'v' + n;
+
+  briefBlocksToSections = (blocks) => (blocks || []).map(b => ({
+    title: b.label,
+    body: b.isList ? (b.items || []).map(it => (b.mark || '·') + ' ' + it).join('\n') : String(b.body || '')
+  }));
+
+  briefLinePreviewLabel = (it) => {
+    const kind = it.mode === 'creator' ? ('红人 · ' + (it.creator || '未指定')) : '渠道';
+    return it.platform + ' · ' + kind + ' · ' + it.ver;
+  };
+
+  briefSubmitItemSections = (it) => (
+    Array.isArray(it.sections) && it.sections.length
+      ? it.sections
+      : [{ title: '正文', body: '提交记录缺少正文快照，请在 Brief Studio 打开查看。' }]
+  );
+
+  briefPreviewSectionsFromItems = (items) => {
+    const rows = items || [];
+    if (!rows.length) return [{ isBundleHeader: false, title: '无明细', body: '提交记录缺少版本明细。' }];
+    return rows.flatMap(it => {
+      const kind = this.briefRowKind(it);
+      const secs = this.briefSubmitItemSections(it);
+      return [
+        {
+          isBundleHeader: true, title: this.briefLinePreviewLabel(it), body: '',
+          briefKind: kind, kindLabel: kind === 'creator' ? '红人' : '渠道',
+          headerBg: kind === 'creator' ? '#E4EFE4' : '#EAF0FF',
+          headerBd: kind === 'creator' ? '#CFE3D3' : '#C8D4FF',
+          headerFg: kind === 'creator' ? '#4E7156' : '#1D48D8'
+        },
+        ...secs.map(s => ({ isBundleHeader: false, title: s.title, body: s.body, briefKind: kind }))
+      ];
+    });
+  };
+
+  buildBriefSubmitPreview = (sub) => {
+    const ap = (this.state.approvals || {})['brf-' + sub.id];
+    const st2 = ap ? ap.status : '待审批';
+    const statusStyle = st2 === '已通过' ? ['#E4EFE4', '#4E7156'] : st2 === '已驳回' ? ['#F7EDEE', '#C4636D'] : ['#FBEEDA', '#A5762C'];
+    const items = sub.items || [];
+    return {
+      submitId: sub.id,
+      title: sub.name + ' · Brief 打包定稿（' + items.length + ' 份）',
+      statusText: st2 === '待审批' ? 'Brief 打包待审批' : st2,
+      statusBg: statusStyle[0], statusFg: statusStyle[1],
+      note: st2 === '待审批'
+        ? '审批通过后各渠道/红人 Brief 最新版本定稿，并自动开启下一版草稿。'
+        : (st2 === '已通过' ? '已定稿通过，可在 CRM / 寄样流程引用。' : '打包被驳回，请修改后重新提交全部 Brief。'),
+      highlights: [
+        { label: 'SKU', value: sub.sku },
+        { label: '包含', value: items.length + ' 份 Brief' },
+        { label: '提交人', value: sub.by || '陈曦' },
+        { label: '提交时间', value: sub.when || '—' }
+      ],
+      previewTitle: sub.name + ' · 提交内容（渠道 + 红人 Brief 全文）',
+      sections: this.briefPreviewSectionsFromItems(items),
+      submitter: sub.by || '陈曦'
+    };
+  };
+
+  bumpBriefBundleAfterApproval = (st, submit) => {
+    if (!submit || !submit.sku || !Array.isArray(submit.items) || !submit.items.length) return {};
+    const sku = submit.sku;
+    let versions = [...(st.briefVersions || [])];
+    const newDrafts = [];
+    submit.items.forEach(item => {
+      const line = this.briefLineKey(item);
+      const approvedNum = this.briefVerNum(item.ver);
+      const lineRows = versions.filter(v => v.sku === sku && this.briefLineKey(v) === line);
+      const maxNum = lineRows.reduce((m, v) => Math.max(m, this.briefVerNum(v.ver)), 0);
+      if (approvedNum < maxNum) return;
+      const src = versions.find(v => v.sku === sku && v.platform === item.platform && (v.mode || 'channel') === (item.mode || 'channel') && v.ver === item.ver && (v.creator || '') === (item.creator || ''));
+      if (!src) return;
+      const nextLabel = this.briefVerLabel(approvedNum + 1);
+      if (lineRows.some(v => v.ver === nextLabel)) return;
+      newDrafts.push({
+        ...src, ver: nextLabel, status: '草稿', date: '2026-09-08', comment: '', by: '',
+        origin: src.origin || 'brief-studio-generated', briefStudioSession: 'existing'
+      });
+    });
+    versions = versions.map(v => {
+      const hit = submit.items.some(it => it.sku === v.sku && it.platform === v.platform && (it.mode || 'channel') === (v.mode || 'channel') && it.ver === v.ver && (it.creator || '') === (v.creator || ''));
+      if (hit) return { ...v, status: '已通过', comment: '', by: '' };
+      const line = this.briefLineKey(v);
+      const inBundleLine = submit.items.some(it => v.sku === sku && this.briefLineKey(it) === line);
+      if (inBundleLine && v.sku === sku) {
+        const itemVer = this.briefVerNum(submit.items.find(it => this.briefLineKey(it) === line).ver);
+        if (this.briefVerNum(v.ver) < itemVer) return { ...v, status: '已通过' };
+      }
+      return v;
+    });
+    return {
+      briefVersions: [...newDrafts, ...versions],
+      briefStudioNotice: 'Brief 打包已通过 · 已自动为各条线开启下一版草稿。',
+      notifLog: [{ kind: 'approval', title: 'Brief 打包已通过 · ' + submit.name, note: newDrafts.length + ' 条新版本草稿已创建', when: '刚刚' }, ...(st.notifLog || [])]
+    };
+  };
+
+  openBriefSubmitView = (sub) => () => {
+    if (window.AIOS_PAGE === 'tasks') {
+      this.setState({ apCampaignExpandedKey: 'brf-' + sub.id, tkTab: 'approval' });
+      return;
+    }
+    try {
+      localStorage.setItem('aios.briefSubmits', JSON.stringify(this.state.briefSubmits || []));
+      localStorage.setItem('aios.approvals', JSON.stringify(this.state.approvals || {}));
+      localStorage.setItem('aios.campaignBriefVersions', JSON.stringify(this.state.briefVersions || []));
+    } catch (_) {}
+    window.location.href = './6-Brief-Studio.html?edit=1&sku=' + encodeURIComponent(sub.sku) + '&flow=submit';
   };
 
   ask = (label, reply) => () => {
@@ -1133,15 +1613,11 @@ class Component extends DCLogic {
       return out;
     })();
     const AP_TYPE_STYLE = {
-      '选品': ['#EAF0FF', '#2457F5'], 'Campaign': ['#E4EEF7', '#1D48D8'], 'Strategy': ['#EEF2FF', '#3F5FCC'],
+      'Campaign': ['#E4EEF7', '#1D48D8'], 'Strategy': ['#EEF2FF', '#3F5FCC'],
       'Brief': ['#F1F5FF', '#1D48D8'], '红人合作': ['#E4EFE4', '#4E7156'], '寄样': ['#FBEEDA', '#A5762C'],
       '素材入库': ['#F5F8FE', '#647187'], '付款': ['#F7EDEE', '#C4636D'], '合同变更': ['#EAF0F4', '#365581']
     };
     const apSeedDefs = [
-      { id: 'sel-1', type: '选品', title: 'Aura 落地氛围灯 申请进入推广池', meta: 'SKU AURA-LP-01 · 营销得分 89 · 提交人 苏敏 · 提交 2026-08-19', page: 'products', view: '查看产品' },
-      { id: 'sel-2', type: '选品', title: 'Nuvia 口服胶囊 申请进入推广池', meta: 'SKU NUV-SP-07 · 营销得分 41 · 合规证据未齐 · 提交人 林浩 · 提交 2026-08-15', page: 'products', view: '查看产品', preset: '已驳回', comment: '合规证据未补齐，得分 41 不进入本季度推广池。' },
-      { id: 'cmp-1', type: 'Campaign', title: 'Ryze · Q4 节日种草 立项申请', meta: '预算 $56,000 · 目标 爆品打造 · 周期 10/1–12/15 · 提交人 陈曦', page: 'campaigns', view: '查看 Campaign' },
-      { id: 'str-1', type: 'Strategy', title: 'Lumo 便携香氛机 策略 v2 申请定稿', meta: 'SKU LUM-AR-02 · 标准版 15 章 · 已确认 15 章 · 提交人 苏敏', page: 'strategy', view: '查看策略' },
       { id: 'inf-1', type: '红人合作', title: '@sofia.homelab 合作条件申请批准', meta: '付费合作 $850（高于均值 31%）· Lumo 便携香氛机 · 提交人 苏敏', page: 'creators', view: '查看红人' },
       { id: 'inf-2', type: '红人合作', title: '@kaylascalp 转长期合作申请', meta: '寄样 + 12% 佣金 · ER 12.4% · 提交人 陈曦 · 提交 2026-08-16', page: 'creators', view: '查看红人', preset: '已通过', comment: '性价比最好的一位，同意转长期并给月度配额。' },
       { id: 'smp-1', type: '寄样', title: '批量寄样申请 · 6 位红人 / 8 件', meta: 'Ryze 头皮按摩仪 × 8 · 物流预估 $186 · 提交人 林浩', page: 'samples', view: '查看寄样' },
@@ -1151,20 +1627,24 @@ class Component extends DCLogic {
     ];
     const apPool = (() => {
       const decided = s.approvals || {};
-      const briefItems = bvLive.map(b => {
-        const k = b.sku + '|' + b.platform + '|' + b.ver + '|' + (b.creator || '');
-        const st2 = (decided[k] ? decided[k].status : b.status);
+      const briefItems = (s.briefSubmits || []).map(sub => {
+        const k = 'brf-' + sub.id;
+        const d = decided[k];
+        const st2 = d ? d.status : '待审批';
         const sty = AP_TYPE_STYLE['Brief'];
+        const n = (sub.items || []).length;
         return {
           key: k, type: 'Brief', status: st2,
-          comment: decided[k] ? decided[k].comment : '', by: decided[k] ? decided[k].by : '',
-          title: b.name + ' · ' + b.platform + (b.mode === 'creator' ? ' · ' + (b.creator || '红人风格') : '') + ' ' + b.ver,
-          meta: 'SKU ' + b.sku + ' · 第 ' + b.iter + ' 次生成 · 提交 ' + b.date + ' · 提交人 ' + (b.owner || '陈曦'),
+          comment: d ? d.comment : '', by: d ? d.by : '',
+          title: sub.name + ' · Brief 打包定稿（' + n + ' 份）',
+          meta: 'SKU ' + sub.sku + ' · ' + n + ' 份渠道/红人 Brief · 提交人 ' + (sub.by || '陈曦') + ' · ' + (sub.when || '—'),
           typeBg: sty[0], typeFg: sty[1], viewLabel: '查看 Brief',
-          goState: { page: 'brief', briefView: 'vault' },
-          notifName: 'Brief · ' + b.name + ' ' + b.ver
+          goState: { page: 'brief', briefView: 'editor', briefId: 'brf-' + sub.sku },
+          viewGo: this.openBriefSubmitView(sub),
+          notifName: 'Brief · ' + sub.name,
+          isBrief: true, briefSubmitId: sub.id
         };
-      }).filter(b => b.status === '待审批' || b.status === '已通过' || b.status === '已驳回');
+      });
       const others = apSeedDefs.map(d => {
         const sty = AP_TYPE_STYLE[d.type] || ['#F5F8FE', '#647187'];
         const st2 = decided[d.id] ? decided[d.id].status : (d.preset || '待审批');
@@ -1212,8 +1692,62 @@ class Component extends DCLogic {
           isTag: true, tagKind: sub.kind, tagTarget: sub.target, tagValue: sub.tag
         };
       });
+      const campItems = (s.campaignSubmits || []).map(sub => {
+        const k = 'cmp-' + sub.id;
+        const d = decided[k];
+        const sty = AP_TYPE_STYLE['Campaign'];
+        const st2 = d ? d.status : '待审批';
+        const budgetText = '$' + Number(sub.budget || 0).toLocaleString('en-US');
+        return {
+          key: k, type: 'Campaign', status: st2,
+          comment: d ? d.comment : '', by: d ? d.by : '',
+          title: sub.name + ' · ' + sub.goal + ' 立项申请',
+          meta: '预算 ' + budgetText + ' · ' + sub.contentTarget + ' 条内容 · ' + sub.viewsTarget + ' 播放 · ' + sub.start + ' 至 ' + sub.end + ' · 提交人 ' + (sub.by || '陈曦'),
+          typeBg: sty[0], typeFg: sty[1], viewLabel: '查看 Campaign',
+          goState: { page: 'campaigns', cmTab: 'list' },
+          viewGo: this.openCampaignSubmitView(sub),
+          notifName: 'Campaign · ' + sub.name + ' 立项',
+          isCampaign: true, campaignId: sub.id
+        };
+      });
+      const coopDealItems = (s.campaignCoopSubmits || []).map(sub => {
+        const k = 'cdeal-' + sub.id;
+        const d = decided[k];
+        const sty = AP_TYPE_STYLE['红人合作'];
+        const st2 = d ? d.status : '待审批';
+        const handles = (sub.handles || []).filter(Boolean);
+        return {
+          key: k, type: '红人合作', status: st2,
+          comment: d ? d.comment : '', by: d ? d.by : '',
+          title: (sub.campaignName || sub.sku) + ' · 达成合作申请（' + handles.length + ' 位）',
+          meta: handles.join('、') + ' · SKU ' + (sub.sku || '—') + ' · 提交人 ' + (sub.by || '陈曦') + ' · 提交 ' + (sub.when || '—'),
+          typeBg: sty[0], typeFg: sty[1], viewLabel: '查看申请',
+          goState: { page: 'campaigns', campaignTab: 'email' },
+          viewGo: this.openCoopDealSubmitView(sub),
+          notifName: '达成合作 · ' + (sub.campaignName || sub.sku),
+          isCoopDeal: true, coopDealSubmitId: sub.id
+        };
+      });
+      const strItems = (s.strategySubmits || []).map(sub => {
+        const k = 'str-' + sub.id;
+        const d = decided[k];
+        const sty = AP_TYPE_STYLE['Strategy'];
+        const st2 = d ? d.status : '待审批';
+        const modeLabel = { quick: '快速版', standard: '标准版', deep: '深度版' }[sub.mode] || sub.mode;
+        return {
+          key: k, type: 'Strategy', status: st2,
+          comment: d ? d.comment : '', by: d ? d.by : '',
+          title: sub.name + ' · ' + (sub.versionName || modeLabel) + ' v' + sub.ver + ' 策略定稿',
+          meta: 'SKU ' + sub.sku + ' · ' + modeLabel + ' · ' + sub.confirmed + '/' + sub.sections + ' 章已确认 · 提交人 ' + (sub.by || '陈曦') + ' · 提交 ' + (sub.when || '—'),
+          typeBg: sty[0], typeFg: sty[1], viewLabel: '查看策略',
+          goState: { page: 'strategy', benchOpen: true, strategySku: sub.sku, swFlowStage: 'submit' },
+          viewGo: this.openStrategySubmitView(sub),
+          notifName: 'Strategy · ' + sub.name + ' v' + sub.ver,
+          isStrategy: true, strategySubmitId: sub.id, strategyVersionKey: sub.sku + '|v' + sub.ver
+        };
+      });
       const order = { '待审批': 0, '已驳回': 1, '已通过': 2 };
-      return tagItems.concat(others).concat(payItems).concat(briefItems).sort((a, b) => (order[a.status] - order[b.status]));
+      return tagItems.concat(coopDealItems).concat(campItems).concat(strItems).concat(others).concat(payItems).concat(briefItems).sort((a, b) => (order[a.status] - order[b.status]));
     })();
     const apPendingCount = apPool.filter(x => x.status === '待审批').length;
     const apPendingKinds = Object.keys(apPool.filter(x => x.status === '待审批').reduce((m, x) => { m[x.type] = 1; return m; }, {})).length;
@@ -1824,7 +2358,7 @@ class Component extends DCLogic {
     const blockers = [
       { label: '待回复邮件（超 24h）', value: String(facts.warn.length + facts.stale.length), note: facts.stale.length ? facts.stale.length + ' 封已超 48h' : (facts.warn.length ? '均为 24–48h' : '无超时'), color: facts.stale.length ? RUST : (facts.warn.length ? AMBER : SAGE), go: () => this.setState({ page: 'tasks', tkTab: 'mail' }) },
       { label: '待回收素材', value: String(facts.pending.length), note: facts.overdue.length ? facts.overdue.length + ' 个超期 · 需催单' : '全部在期内', color: facts.overdue.length ? RUST : SAGE, go: this.go('campaigns') },
-      { label: '待审批事项', value: String(apPendingCount), note: apPendingCount ? '含 Brief / 选品 / 付款等 ' + apPendingKinds + ' 类' : '无待审批', color: apPendingCount ? AMBER : SAGE, go: () => this.setState({ page: 'tasks', tkTab: 'approval', apType: '全部类型', apTab: 'pending' }) },
+      { label: '待审批事项', value: String(apPendingCount), note: apPendingCount ? '含 Brief / 付款等 ' + apPendingKinds + ' 类' : '无待审批', color: apPendingCount ? AMBER : SAGE, go: () => this.setState({ page: 'tasks', tkTab: 'approval', apType: '全部类型', apTab: 'pending' }) },
       { label: '待补内容授权', value: String(facts.pendingRights), note: facts.pendingRights ? '影响 ' + facts.pendingRights + ' 条素材投放' : '授权齐备', color: facts.pendingRights ? AMBER : SAGE, go: this.go('assets') },
       { label: '逾期交付红人', value: String(facts.overdue.length), note: avgOverdue ? '平均逾期 ' + avgOverdue + ' 天' : '无逾期', color: facts.overdue.length ? RUST : SAGE, go: this.go('campaigns') },
       { label: '待审批发票', value: String(facts.invPending), note: facts.invPending ? '结算流程等待确认' : '无待审批', color: facts.invPending ? AMBER : SAGE, go: this.go('finance') }
@@ -2166,17 +2700,167 @@ class Component extends DCLogic {
       ['审批 Ryze 白名单投放授权 Brief', '下周一', 'Brief', this.go('brief')],
       ['@june.rests 的前后对比需重剪字幕后再投放', '下周三', 'Assets', this.go('assets')]
     ];
-    const tasks = taskDefs.map(([title, due, tag, go], i) => {
+    const strategyResultTasks = (s.strategySubmits || []).flatMap(sub => {
+      const d = (s.approvals || {})['str-' + sub.id];
+      if (!d || d.status === '待审批') return [];
+      const key = 'str-' + sub.id;
+      const done = (s.doneTaskKeys || []).includes(key);
+      const approved = d.status === '已通过';
+      const title = approved
+        ? '策略定稿已通过 · ' + sub.name + ' v' + sub.ver
+        : '策略定稿被驳回 · ' + sub.name + ' v' + sub.ver;
+      const when = (d.when || '').trim() || '—';
+      const reason = (d.comment || '').trim() || '无具体意见';
+      const due = approved ? '可在 Brief Studio 引用定稿策略' : (when + ' 驳回 · ' + reason);
+      return [{
+        title, due, tag: 'Strategy',
+        isCampResult: true,
+        isRejected: !approved,
+        isApproved: approved,
+        ctaLabel: approved ? 'Strategy →' : '修改并重新提交',
+        isCampResultClosed: false,
+        go: approved
+          ? () => { window.location.href = './5-Strategy-Studio.html?sku=' + encodeURIComponent(sub.sku) + '&edit=1'; }
+          : () => { window.location.href = './5-Strategy-Studio.html?edit=1&sku=' + encodeURIComponent(sub.sku) + '&flow=confirm'; },
+        check: done ? '✓' : '',
+        dueColor: done ? '#929CAF' : (approved ? '#8792A5' : RUST),
+        boxBg: done ? SAGE : 'transparent', boxBorder: done ? SAGE : '#C8D4E8',
+        fg: done ? '#929CAF' : '#1D2638', deco: done ? 'line-through' : 'none',
+        toggle: () => this.setState(st => ({
+          doneTaskKeys: (st.doneTaskKeys || []).includes(key)
+            ? (st.doneTaskKeys || []).filter(x => x !== key)
+            : [...(st.doneTaskKeys || []), key]
+        }))
+      }];
+    });
+    const campResultTasks = (s.campaignSubmits || []).flatMap(sub => {
+      const d = (s.approvals || {})['cmp-' + sub.id];
+      if (!d || d.status === '待审批') return [];
+      const key = 'cmp-' + sub.id;
+      const done = (s.doneTaskKeys || []).includes(key);
+      const approved = d.status === '已通过';
+      const title = approved
+        ? 'Campaign 立项已通过 · ' + sub.name + '（' + sub.goal + '），可在 Campaign 列表跟进'
+        : 'Campaign 立项被驳回 · ' + sub.name;
+      const due = approved ? '待跟进' : (() => {
+        const when = (d.when || '').trim() || '—';
+        const reason = (d.comment || '').trim() || '无具体意见';
+        return when + ' 驳回 · ' + reason;
+      })();
+      const overdue = false;
+      return [{
+        title, due, tag: 'Campaign',
+        isCampResult: true,
+        isRejected: !approved,
+        isApproved: approved,
+        rejectComment: '',
+        ctaLabel: approved ? 'Campaign →' : '修改并重新提交',
+        isCampResultClosed: false,
+        go: approved
+          ? () => {
+            if (window.AIOS_PAGE === 'campaigns') this.setState({ page: 'campaigns', cmTab: 'list' });
+            else window.location.href = './4-Campaigns.html';
+          }
+          : this.openCampaignResubmit(sub),
+        check: done ? '✓' : '',
+        dueColor: done ? '#929CAF' : overdue ? RUST : '#8792A5',
+        boxBg: done ? SAGE : 'transparent', boxBorder: done ? SAGE : '#C8D4E8',
+        fg: done ? '#929CAF' : '#1D2638', deco: done ? 'line-through' : 'none',
+        toggle: () => this.setState(st => ({
+          doneTaskKeys: (st.doneTaskKeys || []).includes(key)
+            ? (st.doneTaskKeys || []).filter(x => x !== key)
+            : [...(st.doneTaskKeys || []), key]
+        }))
+      }];
+    });
+    const taskTodos = taskDefs.map(([title, due, tag, go], i) => {
       const done = s.doneTasks.includes(i);
       const overdue = due.startsWith('逾期');
       return {
         title, due, tag, go, check: done ? '✓' : '',
+        isCampResult: false, isCampResultClosed: true,
+        isRejected: false, isApproved: false,
         dueColor: done ? '#929CAF' : overdue ? RUST : due === '今天' ? AMBER : '#8792A5',
         boxBg: done ? SAGE : 'transparent', boxBorder: done ? SAGE : '#C8D4E8',
         fg: done ? '#929CAF' : '#1D2638', deco: done ? 'line-through' : 'none',
         toggle: () => this.setState(st => ({ doneTasks: st.doneTasks.includes(i) ? st.doneTasks.filter(x => x !== i) : [...st.doneTasks, i] }))
       };
     });
+    const briefResultTasks = (s.briefSubmits || []).flatMap(sub => {
+      const d = (s.approvals || {})['brf-' + sub.id];
+      if (!d || d.status === '待审批') return [];
+      const key = 'brf-' + sub.id;
+      const done = (s.doneTaskKeys || []).includes(key);
+      const approved = d.status === '已通过';
+      const title = approved
+        ? 'Brief 打包已通过 · ' + sub.name + '（' + (sub.items || []).length + ' 份）'
+        : 'Brief 打包被驳回 · ' + sub.name;
+      const when = (d.when || '').trim() || '—';
+      const reason = (d.comment || '').trim() || '无具体意见';
+      const due = approved ? '各 Brief 线已自动开启下一版草稿' : (when + ' 驳回 · ' + reason);
+      return [{
+        title, due, tag: 'Brief',
+        isCampResult: true,
+        isRejected: !approved,
+        isApproved: approved,
+        ctaLabel: approved ? 'Brief Studio →' : '修改并重新提交',
+        isCampResultClosed: false,
+        go: () => { window.location.href = './6-Brief-Studio.html?edit=1&sku=' + encodeURIComponent(sub.sku) + (approved ? '' : '&flow=submit'); },
+        check: done ? '✓' : '',
+        dueColor: done ? '#929CAF' : (approved ? '#8792A5' : RUST),
+        boxBg: done ? SAGE : 'transparent', boxBorder: done ? SAGE : '#C8D4E8',
+        fg: done ? '#929CAF' : '#1D2638', deco: done ? 'line-through' : 'none',
+        toggle: () => this.setState(st => ({
+          doneTaskKeys: (st.doneTaskKeys || []).includes(key)
+            ? (st.doneTaskKeys || []).filter(x => x !== key)
+            : [...(st.doneTaskKeys || []), key]
+        }))
+      }];
+    });
+    const coopResultTasks = (s.campaignCoopSubmits || []).flatMap(sub => {
+      const d = (s.approvals || {})['cdeal-' + sub.id];
+      if (!d || d.status === '待审批') return [];
+      const key = 'cdeal-' + sub.id;
+      const done = (s.doneTaskKeys || []).includes(key);
+      const approved = d.status === '已通过';
+      const handles = (sub.handles || []).join('、');
+      const title = approved
+        ? '达成合作申请已通过 · ' + (sub.campaignName || sub.sku) + '（' + handles + '）'
+        : '达成合作申请被驳回 · ' + (sub.campaignName || sub.sku);
+      const when = (d.when || '').trim() || '—';
+      const reason = (d.comment || '').trim() || '无具体意见';
+      const due = approved ? '红人已进入 Campaign「合作」模块' : (when + ' 驳回 · ' + reason);
+      return [{
+        title, due, tag: '红人合作',
+        isCampResult: true,
+        isRejected: !approved,
+        isApproved: approved,
+        ctaLabel: approved ? 'Campaign 合作 →' : '重新提交申请',
+        isCampResultClosed: false,
+        go: approved
+          ? () => {
+            const q = new URLSearchParams({ view: 'campaignDetail', campaignSku: sub.sku || '', campaignTab: 'cooperation' });
+            window.location.href = './4-Campaigns.html?' + q.toString();
+          }
+          : () => {
+            const q = new URLSearchParams({ view: 'campaignDetail', campaignSku: sub.sku || '', campaignTab: 'email' });
+            window.location.href = './4-Campaigns.html?' + q.toString();
+          },
+        check: done ? '✓' : '',
+        dueColor: done ? '#929CAF' : (approved ? '#8792A5' : RUST),
+        boxBg: done ? SAGE : 'transparent', boxBorder: done ? SAGE : '#C8D4E8',
+        fg: done ? '#929CAF' : '#1D2638', deco: done ? 'line-through' : 'none',
+        toggle: () => this.setState(st => ({
+          doneTaskKeys: (st.doneTaskKeys || []).includes(key)
+            ? (st.doneTaskKeys || []).filter(x => x !== key)
+            : [...(st.doneTaskKeys || []), key]
+        }))
+      }];
+    });
+    const taskApprovalResults = campResultTasks.concat(strategyResultTasks).concat(briefResultTasks).concat(coopResultTasks);
+    const tasks = taskApprovalResults.concat(taskTodos);
+    const taskApprovalOpen = taskApprovalResults.filter(t => !t.check).length;
+    const taskTodoOpen = taskTodos.filter(t => !t.check).length;
 
     const sSku = skuAll.find(p => p.sku === s.strategySku) || skuAll[0];
     const sScore = skuScoreMap[sSku.sku] || 60;
@@ -2478,7 +3162,9 @@ class Component extends DCLogic {
     }));
     const swStep = sw.step;
     const swModuleIdx = Math.min(swStep, 8) - 1;
-    const swIsForm = swStep <= 8, swIsCheck = swStep === 9, swIsGen = swStep === 10;
+    const swFlowStage = s.swFlowStage || 'prepare';
+    const swDocMode = !!s.docMode;
+    const swIsForm = swFlowStage === 'prepare', swIsCheck = swFlowStage === 'check', swIsGen = swFlowStage === 'confirm', swIsSubmit = swFlowStage === 'submit' && !swDocMode;
     const swModuleName = swStepDefs[swStep - 1][0];
     const swModuleFields = swIsForm ? swFields[swModuleIdx] : [];
     const swModuleUploads = swIsForm ? swUploadBank[swModuleIdx].map(label => ({ label })) : [];
@@ -2575,7 +3261,7 @@ class Component extends DCLogic {
     ];
     const swSections = secBank.slice(0, swSectionCount).map(([title, body, src, inferred], i) => {
       const n = i + 1;
-      const locked = sw.locked.includes(n);
+      const locked = s.docMode || sw.locked.includes(n);
       const confirmed = (sw.confirmed || []).includes(n);
       const edited = sw.edits[n] !== undefined;
       const bumped = sw.regen[n] || 1;
@@ -2658,8 +3344,12 @@ class Component extends DCLogic {
     const stApprovalOf = (sku, ver, isLatest) => {
       const key = sku + '|v' + ver;
       const set = s.strategyApproved || {};
+      const rec = (s.library || []).find(x => x.sku === sku);
+      const latestVer = rec ? Number(rec.ver) : Number(ver);
+      const latest = isLatest !== undefined && isLatest !== null ? !!isLatest : Number(ver) === latestVer;
+      if (!latest) return '已通过';
       if (set[key]) return set[key];
-      return isLatest ? '草稿' : '已通过';
+      return '草稿';
     };
     const swVersionModeName = { quick: '快速版', standard: '标准版', deep: '深度版' };
     const swVersionRec = (s.library || []).find(x => x.sku === sSku.sku);
@@ -2669,6 +3359,38 @@ class Component extends DCLogic {
     const swVersionNumbers = Array.from({ length: swVersionMax }, (_, i) => swVersionMax - i).filter(version => !swDeletedVersionSet.has(sSku.sku + '|v' + version));
     const swLatestVersion = swVersionNumbers[0] || 1;
     const swCurrentVersion = swVersionNumbers.includes(Number(sw.verBase)) ? Number(sw.verBase) : swLatestVersion;
+    const swCurrentVersionName = (() => {
+      const customName = (s.strategyVersionNames || {})[sSku.sku + '|v' + swCurrentVersion] || '';
+      const mode = sw.mode;
+      return customName || (swVersionModeName[mode] || '标准版');
+    })();
+    const swVersionKey = sSku.sku + '|v' + swCurrentVersion;
+    const swApprovalStatus = stApprovalOf(sSku.sku, swCurrentVersion);
+    const swAllChaptersConfirmed = !!(sw.generated && swConfirmedCount === swSections.length && swSections.length > 0);
+    const swCanSubmitStrict = !!(swAllChaptersConfirmed && (swApprovalStatus === '草稿' || swApprovalStatus === '已驳回') && !s.docMode);
+    const swStrategyPending = swApprovalStatus === '待审批';
+    const swStrategyApproved = swApprovalStatus === '已通过';
+    const swStrategyRejected = swApprovalStatus === '已驳回';
+    const swSubmitRec = (s.strategySubmits || []).find(x => x.sku === sSku.sku && Number(x.ver) === swCurrentVersion);
+    const swRejectApproval = swSubmitRec ? (s.approvals || {})['str-' + swSubmitRec.id] : null;
+    const swRejectNote = swStrategyRejected && swRejectApproval ? (((swRejectApproval.when || '') + ' 驳回 · ' + ((swRejectApproval.comment || '').trim() || '无具体意见')).trim()) : '';
+    const swSubmitChecklist = [
+      { label: '已生成策略正文', ok: !!sw.generated },
+      { label: '全部章节已确认（' + swConfirmedCount + '/' + swSections.length + '）', ok: swAllChaptersConfirmed },
+      { label: '版本状态可提交（草稿或已驳回）', ok: swApprovalStatus === '草稿' || swApprovalStatus === '已驳回' }
+    ];
+    const swSubmitGateHint = swGateLevel === 'green' && !swHold
+      ? ''
+      : '提示：当前完整性门禁为' + (swGateLevel === 'yellow' ? '黄色' : '红色') + '，不影响提交审核；审批人可见缺失项与 HOLD 标记。';
+    const swSubmitPreviewSections = swSections.map(x => ({
+      title: x.no + '. ' + x.title,
+      body: x.body || '',
+      stateText: x.stateText,
+      stateFg: x.stateColor,
+      stateBg: x.stateBg,
+      srcLine: x.hasSrc ? ('来源 ' + x.src) : ''
+    }));
+    const swSubmitPreviewTitle = sSku.name + ' · ' + swModeName + ' · 共 ' + swSections.length + ' 章（与「生成与确认」正文一致）';
     const makeCurrentSwSnapshot = (version, source) => ({
       sku: sSku.sku, product: sSku.name, brand: sSku.brand, owner: sSku.owner,
       ver: version, title: sSku.name + ' 红人种草策略', mode: sw.mode,
@@ -2709,7 +3431,6 @@ class Component extends DCLogic {
         })
       };
     });
-    const swCurrentVersionName = (swVersionOptions.find(x => x.version === swCurrentVersion) || {}).name || swVersionModeName[sw.mode] || '标准版';
     const swVersionManagerRows = swVersionOptions.map(option => {
       const key = sSku.sku + '|v' + option.version;
       const editing = s.swVersionRenameKey === key;
@@ -2812,7 +3533,7 @@ class Component extends DCLogic {
           list.push({
             key: 'v' + v, ver: v, isLatest, status, snapshot,
             label: (customName || modeName[rec.mode]) + ' v' + v + (isLatest ? ' · 最新' : ''),
-            confText: snapshot ? snapshot.title + ' · 已保存完整版本' : (isLatest ? rec.confirmed + ' / ' + rec.sections + ' 章已确认' : '历史审批记录')
+            confText: snapshot ? snapshot.title + ' · 已保存完整版本' : (isLatest ? rec.confirmed + ' / ' + rec.sections + ' 章已确认' : '已通过定稿')
           });
         }
         const sel = list[0];
@@ -2833,30 +3554,32 @@ class Component extends DCLogic {
           versions: list.map(v => {
             const on = v.isLatest;
             const [sbg, sfg] = stMap[v.status] || stMap['草稿'];
-            const canSub = v.status === '草稿' || v.status === '已驳回';
+            const canOpen = !!(v.snapshot || v.isLatest);
             return {
               label: v.label + ' · ' + v.confText, status: v.status, statusBg: sbg, statusFg: sfg,
               bg: on ? '#EAF0FF' : 'transparent', fg: on ? '#2457F5' : '#A2ABBA',
-              cursor: (v.isLatest || v.snapshot) ? 'pointer' : 'default',
-              title: v.snapshot ? '打开已保存的完整策略版本' : (v.isLatest ? '打开该产品的最新策略文档' : '该历史版本仅保留审批记录'),
-              subLabel: canSub ? '申请审核' : (v.status === '待审批' ? '审核中' : '已通过'),
-              subBg: canSub ? '#2457F5' : '#F7F9FC', subFg: canSub ? '#FFFFFF' : '#A2ABBA',
-              subBd: canSub ? '#2457F5' : '#EAF0FF', subCursor: canSub ? 'pointer' : 'default',
-              submit: (e) => {
-                if (e && e.stopPropagation) e.stopPropagation();
-                if (!canSub) return;
-                this.setState(st2 => ({ strategyApproved: { ...(st2.strategyApproved || {}), [rec.sku + '|v' + v.ver]: '待审批' } }));
-              },
+              cursor: canOpen ? 'pointer' : 'default',
+              title: canOpen ? '只读查看该版本（不可在此提交审核）' : '该历史版本仅保留审批记录',
               pick: () => {
-                if (!v.isLatest && !v.snapshot) { this.setState({ stVaultMenu: null }); return; }
+                if (!canOpen) { this.setState({ stVaultMenu: null }); return; }
                 this.switchSku(rec.sku);
                 const snapshotEdits = v.snapshot && Array.isArray(v.snapshot.sections)
                   ? v.snapshot.sections.reduce((acc, sec, i) => ({ ...acc, [i + 1]: sec.body || '' }), {})
                   : {};
+                const confirmedNums = v.snapshot
+                  ? Array.from({ length: v.snapshot.confirmed || v.snapshot.sections.length || 0 }, (_, i) => i + 1)
+                  : (st2 => st2.sw.confirmed)(this.state);
                 this.setState(st2 => ({
-                  stVaultMenu: null, stTab: 'work', benchOpen: true, spPanel: null, docMode: true,
+                  stVaultMenu: null, stTab: 'work', benchOpen: true, spPanel: null, docMode: true, swFlowStage: 'confirm',
                   campaignStrategySelected: { ...(st2.campaignStrategySelected || {}), [rec.sku]: rec.sku + '|v' + v.ver },
-                  sw: { ...st2.sw, generated: true, step: 10, editing: null, mode: (v.snapshot && v.snapshot.mode) || rec.mode || st2.sw.mode, edits: v.snapshot ? snapshotEdits : st2.sw.edits, confirmed: v.snapshot ? Array.from({ length: v.snapshot.confirmed || 0 }, (_, i) => i + 1) : st2.sw.confirmed }
+                  sw: {
+                    ...st2.sw, verBase: v.ver, generated: true, step: 10, editing: null,
+                    mode: (v.snapshot && v.snapshot.mode) || rec.mode || st2.sw.mode,
+                    edits: v.snapshot ? snapshotEdits : st2.sw.edits,
+                    confirmed: v.snapshot ? confirmedNums : st2.sw.confirmed,
+                    loadedStatus: v.status === '已通过' ? 'formal' : 'draft', locked: v.snapshot ? Array.from({ length: confirmedNums.length }, (_, i) => i + 1) : st2.sw.locked
+                  },
+                  swVersionNotice: '正在只读查看 v' + v.ver + ' · ' + v.status + '（请在工作台编辑当前草稿版本）'
                 }));
               }
             };
@@ -2943,7 +3666,17 @@ class Component extends DCLogic {
     const platforms = ['TikTok', 'Instagram', 'YouTube'].map(v => pick(s.platform, v, val => ({ platform: val })));
 
     const bFrom = (s.briefFromStrategy || []).find(x => 'brf-' + x.sku === s.briefId);
-    const bSkuId = bFrom ? bFrom.sku : 'RYZ-SC-01';
+    const bSkuId = (() => {
+      if (bFrom) return bFrom.sku;
+      const id = String(s.briefId || '');
+      if (id.startsWith('brf-')) {
+        const tail = id.slice(4);
+        const hit = skuAll.find(p => tail === p.sku || id === 'brf-' + p.sku);
+        if (hit) return hit.sku;
+        return tail;
+      }
+      return 'RYZ-SC-01';
+    })();
     const bProd = skuAll.find(x => x.sku === bSkuId) || sSku;
     const bPf = swProfiles[bSkuId] || swGenericPf(bProd);
     const briefEditorTab = s.briefEditorTab === 'creator' ? 'creator' : 'channel';
@@ -3104,6 +3837,124 @@ class Component extends DCLogic {
       { label: 'COMPLIANCE', isText: true, body: 'US market: label with #ad or Paid partnership in both the caption and the video. Qualify any personal experience with "in my own experience".'
         + (bIsRyze ? '' : ' Facts you may state: ' + bPf.canClaim + '. Category requirement: ' + bPf.sensitive + '.') }
     ];
+
+    const buildBriefBlocksForRow = (row, lang) => {
+      const prod = skuAll.find(x => x.sku === row.sku) || bProd;
+      const pf = swProfiles[row.sku] || swGenericPf(prod);
+      const plat = row.platform || 'TikTok';
+      const isRyze = row.sku === 'RYZ-SC-01';
+      const iter = row.iter || 1;
+      const isCreator = (row.mode || 'channel') === 'creator';
+      const creatorHandle = (row.creator || '').trim();
+      const creatorStyle = (row.creatorStyle || '').trim();
+      const bSavedPrompt = row.prompt || '';
+      const bCreatorTag = creatorHandle || '未填写红人';
+      const bWho = isCreator && creatorStyle ? creatorStyle : (isRyze ? '25–38 岁、长期熬夜且已有护发习惯的女性' : pf.buyer || (prod.category || '该品类') + '的核心用户');
+      const bSceneFull = isRyze ? '睡前洗护的那三分钟' : pf.scene;
+      const bScene = isRyze ? '睡前洗护的那三分钟' : String(pf.scene || '').split('；')[0].split('，')[0];
+      const bJob = String(pf.job || '').replace(/^待补充：/, '');
+      const bCore = isRyze ? '洗头这三分钟可以从任务变成放松' : bJob;
+      const bHooks = [
+        isRyze ? '前 3 秒直接出现浴室 / 洗手台的真实画面，不要品牌口播' : '前 3 秒直接出现「' + bScene + '」的真实画面，不要品牌口播',
+        '前 3 秒先给结果或反差，再回到使用过程',
+        '前 3 秒用一句自述开场（「我一直很敷衍，直到…」），画面同步进入场景',
+        '前 3 秒把手部动作放到画面中心，不做任何铺垫'
+      ];
+      const bCloseups = isRyze
+        ? ['硅胶触头贴在头皮上的近景', '开机瞬间的手部动作与档位切换', '带进淋浴时的防水细节']
+        : ['产品与手部接触的近景', '开启 / 使用瞬间的关键动作', pf.detail || '最能体现做工与质感的局部'];
+      const bMustSay = isRyze ? '洗头的三分钟，从任务变成放松' : (bJob ? '有了它，' + bJob : '这个产品让' + bScene + '这件事更轻松');
+      const bSellPoint = isRyze ? '三分钟的放松体验' : (bJob || '产品在' + bScene + '中的核心价值');
+      const bDeliverFmt = { TikTok: '竖屏 9:16，21–34 秒，含原始素材', Instagram: '竖屏 9:16 Reels，15–25 秒，另交 1 张可进 Grid 的静帧', YouTube: '竖屏 Shorts，30–45 秒，标题含品类英文关键词' }[plat] || '竖屏 9:16，21–34 秒';
+      const hookPlat = hookByPlatform[plat] || hookByPlatform.TikTok;
+      const bDirVariant = dirVariants[(iter - 1) % dirVariants.length];
+      const bGoalVariant = goalVariants[(iter - 1) % goalVariants.length];
+      const bPromptLine = bSavedPrompt ? '按你的补充要求：' + bSavedPrompt : '';
+      const bDirLabel = isCreator ? '创作方向 · ' + plat + ' · ' + bCreatorTag : '创作方向 · ' + plat;
+      const bCreatorLine = !isCreator ? ''
+        : (creatorHandle
+            ? ' 这一版按 ' + creatorHandle + ' 的风格写：' + (creatorStyle || '延续其惯用做法') + '。'
+            : ' 请先在上方填入红人账号与惯用做法，生成的方向才会贴合她/他的风格。');
+      if (lang === 'en') {
+        const bWhoEn = isCreator && creatorStyle ? creatorStyle : (isRyze ? 'women aged 25–38 who run late nights and already have a hair-care routine' : 'the core buyer of ' + (prod.category || 'this category'));
+        const bSceneEn = isRyze ? 'those three minutes of washing their hair before bed' : bScene;
+        const bSceneFullEn = isRyze ? 'a pre-bed wash routine' : bSceneFull;
+        const bCoreEn = isRyze ? 'these three minutes can go from a chore to a moment of relief' : bCore;
+        const bMustSayEn = isRyze ? 'Those three minutes went from a chore to the calmest part of my night' : bMustSay;
+        const bSellPointEn = isRyze ? 'the three-minute relaxation' : bSellPoint;
+        const bCloseupsEn = isRyze
+          ? ['the silicone nodes pressing against the scalp', 'the hand movement as it switches on and changes speed', 'the waterproof detail when it goes into the shower']
+          : ['the product in contact with your hands', 'the key moment it switches on / gets used', 'the detail that best shows the build and finish'];
+        const bDirEn = {
+          TikTok: 'Enter the scene within the first 3 seconds — no brand voice-over. Vertical 9:16, 21–34s.',
+          Instagram: 'Reels can breathe: up to 5s of atmosphere is fine. You also need one warm-toned still that works in your grid. 15–25s.',
+          YouTube: 'Structure it as a week-long test with the conclusion up front. Put the category keyword in the title for search. 30–45s.'
+        }[plat] || 'Enter the scene within the first 3 seconds. Vertical 9:16, 21–34s.';
+        const bEnHooks = [
+          isRyze ? 'Open on the real bathroom / sink scene in the first 3 seconds — no brand voice-over' : 'Open on the real "' + bSceneEn + '" scene in the first 3 seconds — no brand voice-over',
+          'Lead with the result or a contrast in the first 3 seconds, then cut back to the process',
+          'Open with one line of your own ("I never cared about this, until…") while the scene is already on screen',
+          'Put the hand movement dead-center in frame from second one — no set-up'
+        ];
+        const bEnDeliver = { TikTok: 'Vertical 9:16, 21–34s, raw footage included', Instagram: 'Vertical 9:16 Reels, 15–25s, plus one grid-ready still', YouTube: 'Vertical Shorts, 30–45s, title must include the category keyword' }[plat] || 'Vertical 9:16, 21–34s';
+        return [
+          { label: 'CAMPAIGN BACKGROUND', isText: true, body: isRyze
+            ? 'Ryze is a scalp-care brand built by a China-based team, entering North America in 2026. This round is not about sales — we want people to know that these three minutes of washing your hair can be relaxing.'
+            : prod.brand + ' is a ' + (prod.category || '') + ' brand built by a China-based team, entering North America in 2026. This round is not about sales — we want to land one idea: ' + (bJob || bCoreEn) + '.' },
+          { label: 'CREATIVE INTENT', isText: true, body: 'Make "' + bWhoEn + '" understand ONE core message while they are in "' + bSceneFullEn + '": ' + bCoreEn + '. This piece only needs to land that one thing — everything else is optional.' },
+          { label: 'CONTENT GOAL', isText: true, body: bGoalVariant },
+          { label: 'CREATIVE DIRECTION · ' + plat + (isCreator ? ' · ' + bCreatorTag : ''), isText: true, body: bDirEn + ' Use your own voice — do not read a script.' + (bSavedPrompt ? ' Per your note: ' + bSavedPrompt + '.' : '') },
+          { label: 'HOW TO SHOOT IT', isList: true, mark: '▸', dot: '#2457F5', items: [
+            'Opening: ' + bEnHooks[(iter - 1) % bEnHooks.length] + '.',
+            'Show: close-ups required — ' + bCloseupsEn.slice(0, 2).join('; ') + '. Bonus: ' + bCloseupsEn[2] + '.',
+            'Say: the audience must understand this line — "' + bMustSayEn + '". Phrase it in your own words.',
+            'Deliver: ' + bEnDeliver + ', plus 3 stills. First cut within 14 days of receiving the sample, one round of revisions.'
+          ] },
+          { label: 'BOUNDARIES · MUST KEEP', isList: true, mark: '✓', dot: SAGE, items: isRyze
+            ? ['The product appears in a real bathroom or sink setting', 'Scene: a pre-bed wash routine — do not stage it like an ad', 'Core selling point: the three-minute relaxation (this one only)', 'Bio link + your dedicated discount code']
+            : ['The product appears in a real use setting (' + bSceneEn + ')', 'Scene: "' + bSceneFullEn + '" — do not stage it like an ad', 'Core selling point: ' + bSellPointEn + ' (this one only)', 'Bio link + your dedicated discount code'] },
+          { label: 'BOUNDARIES · MUST NOT APPEAR', isList: true, mark: '✕', dot: RUST, items: [...(isRyze
+            ? ['Banned wording: "hair growth", "treats hair loss", "prevents shedding" or any medical claim', 'Overpromising: "replaces professional scalp treatment", "guaranteed to work"']
+            : ['Banned wording: ' + pf.noClaim, 'Overpromising: any "guaranteed", "will definitely" phrasing']), 'No direct comparison to competitors and no competitor brand names', ...(s.accepted.includes('nowords') ? ['Timing promises: "instant results", "works the first time"'] : [])] },
+          { label: 'BOUNDARIES · YOURS TO DECIDE', isList: true, mark: '○', dot: BLUE, items: [
+            'Narrative: routine / review / short skit / before-after — whatever you do best',
+            'Camera and edit: pacing, transitions, music and caption style are all yours',
+            'Opening: any hook works as long as you are in the scene within 3 seconds',
+            'Tone: speak the way you normally speak — do not read a script'
+          ] },
+          { label: 'COMPLIANCE', isText: true, body: 'US market: label with #ad or Paid partnership in both the caption and the video. Qualify any personal experience with "in my own experience".'
+            + (isRyze ? '' : ' Facts you may state: ' + pf.canClaim + '. Category requirement: ' + pf.sensitive + '.') }
+        ];
+      }
+      return [
+        { label: 'CAMPAIGN 背景', isText: true, body: isRyze
+          ? 'Ryze 是一个中国团队做的头皮护理品牌，2026 年进入北美。这一轮我们不追求销量，想先让人知道「洗头这三分钟可以是放松的」。'
+          : prod.brand + ' 是一个中国团队做的' + (prod.category || '') + '品牌，2026 年进入北美。这一轮我们不追求销量，先把「' + pf.job + '」这件事讲清楚。' },
+        { label: '制作主旨', isText: true, body: '让「' + bWho + '」在「' + bScene + '」里理解一个核心信息：' + bCore + '。这条内容只需要说清这一件事，其余都可以舍弃。' },
+        { label: '内容目标', isText: true, body: bGoalVariant },
+        { label: bDirLabel, isText: true, body: hookPlat + ' ' + bDirVariant + bCreatorLine + (bPromptLine ? ' ' + bPromptLine : '') },
+        { label: '达人具体怎么拍', isList: true, mark: '▸', dot: '#2457F5', items: [
+          '开头：' + bHooks[(iter - 1) % bHooks.length] + '。',
+          '展示：必须近景拍到——' + bCloseups.slice(0, 2).join('；') + '。加分项：' + bCloseups[2] + '。',
+          '表达：必须让观众理解这句话——「' + bMustSay + '」，用你自己的说法讲出来即可。',
+          '交付：' + bDeliverFmt + '，另交 3 张静帧；寄样后 14 天内交初稿，修改 1 轮。'
+        ] },
+        { label: '边界 · 必须保留', isList: true, mark: '✓', dot: SAGE, items: isRyze
+          ? ['产品本体出现在浴室或洗手台的真实环境里', '场景：睡前洗护流程，不要摆拍成产品广告', '核心卖点：三分钟的放松体验（只讲这一个）', '主页 bio 链接 + 你的专属折扣码']
+          : ['产品本体出现在真实使用场景里（' + bScene + '）', '场景：「' + bSceneFull + '」，不要摆拍成产品广告', '核心卖点：' + bSellPoint + '（只讲这一个）', '主页 bio 链接 + 你的专属折扣码'] },
+        { label: '边界 · 不能出现', isList: true, mark: '✕', dot: RUST, items: [...(isRyze
+          ? ['禁用词：「生发」「治疗脱发」「防脱」等医疗性表述', '过度承诺：「替代专业头皮治疗」「一定有效」']
+          : ['禁用词：' + pf.noClaim, '过度承诺：任何「保证有效」「一定能」类表述']), '不要与竞品直接比较或提及竞品品牌名', ...(s.accepted.includes('nowords') ? ['时效承诺：「立刻见效」「一次就见效」'] : [])] },
+        { label: '边界 · 可以自由', isList: true, mark: '○', dot: BLUE, items: [
+          '叙事结构：routine / 实测 / 短剧 / 前后对比，任选你最擅长的',
+          '镜头与剪辑：节奏、转场、配乐、字幕风格全部由你决定',
+          '开场方式：只要 3 秒内进入场景，怎么开场都可以',
+          '个人语气：用你平时的说话方式，不要照读脚本'
+        ] },
+        { label: '合规提醒', isText: true, body: '美区需在正文与视频内同时标注 #ad 或 Paid partnership。任何个人体感描述请加「我自己的感受」限定。'
+          + (isRyze ? '' : '可讲的事实范围：' + pf.canClaim + '。本品类要求：' + pf.sensitive + '。') }
+      ];
+    };
 
     const briefMeta = [
       { label: '交付物', value: '1 条主视频 + 3 张静帧 + 原始素材' },
@@ -4624,7 +5475,7 @@ class Component extends DCLogic {
           sku: campaign.sku,
           owner: campaign.owner,
           scheduled: true,
-          note: '创建 Campaign 时设置的阶段排期，可继续整体移动或逐阶段调整。',
+          note: 'Campaign 立项审核通过后设置的阶段排期，可继续整体移动或逐阶段调整。',
           phases
         });
       });
@@ -4915,8 +5766,31 @@ class Component extends DCLogic {
 
 
 
-    // ── Campaigns list ──
+    // ── Campaigns list（仅审核通过后写入 newCampaigns，才会出现在列表；待审只在 My Tasks 审批清单）──
+    const ncWindowLabel = (start, end) => {
+      const short = (iso) => {
+        const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(iso || '').trim());
+        return m ? (+m[2]) + '/' + (+m[3]) : (iso || '—');
+      };
+      return start && end ? short(start) + ' – ' + short(end) : '未排期';
+    };
+    const approvedCampaignRows = (s.newCampaigns || []).slice().reverse().map(c => ({
+      name: c.name + ' · ' + c.goal,
+      product: c.name,
+      sku: c.sku,
+      market: 'US',
+      goalType: c.goal,
+      objective: c.kpi || (c.contentTarget + ' 条内容 · ' + c.viewsTarget + ' 播放'),
+      budget: '$' + Number(c.budget || 0).toLocaleString('en-US'),
+      spent: '$0',
+      window: ncWindowLabel(c.start, c.end),
+      stage: '待启动',
+      pct: 0,
+      creators: '0',
+      color: BLUE
+    }));
     const campaignList = [
+      ...approvedCampaignRows,
       { name: 'Ryze · Q3 北美种草', product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', market: 'US', goalType: '爆品打造', objective: 'UGC + 种草', budget: '$42,000', spent: '$18,400', window: '8/1 – 9/30', stage: 'Content Draft', pct: 46, creators: '14', color: AMBER },
       { name: 'Lumo · 秋季家居氛围', product: 'Lumo 便携香氛机', sku: 'LUM-AR-02', market: 'US', goalType: '新品起量', objective: '曝光', budget: '$18,000', spent: '$3,900', window: '8/15 – 10/15', stage: 'Outreach', pct: 22, creators: '9', color: BLUE },
       { name: 'Ryze · Ambassador 招募', product: 'Ryze 头皮按摩仪', sku: 'RYZ-SC-01', market: 'US', goalType: '品牌打造', objective: '长期合作', budget: '$9,000', spent: '$5,600', window: '常设', stage: 'Negotiation', pct: 68, creators: '6', color: SAGE },
@@ -5117,8 +5991,41 @@ class Component extends DCLogic {
           windowGoal && windowGoal.scheduled ? '按期推进' : '未排期', windowGoal && windowGoal.scheduled ? 'good' : 'flat')
       ];
     };
+    const cdFromCampaignSubmit = (sub) => {
+      const ap = (s.approvals || {})['cmp-' + sub.id];
+      const st2 = ap ? ap.status : '待审批';
+      const statusStyle = st2 === '已通过' ? ['#E4EFE4', '#4E7156'] : st2 === '已驳回' ? ['#F7EDEE', '#C4636D'] : ['#FBEEDA', '#A5762C'];
+      const flat = ['#F5F8FE', '#647187', '#B7C0CF'];
+      const goalCell = (label, actual, target, note, tag) => ({
+        label, actual, target, pct: 0, note, tag,
+        tagBg: flat[0], tagFg: flat[1], color: flat[2]
+      });
+      return {
+        name: sub.name + ' · ' + sub.goal,
+        product: sub.name,
+        sku: sub.sku,
+        objective: sub.kpi || (sub.contentTarget + ' 条内容 · ' + sub.viewsTarget + ' 播放'),
+        budget: '$' + Number(sub.budget || 0).toLocaleString('en-US'),
+        spent: '$0',
+        window: ncWindowLabel(sub.start, sub.end),
+        creators: '0',
+        pct: 0,
+        goals: [
+          goalCell('内容数量', '0 条内容', sub.contentTarget + ' 条内容', st2 === '待审批' ? '立项审核通过后开始执行' : '按立项目标推进', st2 === '待审批' ? '待审批' : '刚启动'),
+          goalCell('播放量', '0 播放', sub.viewsTarget + ' 播放', '按立项播放量目标执行', '刚启动'),
+          goalCell('预算目标', '$0 已花', '$' + Number(sub.budget || 0).toLocaleString('en-US'), st2 === '待审批' ? '审核通过后写入 Budget Mgt' : '已分配预算池', st2 === '待审批' ? '待审批' : '待启动'),
+          goalCell('时间目标', st2 === '待审批' ? '待审批' : '未开始', ncWindowLabel(sub.start, sub.end), (sub.start || '') + ' 至 ' + (sub.end || ''), st2 === '待审批' ? '待排期' : '未开始')
+        ],
+        stateText: st2 === '待审批' ? '立项待审批' : st2,
+        stateBg: statusStyle[0], stateFg: statusStyle[1]
+      };
+    };
+    const submitForDetail = s.campaignSubmitId
+      ? (s.campaignSubmits || []).find(x => x.id === s.campaignSubmitId)
+      : (s.campaignName ? (s.campaignSubmits || []).find(x => (x.name + ' · ' + x.goal) === s.campaignName) : null);
     const cd = campaignList.find(c => s.campaignName && c.name === s.campaignName)
-      || campaignList.find(c => s.campaignSku && c.sku === s.campaignSku)
+      || campaignList.find(c => s.campaignSku && c.sku === s.campaignSku && !submitForDetail)
+      || (submitForDetail ? cdFromCampaignSubmit(submitForDetail) : null)
       || (cdProduct ? {
         name: cdProduct.brand + ' · 推广 Campaign', product: cdProduct.name, sku: cdProduct.sku,
         objective: '红人种草', budget: '待分配', spent: '$0', window: (cmWindowOf(cdProduct.sku) || {}).rangeText || '未排期', creators: '0', pct: 0, goals: promotedCampaignGoals(cdProduct),
@@ -5716,34 +6623,34 @@ class Component extends DCLogic {
       }
       campaignBriefVersions.push({ ...b, viewKey: sourceKey, sourceKeys: [sourceKey] });
     });
-    const campaignBriefTab = s.campaignBriefListTab === 'creator' ? 'creator' : 'channel';
-    const campaignBriefTabVersions = campaignBriefVersions.filter(b => campaignBriefTab === 'creator' ? b.mode === 'creator' : b.mode !== 'creator');
-    const campaignBriefSelected = campaignBriefTabVersions.find(b => b.viewKey === s.campaignBriefSelectedKey || (b.sourceKeys || []).includes(s.campaignBriefSelectedKey)) || campaignBriefTabVersions[0] || null;
+    const campaignBriefApprovedVersions = campaignBriefVersions.filter(b => b.status === '已通过');
+    const campaignBriefSelected = campaignBriefApprovedVersions.find(b => b.viewKey === s.campaignBriefSelectedKey || (b.sourceKeys || []).includes(s.campaignBriefSelectedKey)) || campaignBriefApprovedVersions[0] || null;
     const campaignBriefSelectedKey = campaignBriefSelected ? campaignBriefSelected.viewKey : '';
     const campaignBriefCanSubmit = !!campaignBriefSelected && campaignBriefSelected.status === '草稿';
-    const campaignBriefRows = campaignBriefVersions.map((b, i) => {
-      const tone = b.status === '已通过' ? ['#E4EFE4', '#4E7156'] : (b.status === '待审批' ? ['#FBEEDA', '#A5762C'] : ['#E4EEF7', '#1D48D8']);
+    const campaignBriefRows = campaignBriefApprovedVersions.map((b) => {
       const key = b.viewKey;
       const viewed = key === campaignBriefSelectedKey;
       const on = viewed;
+      const isCreator = b.mode === 'creator';
       return {
-        briefType: b.mode === 'creator' ? 'creator' : 'channel',
+        briefType: isCreator ? 'creator' : 'channel',
+        kindLabel: isCreator ? '红人 Brief' : '渠道 Brief',
+        kindBg: isCreator ? '#E4EFE4' : '#EAF0FF',
+        kindFg: isCreator ? '#4E7156' : '#2457F5',
         channelShort: b.platform === 'Instagram' ? 'IG' : (b.platform === 'YouTube' ? 'YT' : 'TT'),
         title: b.platform + ' · ' + (b.segment || b.creator || '渠道通用版') + ' · ' + b.ver,
-        meta: b.date + ' · ' + (b.mode === 'creator' ? '基于具体红人生成' : '基于渠道生成') + ' · 已迭代 ' + b.iter + ' 次',
-        status: b.status, bg: tone[0], fg: tone[1],
-        rowBg: on ? '#F7F9FF' : '#FFFFFF', rowBd: on ? '#2457F5' : 'transparent', shadow: on ? '0 2px 8px rgba(36,87,245,.08)' : 'none',
-        iconBg: on ? '#2457F5' : '#EAF0FF', iconFg: on ? '#FFFFFF' : '#2457F5', titleFg: on ? '#1D48D8' : '#1D2638', viewFg: on ? '#2457F5' : '#A2ABBA',
-        viewLabel: viewed ? '正在查看' : '点击查看', cursor: 'pointer', select: () => this.setState({ campaignBriefSelectedKey: key, campaignBriefAdjustDraft: '', campaignBriefNotice: '' })
+        meta: b.date + ' · ' + (isCreator ? '红人定向' : '渠道通用') + ' · 第 ' + b.iter + ' 次迭代',
+        status: b.status, statusBg: '#E4EFE4', statusFg: '#4E7156',
+        rowBg: on ? '#F7F9FF' : '#FFFFFF', rowBd: on ? '#B8CBFF' : '#E2E8F2', shadow: on ? '0 6px 20px rgba(36,87,245,.08)' : '0 1px 2px rgba(29,38,56,.03)',
+        iconBg: on ? '#2457F5' : '#EAF0FF', iconFg: on ? '#FFFFFF' : '#2457F5', titleFg: on ? '#1D48D8' : '#1D2638', viewFg: on ? '#2457F5' : '#8792A5',
+        viewLabel: viewed ? '正在查看全文' : '点击查看全文', cursor: 'pointer',
+        select: () => this.setState({ campaignBriefSelectedKey: key, campaignBriefAdjustDraft: '', campaignBriefNotice: '' })
       };
     });
-    const campaignBriefChannelRows = campaignBriefRows.filter(b => b.briefType === 'channel');
-    const campaignBriefCreatorRows = campaignBriefRows.filter(b => b.briefType === 'creator');
-    const campaignBriefVisibleRows = campaignBriefTab === 'creator' ? campaignBriefCreatorRows : campaignBriefChannelRows;
-    const campaignBriefTabs = [
-      { id: 'channel', label: '渠道 Brief', count: campaignBriefChannelRows.length, bg: campaignBriefTab === 'channel' ? '#2457F5' : '#FFFFFF', fg: campaignBriefTab === 'channel' ? '#FFFFFF' : '#647187', bd: campaignBriefTab === 'channel' ? '#2457F5' : '#D9E1EF', countBg: campaignBriefTab === 'channel' ? 'rgba(255,255,255,.18)' : '#F1F4F8', countFg: campaignBriefTab === 'channel' ? '#FFFFFF' : '#8792A5', pick: () => this.setState({ campaignBriefListTab: 'channel', campaignBriefSelectedKey: '', campaignBriefAdjustDraft: '', campaignBriefNotice: '' }) },
-      { id: 'creator', label: '红人 Brief', count: campaignBriefCreatorRows.length, bg: campaignBriefTab === 'creator' ? '#2457F5' : '#FFFFFF', fg: campaignBriefTab === 'creator' ? '#FFFFFF' : '#647187', bd: campaignBriefTab === 'creator' ? '#2457F5' : '#D9E1EF', countBg: campaignBriefTab === 'creator' ? 'rgba(255,255,255,.18)' : '#F1F4F8', countFg: campaignBriefTab === 'creator' ? '#FFFFFF' : '#8792A5', pick: () => this.setState({ campaignBriefListTab: 'creator', campaignBriefSelectedKey: '', campaignBriefAdjustDraft: '', campaignBriefNotice: '' }) }
-    ];
+    const campaignBriefVisibleRows = campaignBriefRows;
+    const campaignBriefPanelNote = campaignBriefApprovedVersions.length
+      ? ('共 ' + campaignBriefApprovedVersions.length + ' 份 · 供 Campaign 推广与建联引用')
+      : '审批通过后的 Brief 会出现在这里';
     const submitCampaignBriefRecords = () => {
       if (!campaignBriefSelected) return;
       this.setState(st2 => {
@@ -5836,45 +6743,49 @@ class Component extends DCLogic {
     });
 
 	    const campaignDealHandles = ((s.campaignCoopDeals || {})[cd.sku] || []).filter(Boolean);
+	    const campaignCoopPendingHandles = new Set();
+	    (s.campaignCoopSubmits || []).forEach(sub => {
+	      if (sub.sku !== cd.sku) return;
+	      const k = 'cdeal-' + sub.id;
+	      const d = (s.approvals || {})[k];
+	      const stx = d ? d.status : '待审批';
+	      if (stx === '待审批') (sub.handles || []).forEach(h => campaignCoopPendingHandles.add(h));
+	    });
 	    const campaignCooperationProps = (handle) => {
 	      const cooperated = campaignDealHandles.indexOf(handle) >= 0;
-	      const selected = (s.campaignEmailCoopSelected || []).indexOf(handle) >= 0;
+	      const pending = campaignCoopPendingHandles.has(handle);
+	      const rejected = !cooperated && !pending && (s.campaignCoopSubmits || []).some(sub => {
+	        if (sub.sku !== cd.sku || !(sub.handles || []).includes(handle)) return false;
+	        const d = (s.approvals || {})['cdeal-' + sub.id];
+	        return d && d.status === '已驳回';
+	      });
+	      const selectLocked = cooperated || pending;
+	      const selected = !selectLocked && (s.campaignEmailCoopSelected || []).indexOf(handle) >= 0;
+	      const coopLabel = cooperated ? '已合作' : (pending ? '审批中' : (rejected ? '已驳回' : '待提交'));
+	      const coopBg = cooperated ? '#E4EFE4' : (pending ? '#FBEEDA' : (rejected ? '#F7EDEE' : '#F5F8FE'));
+	      const coopFg = cooperated ? '#4E7156' : (pending ? '#A5762C' : (rejected ? '#C4636D' : '#647187'));
+	      const coopBd = cooperated ? '#CFE3D3' : (pending ? '#F0DCB8' : (rejected ? '#F0C9C9' : '#E2E8F2'));
 	      return {
-	        selectMark: cooperated || selected ? '✓' : '',
+	        selectMark: cooperated ? '✓' : (selected ? '✓' : ''),
 	        selectBg: cooperated ? '#6E9778' : (selected ? '#2457F5' : '#FFFFFF'),
 	        selectBd: cooperated ? '#6E9778' : (selected ? '#2457F5' : '#C8D4E8'),
-	        selectCursor: cooperated ? 'default' : 'pointer',
-	        selectTitle: cooperated ? '已达成合作' : (selected ? '取消选择' : '选择红人'),
+	        selectCursor: selectLocked ? 'default' : 'pointer',
+	        selectDisabled: selectLocked ? 'true' : 'false',
+	        selectChecked: (selected || cooperated) ? 'true' : 'false',
+	        selectOpacity: selectLocked && !cooperated ? '0.42' : '1',
+	        selectPointerEvents: selectLocked ? 'none' : 'auto',
+	        selectTitle: cooperated ? '已达成合作' : (pending ? '合作申请审批中' : (selected ? '取消选择' : '选择红人')),
 	        toggleSelect: (e) => {
 	          if (e && e.stopPropagation) e.stopPropagation();
-	          if (cooperated) return;
+	          if (selectLocked) return;
 	          this.setState(st2 => {
 	            const current = st2.campaignEmailCoopSelected || [];
 	            return { campaignEmailCoopSelected: current.includes(handle) ? current.filter(x => x !== handle) : [...current, handle] };
 	          });
 	        },
-	        coopLabel: cooperated ? '已合作' : '暂未',
-	        coopBg: cooperated ? '#E4EFE4' : '#F5F8FE',
-	        coopFg: cooperated ? '#4E7156' : '#647187',
-	        coopBd: cooperated ? '#CFE3D3' : '#E2E8F2',
-	        coopWeight: cooperated ? 600 : 400,
-	        coopCursor: cooperated ? 'default' : 'pointer',
-	        cooperate: (e) => {
-	          if (e && e.stopPropagation) e.stopPropagation();
-	          if (cooperated) return;
-	          this.setState(st2 => {
-	            const prevDeals = (st2.campaignCoopDeals || {})[cd.sku] || [];
-	            const nextDeals = prevDeals.indexOf(handle) >= 0 ? prevDeals : [handle, ...prevDeals];
-	            return {
-	              campaignCoopDeals: { ...(st2.campaignCoopDeals || {}), [cd.sku]: nextDeals },
-	              coopList: (st2.coopList || []).includes(handle) ? st2.coopList : [handle, ...(st2.coopList || [])],
-	              campaignTab: 'email',
-	              campaignEmailTab: 'sent',
-	              campaignEmailDrawer: null,
-	              campaignEmailCoopSelected: []
-	            };
-	          });
-	        }
+	        coopPending: pending,
+	        coopLabel, coopBg, coopFg, coopBd,
+	        coopWeight: cooperated || pending || rejected ? 600 : 400
 	      };
 	    };
 	    const campaignSentEmails = (s.contactLog || []).filter(m => m.sku === cd.sku && /已发送/.test(m.status || '')).map((m, mi) => {
@@ -5933,31 +6844,121 @@ class Component extends DCLogic {
         };
       });
     }).filter((m, i, arr) => sentHandles.indexOf(m.handle) < 0 && arr.findIndex(x => x.handle === m.handle) === i);
-    const campaignEmailCoopSelected = (s.campaignEmailCoopSelected || []).filter(handle => campaignDealHandles.indexOf(handle) < 0);
+    const campaignEmailCoopSelected = (s.campaignEmailCoopSelected || []).filter(handle => campaignDealHandles.indexOf(handle) < 0 && !campaignCoopPendingHandles.has(handle));
     const campaignEmailCoopCandidateItems = campaignSentEmails.filter((m, i, arr) => arr.findIndex(x => x.handle === m.handle) === i);
-    const campaignEmailCoopCandidates = campaignEmailCoopCandidateItems.map(m => {
-      const cooperated = campaignDealHandles.indexOf(m.handle) >= 0;
-      const selected = campaignEmailCoopSelected.indexOf(m.handle) >= 0;
+    const campaignEmailIntentMap = {
+      '@mia.selfcare': 'high', '@kaylascalp': 'high', '@sofia.homelab': 'high',
+      '@hairbyandre': 'medium', '@june.rests': 'medium', '@leo.calmnight': 'medium',
+      '@dailywithlin': 'low', '@nora.pm': 'low'
+    };
+    const campaignEmailIntentOf = (handle) => {
+      if (campaignEmailIntentMap[handle]) return campaignEmailIntentMap[handle];
+      const score = Array.from(handle || '').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 6;
+      return score < 3 ? 'high' : (score < 5 ? 'medium' : 'low');
+    };
+    const campaignEmailIntentStyle = {
+      high: { label: '高', bg: '#E4EFE4', fg: '#4E7156', bd: '#CFE3D3', confidence: '92%', aiNote: 'AI：回复积极，合作意向明确' },
+      medium: { label: '中', bg: '#FBEEDA', fg: '#A5762C', bd: '#F0DCB8', confidence: '76%', aiNote: 'AI：已表达兴趣，仍需确认报价或排期' },
+      low: { label: '低', bg: '#F7EDEE', fg: '#C4636D', bd: '#F0C9C9', confidence: '61%', aiNote: 'AI：意愿偏弱或关键条件未回应' }
+    };
+    const campaignEmailKeywordsFor = (handle, replyGist) => {
+      const keys = [];
+      const creator = creatorDefs.find(c => c.handle === handle);
+      if (creator && creator.niche) keys.push(String(creator.niche).split('/')[0].trim());
+      const g = replyGist || '';
+      if (/愿意|合作|收样|拍|确认/.test(g)) keys.push('合作意愿');
+      if (/Reels|Shorts|视频|静帧/.test(g)) keys.push('内容形式');
+      if (/报价|询价|\$|价/.test(g)) keys.push('报价沟通');
+      if (/Brief|brief/.test(g)) keys.push('Brief');
+      if (/延后|排期|档期/.test(g)) keys.push('档期');
+      if (/字幕|重剪/.test(g)) keys.push('交付细节');
+      return [...new Set(keys)].slice(0, 5).map(label => ({ label }));
+    };
+    const campaignPlatformLabel = (p) => (p === 'INSTAGRAM' ? 'Instagram' : (p === 'YOUTUBE' ? 'YouTube' : 'TikTok'));
+    const campaignOutreachAll = campaignEmailCoopCandidateItems.map(m => {
+      const handle = m.handle;
+      const creator = creatorDefs.find(c => c.handle === handle) || {};
+      const replies = facts.replies.filter(r => r.handle === handle);
+      const lastReply = replies[0];
+      const mailCount = (s.contactLog || []).filter(x => x.sku === cd.sku && x.handle === handle).length;
+      const threadCount = mailCount + replies.length;
+      const intent = campaignEmailIntentOf(handle);
+      const ist = campaignEmailIntentStyle[intent];
+      const coop = campaignCooperationProps(handle);
       return {
-        handle: m.handle,
+        handle, intent,
+        avatar: creatorAvatarMap[handle] || '',
+        hasAvatar: !!creatorAvatarMap[handle],
+        showInitial: !creatorAvatarMap[handle],
         initial: m.initial,
-        meta: cooperated ? '已进入合作履约' : '邮件已发送 · 可确认合作',
-        mark: cooperated || selected ? '✓' : '',
-        checkBg: cooperated ? '#6E9778' : (selected ? '#2457F5' : '#FFFFFF'),
-        checkBd: cooperated ? '#6E9778' : (selected ? '#2457F5' : '#C8D4E8'),
-        bg: cooperated ? '#F5FAF6' : (selected ? '#F7F9FF' : '#FFFFFF'),
-        bd: cooperated ? '#CFE3D3' : (selected ? '#8CAFFF' : '#E2E8F2'),
-        cursor: cooperated ? 'default' : 'pointer',
-        toggle: () => {
-          if (cooperated) return;
-          this.setState(st2 => {
-            const current = (st2.campaignEmailCoopSelected || []).filter(handle => campaignDealHandles.indexOf(handle) < 0);
-            return { campaignEmailCoopSelected: current.includes(m.handle) ? current.filter(handle => handle !== m.handle) : [...current, m.handle] };
-          });
-        }
+        platform: campaignPlatformLabel(creator.platform || 'TIKTOK'),
+        niche: creator.niche || '—',
+        followers: creator.followers || '—',
+        fitText: creator.fit ? ('FIT ' + creator.fit) : '',
+        erText: creator.er30 ? ('ER ' + creator.er30) : '',
+        threadCount, threadLabel: threadCount + ' 封往来',
+        lastContact: lastReply && lastReply.when ? lastReply.when.slice(5) : (m.when ? m.when.slice(5) : '—'),
+        replyPreview: lastReply ? lastReply.gist : '暂未收到回复',
+        intentLabel: ist.label, intentBg: ist.bg, intentFg: ist.fg, intentBd: ist.bd, intentConfidence: ist.confidence,
+        aiNote: lastReply ? (ist.aiNote + ' · ' + lastReply.gist) : ist.aiNote,
+        keywords: campaignEmailKeywordsFor(handle, lastReply ? lastReply.gist : ''),
+        viewMailLabel: '查看邮件往来',
+        openThread: m.open,
+        cardBd: coop.coopLabel === '已合作' ? '#CFE3D3' : '#E2E8F2',
+        ...coop
       };
     });
-    const campaignEmailCoopCanConfirm = campaignEmailCoopSelected.length > 0;
+    const campaignEmailIntentFilter = s.campaignEmailIntentFilter || 'all';
+    const outreachCounts = { high: 0, medium: 0, low: 0 };
+    campaignOutreachAll.forEach(c => { outreachCounts[c.intent] += 1; });
+    const campaignOutreachCreators = campaignEmailIntentFilter === 'all'
+      ? campaignOutreachAll
+      : campaignOutreachAll.filter(c => c.intent === campaignEmailIntentFilter);
+    const campaignOutreachSummary = campaignOutreachAll.length
+      ? ('共 ' + campaignOutreachAll.length + ' 位已建联 · 高 ' + outreachCounts.high + ' · 中 ' + outreachCounts.medium + ' · 低 ' + outreachCounts.low)
+      : '发送建联邮件后，红人与 AI 分析会集中展示在这里';
+    const campaignEmailIntentFilters = [
+      { id: 'all', label: '全部' },
+      { id: 'high', label: '高意向' },
+      { id: 'medium', label: '中意向' },
+      { id: 'low', label: '低意向' }
+    ].map(f => ({
+      ...f,
+      pick: () => this.setState({ campaignEmailIntentFilter: f.id }),
+      bg: campaignEmailIntentFilter === f.id ? '#2457F5' : '#FFFFFF',
+      fg: campaignEmailIntentFilter === f.id ? '#FFFFFF' : '#647187',
+      bd: campaignEmailIntentFilter === f.id ? '#2457F5' : '#E2E8F2'
+    }));
+    const submitCampaignCoopApplication = () => {
+      const handles = campaignEmailCoopSelected.filter(h => campaignDealHandles.indexOf(h) < 0 && !campaignCoopPendingHandles.has(h));
+      if (!handles.length) return;
+      const when = (() => {
+        const d = new Date();
+        return String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      })();
+      const sub = {
+        id: String(Date.now()),
+        sku: cd.sku,
+        campaignName: cd.name + ' · ' + (cd.objective || cd.goal || 'Campaign'),
+        handles,
+        by: '陈曦',
+        when
+      };
+      this.setState(st2 => ({
+        campaignCoopSubmits: [sub, ...(st2.campaignCoopSubmits || [])],
+        campaignEmailCoopSelected: [],
+        campaignEmailDrawer: null,
+        campaignEmailTab: 'sent',
+        campaignTab: 'email',
+        notifLog: [{
+          kind: 'approval',
+          title: '达成合作申请已提交 · ' + sub.campaignName,
+          note: handles.join('、') + ' · 等待推广 leader 审核',
+          when: '刚刚'
+        }, ...(st2.notifLog || [])]
+      }));
+    };
+    const campaignEmailCoopCanSubmit = campaignEmailCoopSelected.some(h => campaignDealHandles.indexOf(h) < 0 && !campaignCoopPendingHandles.has(h));
     const campaignEmails = campaignSentEmails;
     const emailSentN = campaignSentEmails.length;
     const campaignEmailTab = s.campaignEmailTab || 'pending';
@@ -5966,7 +6967,7 @@ class Component extends DCLogic {
       { id: 'sent', label: '已发送', count: campaignSentEmails.length }
     ].map(t => {
       const on = campaignEmailTab === t.id;
-      return { ...t, pick: () => this.setState({ campaignEmailTab: t.id, campaignEmailDrawer: null, campaignEmailCoopPickerOpen: false, campaignEmailCoopSelected: [] }), bg: on ? '#2457F5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#647187', bd: on ? '#2457F5' : '#E2E8F2', countBg: on ? 'rgba(255,255,255,.2)' : '#F1F4F8', countFg: on ? '#FFFFFF' : '#647187' };
+      return { ...t, pick: () => this.setState({ campaignEmailTab: t.id, campaignEmailDrawer: null, campaignEmailCoopSelected: [] }), bg: on ? '#2457F5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#647187', bd: on ? '#2457F5' : '#E2E8F2', countBg: on ? 'rgba(255,255,255,.2)' : '#F1F4F8', countFg: on ? '#FFFFFF' : '#647187' };
     });
     const campaignEmailDrawerItem = (campaignPendingEmails.concat(campaignSentEmails)).find(m => m.key === s.campaignEmailDrawer);
     const campaignEmailDrawerIsPending = !!campaignEmailDrawerItem && String(campaignEmailDrawerItem.key || '').indexOf('pending|') === 0;
@@ -6617,9 +7618,23 @@ class Component extends DCLogic {
     };
 
     // ── Strategy version history ──
-    const promoQueue = (s.promoted || []).map(sku => {
+    const promoPendingSkus = (() => {
+      const lib = new Set((s.library || []).map(x => x.sku));
+      const out = [];
+      const seen = new Set();
+      const push = (sku) => {
+        if (!sku || lib.has(sku) || seen.has(sku)) return;
+        seen.add(sku);
+        out.push(sku);
+      };
+      PROMO_QUEUE_DEMO_SKUS.forEach(push);
+      (s.promoted || []).forEach(push);
+      return out;
+    })();
+    const promoQueue = promoPendingSkus.map(sku => {
       const p = skuAll.find(x => x.sku === sku);
       if (!p) return null;
+      const isDemo = PROMO_QUEUE_DEMO_SKUS.includes(sku);
       const sc = skuScoreMap[sku] || 60;
       return {
         name: p.name, sku, image: p.image, bu: p.bu, owner: p.owner, score: sc,
@@ -6635,13 +7650,13 @@ class Component extends DCLogic {
           { label: '大类排名', value: '#' + p.bsrTop, note: p.bsrTopCat },
           { label: '库存', value: p.stock + ' 件', note: p.stockNote }
         ].map(x => ({ ...x, plain: !x.link })),
-        note: '由' + p.owner + '在产品库提交 · 等待生成策略',
-        generated: (s.generated || []).includes(sku),
-        pending: !(s.generated || []).includes(sku),
-        genLabel: (s.generated || []).includes(sku) ? '✓ 已生成 v1' : '生成策略',
-        genBg: (s.generated || []).includes(sku) ? '#E4EFE4' : '#2457F5',
-        genFg: (s.generated || []).includes(sku) ? '#4E7156' : '#FFFFFF',
-        genBd: (s.generated || []).includes(sku) ? '#CFE3D3' : '#2457F5',
+        note: isDemo ? '示例数据 · 模拟产品库勾选「推广」后进入待生成队列' : ('由' + p.owner + '在产品库提交 · 等待生成策略'),
+        generated: false,
+        pending: true,
+        genLabel: '生成策略',
+        genBg: '#2457F5',
+        genFg: '#FFFFFF',
+        genBd: '#2457F5',
         gen: () => {
           this.switchSku(sku);
           this.setState(st => ({
@@ -6658,13 +7673,13 @@ class Component extends DCLogic {
           });
         },
         remove: () => this.setState(st => ({
-          promoted: st.promoted.filter(x => x !== sku),
-          generated: st.generated.filter(x => x !== sku)
-        }))
+          promoted: (st.promoted || []).filter(x => x !== sku),
+          generated: (st.generated || []).filter(x => x !== sku)
+        })),
+        isDemo
       };
     }).filter(Boolean).map((q, i) => ({
       ...q, idx: i + 1,
-      note: (s.generated || []).includes(q.sku) ? '策略 v1 已生成 · 可在下方查看与编辑' : q.note,
       active: s.strategySku === q.sku,
       rowBd: s.strategySku === q.sku ? '#C8D4E8' : '#EEF2F8',
       rowBg: s.strategySku === q.sku ? '#F8FAFE' : 'transparent'
@@ -7202,16 +8217,26 @@ class Component extends DCLogic {
         return skus.map((sku, i) => {
           const p = skuAll.find(x => x.sku === sku);
           if (!p) return null;
+          const skuBriefRows = (s.briefVersions || []).filter(x => x.sku === sku);
+          const briefRowStatus = (v) => {
+            const line = this.briefLineKey(v);
+            const max = skuBriefRows.filter(x => this.briefLineKey(x) === line).reduce((m, x) => Math.max(m, this.briefVerNum(x.ver)), 0);
+            if (this.briefVerNum(v.ver) < max) return '已通过';
+            return v.status || '草稿';
+          };
           const saved = bvLive
             .map((v, vi) => ({ v, vi }))
             .filter(x => x.v.sku === sku)
-            .map(({ v, vi }) => ({
+            .map(({ v, vi }) => {
+              const raw = (s.briefVersions || []).find(x => x.sku === v.sku && x.platform === v.platform && (x.mode || 'channel') === (v.mode || 'channel') && x.ver === v.ver && (x.creator || '') === (v.creator || '')) || v;
+              const stRow = briefRowStatus(raw);
+              return {
               key: v.platform + '|' + (v.mode || 'channel') + '|' + v.ver, vi, saved: true,
               label: v.platform + (v.mode === 'creator' ? ' · ' + (v.creator || '红人风格') : '') + ' ' + v.ver,
-              status: v.status, iter: v.iter, prompt: v.prompt, mode: v.mode || 'channel', date: v.date || '—', origin: v.origin || '', briefStudioSession: v.briefStudioSession || '',
+              status: stRow, iter: v.iter, prompt: v.prompt, mode: v.mode || 'channel', date: v.date || '—', origin: v.origin || '', briefStudioSession: v.briefStudioSession || '',
               comment: v.comment || '', by: v.by || '',
               creator: v.creator || '', creatorStyle: v.creatorStyle || '', platform: v.platform, ver: v.ver
-            }));
+            }; });
           const draft = (s.briefFromStrategy || []).find(x => x.sku === sku);
           const list = [...saved];
           if (draft) list.push({
@@ -7234,7 +8259,6 @@ class Component extends DCLogic {
           const requested = chanFiltered.find(x => x.key === selKey);
           const requestedMatchesTab = requested && (briefEditorTab === 'creator' ? (requested.mode === 'creator' || requested.mode === 'style') : requested.mode !== 'creator' && requested.mode !== 'style');
           const sel = sku === bSkuId && page === 'brief' ? (requestedMatchesTab ? requested : selectable[0]) : (requested || chanFiltered[0]);
-          const canSubmit = sel.status === '草稿' || sel.status === '已驳回';
           const stMap = { '草稿': ['#F5F8FE', '#647187'], '待审批': ['#FBEEDA', '#A5762C'], '已通过': ['#E4EFE4', '#4E7156'], '已驳回': ['#F7EDEE', '#C4636D'] };
           const sc = skuScoreMap[sku] || 60;
 	          return {
@@ -7248,26 +8272,12 @@ class Component extends DCLogic {
             versions: chanFiltered.map(v => {
               const on = v.key === sel.key;
               const [sbg, sfg] = stMap[v.status] || stMap['草稿'];
-              const vDraft = v.status === '草稿' || v.status === '已驳回';
               return {
                 label: v.label, status: v.status, statusBg: sbg, statusFg: sfg,
                 platform: v.platform, mode: v.mode || 'channel', ver: v.ver, date: v.date || '—', creator: v.creator || '', creatorStyle: v.creatorStyle || '', saved: v.saved, origin: v.origin || '', briefStudioSession: v.briefStudioSession || '',
                 comment: v.comment ? '审批意见（' + (v.by || '审批人') + '）：' + v.comment : '',
                 bg: on ? '#EAF0FF' : 'transparent', fg: on ? '#2457F5' : '#1D2638',
-                subLabel: vDraft ? '申请审核' : (v.status === '待审批' ? '审核中' : '已通过'),
-                subBg: vDraft ? '#2457F5' : '#F7F9FC', subFg: vDraft ? '#FFFFFF' : '#A2ABBA',
-                subBd: vDraft ? '#2457F5' : '#EAF0FF', subCursor: vDraft ? 'pointer' : 'default',
-                submit: (e) => {
-                  if (e && e.stopPropagation) e.stopPropagation();
-                  if (!vDraft) return;
-                  if (v.saved) this.setState(st2 => {
-                    const ak = sku + '|' + v.platform + '|' + v.ver + '|' + (v.creator || '');
-                    const m = { ...(st2.approvals || {}) };
-                    delete m[ak];
-                    return { approvals: m, briefVersions: (st2.briefVersions || []).map((x, k) => k === v.vi ? { ...x, status: '待审批' } : x) };
-                  });
-                  else this.setState(st2 => ({ briefSubmitted: [...(st2.briefSubmitted || []), 'brf-' + sku] }));
-                },
+                title: '打开查看（提交审核请在工作台打包提交）',
                 pick: () => this.setState(st2 => ({
                   vaultSel: { ...(st2.vaultSel || {}), [sku]: v.key }, vaultMenu: null,
                   briefView: 'editor', briefId: 'brf-' + sku, platform: v.platform,
@@ -7290,53 +8300,195 @@ class Component extends DCLogic {
               viewedVersion: sel.saved ? sku + '|' + sel.platform + '|' + sel.mode + '|' + sel.ver : null,
               briefStudioNewKeys: [], briefStudioExistingKeys: (st2.briefVersions || []).filter(item => item.sku === sku).map(item => sku + '|' + item.platform + '|' + (item.mode || 'channel') + '|' + item.ver)
             })),
-            submitLabel: sel.status === '草稿' ? '申请审核' : (sel.status === '待审批' ? '审核中 · 已申请' : '已通过 · 无需申请'),
-            submitBg: canSubmit ? '#2457F5' : '#F7F9FC', submitFg: canSubmit ? '#FFFFFF' : '#A2ABBA',
-            submitBd: canSubmit ? '#2457F5' : '#EAF0FF', submitCursor: canSubmit ? 'pointer' : 'default',
-            submit: () => {
-              if (!canSubmit) return;
-              if (sel.saved) this.setState(st2 => ({ briefVersions: (st2.briefVersions || []).map((v, k) => k === sel.vi ? { ...v, status: '待审批' } : v) }));
-              else this.setState(st2 => ({ briefSubmitted: [...(st2.briefSubmitted || []), 'brf-' + sku] }));
-            }
           };
         }).filter(Boolean);
     })();
     const bEditorPanel = bVaultArr.find(x => x.sku === bSkuId);
-    const briefEditorItems = bEditorPanel ? bEditorPanel.versions.map((v, i) => {
-      const active = v.bg === '#EAF0FF';
-      const itemType = v.mode === 'creator' || v.mode === 'style' ? 'creator' : 'channel';
-      const kind = itemType === 'creator' ? (v.creator || '红人定向版') : '渠道通用版';
-      const editorKey = bSkuId + '|' + v.key;
-      return {
-        ...v,
-        idx: i + 1, editorKey, itemType,
-        channelShort: v.platform === 'Instagram' ? 'IG' : (v.platform === 'YouTube' ? 'YT' : 'TT'),
-        title: v.platform + ' · ' + kind + ' · ' + (v.ver === 'draft' ? '草稿' : v.ver),
-        meta: (v.date === '—' ? '当前未保存' : v.date) + ' · 第 ' + (v.iter || 1) + ' 次生成',
-        active,
-        rowBg: active ? '#F1F5FF' : '#FFFFFF', rowBd: active ? '#8CAFFF' : '#E2E8F2',
-        iconBg: active ? '#2457F5' : '#EAF0FF', iconFg: active ? '#FFFFFF' : '#2457F5',
-        titleFg: active ? '#1D48D8' : '#1D2638', viewLabel: active ? '正在查看' : '点击查看'
-      };
-    }) : [];
+    const briefSkuRows = (s.briefVersions || []).filter(v => v.sku === bSkuId);
+    const briefEditorRowStatus = (v) => {
+      const line = this.briefLineKey(v);
+      const max = briefSkuRows.filter(x => this.briefLineKey(x) === line).reduce((m, x) => Math.max(m, this.briefVerNum(x.ver)), 0);
+      if (this.briefVerNum(v.ver) < max) return '已通过';
+      return v.status || '草稿';
+    };
+    const briefEditorStMap = { '草稿': ['#F5F8FE', '#647187'], '待审批': ['#FBEEDA', '#A5762C'], '已通过': ['#E4EFE4', '#4E7156'], '已驳回': ['#F7EDEE', '#C4636D'] };
+    const briefEditorItems = (() => {
+      let legacyDeleted = new Set();
+      try {
+        const raw = JSON.parse(localStorage.getItem('aios.deletedBriefEntries') || '[]');
+        if (Array.isArray(raw)) legacyDeleted = new Set(raw.map(x => x.key).filter(Boolean));
+      } catch (_) {}
+      const rows = bvLive
+        .filter(v => v.sku === bSkuId && (v.mode || 'channel') !== 'segment')
+        .filter(v => !legacyDeleted.has(this.briefVersionCardKey(v)))
+        .slice()
+        .sort((a, b) => {
+          const ta = (a.mode === 'creator' || a.mode === 'style') ? 'creator' : 'channel';
+          const tb = (b.mode === 'creator' || b.mode === 'style') ? 'creator' : 'channel';
+          if (ta !== tb) return ta === 'channel' ? -1 : 1;
+          if (a.platform !== b.platform) return a.platform.localeCompare(b.platform);
+          const ca = a.creator || '';
+          const cb = b.creator || '';
+          if (ca !== cb) return ca.localeCompare(cb);
+          return this.briefVerNum(b.ver) - this.briefVerNum(a.ver);
+        });
+      return rows.map((v, i) => {
+        const mode = v.mode || 'channel';
+        const itemType = mode === 'creator' || mode === 'style' ? 'creator' : 'channel';
+        const kind = itemType === 'creator' ? (v.creator || '红人定向版') : '渠道通用版';
+        const vKey = v.platform + '|' + mode + '|' + v.ver;
+        const viewKey = bSkuId + '|' + v.platform + '|' + mode + '|' + v.ver;
+        const cardKey = this.briefVersionCardKey({ sku: bSkuId, platform: v.platform, mode, ver: v.ver, creator: v.creator || '' });
+        const active = s.viewedVersion === viewKey;
+        const stRow = briefEditorRowStatus(v);
+        const [statusBg, statusFg] = briefEditorStMap[stRow] || briefEditorStMap['草稿'];
+        const title = v.platform + ' · ' + kind + ' · ' + v.ver;
+        return {
+          platform: v.platform, mode, ver: v.ver, creator: v.creator || '', creatorStyle: v.creatorStyle || '',
+          status: stRow, statusBg, statusFg, date: v.date || '—', iter: v.iter || 1,
+          idx: i + 1, editorKey: bSkuId + '|' + vKey, cardKey, itemType,
+          channelShort: v.platform === 'Instagram' ? 'IG' : (v.platform === 'YouTube' ? 'YT' : 'TT'),
+          title,
+          meta: (v.date || '—') + ' · 第 ' + (v.iter || 1) + ' 次生成',
+          active,
+          rowBg: active ? '#F1F5FF' : '#FFFFFF', rowBd: active ? '#8CAFFF' : '#E2E8F2',
+          iconBg: active ? '#2457F5' : '#EAF0FF', iconFg: active ? '#FFFFFF' : '#2457F5',
+          titleFg: active ? '#1D48D8' : '#1D2638', viewLabel: active ? '正在查看' : '点击查看',
+          requestDelete: (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            this.setState({ briefDeletePending: { cardKey, viewKey, title } });
+          },
+          pick: () => this.setState(st2 => ({
+            vaultSel: { ...(st2.vaultSel || {}), [bSkuId]: vKey },
+            platform: v.platform,
+            briefMode: mode, briefEditorTab: itemType, briefCreator: v.creator || '', briefCreatorStyle: v.creatorStyle || '',
+            viewedVersion: viewKey,
+            briefStudioNotice: ''
+          }))
+        };
+      });
+    })();
     const briefEditorChannelItems = briefEditorItems.filter(v => v.itemType === 'channel');
     const briefEditorCreatorItems = briefEditorItems.filter(v => v.itemType === 'creator');
-    const briefEditorVisibleItems = briefEditorTab === 'creator' ? briefEditorCreatorItems : briefEditorChannelItems;
-    const briefEditorTabs = [
+    const briefEditorKindDefs = [
       { id: 'channel', label: '渠道 Brief', count: briefEditorChannelItems.length },
       { id: 'creator', label: '红人 Brief', count: briefEditorCreatorItems.length }
-    ].map(tab => {
-      const on = briefEditorTab === tab.id;
+    ];
+    const briefEditorKind = s.briefEditorTab === 'creator' ? 'creator' : 'channel';
+    const briefEditorVisibleItems = briefEditorKind === 'creator' ? briefEditorCreatorItems : briefEditorChannelItems;
+    const briefEditorTabs = briefEditorKindDefs.map(tab => {
+      const on = briefEditorKind === tab.id;
       const first = (tab.id === 'creator' ? briefEditorCreatorItems : briefEditorChannelItems)[0];
       return {
         ...tab, bg: on ? '#2457F5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#647187', bd: on ? '#2457F5' : '#D9E1EF',
         countBg: on ? 'rgba(255,255,255,.18)' : '#F1F4F8', countFg: on ? '#FFFFFF' : '#8792A5',
         pick: () => {
-          if (first && first.pick) first.pick();
-          this.setState({ briefEditorTab: tab.id, briefMode: tab.id, briefStudioNotice: '', briefStudioSetupOpen: true, briefStudioCreatorPickerOpen: tab.id === 'creator' });
+          const items = tab.id === 'creator' ? briefEditorCreatorItems : briefEditorChannelItems;
+          const head = items[0];
+          if (head && head.pick) {
+            head.pick();
+            this.setState({ briefEditorTab: tab.id, briefMode: tab.id, briefStudioNotice: '', briefStudioSetupOpen: true, briefStudioCreatorPickerOpen: tab.id === 'creator' });
+            return;
+          }
+          this.setState({
+            briefEditorTab: tab.id, briefMode: tab.id, briefStudioNotice: '', briefStudioSetupOpen: true,
+            briefStudioCreatorPickerOpen: tab.id === 'creator', viewedVersion: null
+          });
         }
       };
     });
+    const briefEditorShowKindTabs = briefEditorKindDefs.length > 0;
+    const briefLatestByLine = (() => {
+      const map = {};
+      briefSkuRows.forEach(v => {
+        const line = this.briefLineKey(v);
+        const n = this.briefVerNum(v.ver);
+        if (!map[line] || n > map[line].n) map[line] = { v, n };
+      });
+      return Object.values(map).map(x => x.v);
+    })();
+    const briefSubmitCandidates = briefLatestByLine.filter(v => {
+      const stt = v.status || '草稿';
+      return stt === '草稿' || stt === '已驳回';
+    });
+    const briefPendingSubmit = [...(s.briefSubmits || [])].reverse().find(sub => {
+      if (sub.sku !== bSkuId) return false;
+      const d = (s.approvals || {})['brf-' + sub.id];
+      return !d || d.status === '待审批';
+    });
+    const briefLastReject = [...(s.briefSubmits || [])].reverse().find(sub => {
+      if (sub.sku !== bSkuId) return false;
+      const d = (s.approvals || {})['brf-' + sub.id];
+      return d && d.status === '已驳回';
+    });
+    const briefRejectNote = briefLastReject && (s.approvals || {})['brf-' + briefLastReject.id]
+      ? ((((s.approvals || {})['brf-' + briefLastReject.id].when || '') + ' 驳回 · ' + ((s.approvals || {})['brf-' + briefLastReject.id].comment || '').trim() || '无具体意见').trim())
+      : '';
+    const briefSubmitBundleLines = briefLatestByLine.map(v => ({
+      label: v.platform + (v.mode === 'creator' ? ' · ' + (v.creator || '红人') : ' · 渠道') + ' · ' + v.ver,
+      status: v.status || '草稿',
+      kind: this.briefRowKind(v),
+      willSubmit: briefSubmitCandidates.some(c => c.platform === v.platform && (c.mode || 'channel') === (v.mode || 'channel') && c.ver === v.ver && (c.creator || '') === (v.creator || ''))
+    }));
+    const briefSubmitPreviewRows = briefPendingSubmit && (briefPendingSubmit.items || []).length
+      ? briefPendingSubmit.items
+      : briefSubmitCandidates;
+    const briefSubmitPreviewRowsForTab = (tab) => briefSubmitPreviewRows.filter(v => this.briefRowKind(v) === tab);
+    const briefSubmitPreviewKinds = ['channel', 'creator'].filter(t => briefSubmitPreviewRowsForTab(t).length > 0);
+    let briefSubmitPreviewKind = s.briefSubmitPreviewTab === 'creator' ? 'creator' : 'channel';
+    if (!briefSubmitPreviewRowsForTab(briefSubmitPreviewKind).length && briefSubmitPreviewKinds.length) {
+      briefSubmitPreviewKind = briefSubmitPreviewKinds[0];
+    }
+    const briefSubmitPreviewKindRows = briefSubmitPreviewRowsForTab(briefSubmitPreviewKind);
+    const briefSubmitPreviewActiveRow = briefSubmitPreviewKindRows.find(r => this.briefLineKey(r) === (s.briefSubmitPreviewItemKey || ''))
+      || briefSubmitPreviewKindRows[0]
+      || null;
+    const briefSubmitPreviewSections = !briefSubmitPreviewActiveRow ? [] : this.briefSubmitItemSections({
+      ...briefSubmitPreviewActiveRow,
+      sections: briefSubmitPreviewActiveRow.sections || this.briefBlocksToSections(buildBriefBlocksForRow(briefSubmitPreviewActiveRow, bLang))
+    }).map(sec => ({ isBundleHeader: false, title: sec.title, body: sec.body }));
+    const briefSubmitPreviewItemTabs = briefSubmitPreviewKindRows.map(v => {
+      const key = this.briefLineKey(v);
+      const on = briefSubmitPreviewActiveRow && key === this.briefLineKey(briefSubmitPreviewActiveRow);
+      const label = this.briefRowKind(v) === 'creator'
+        ? ((v.creator || '红人') + ' · ' + v.ver)
+        : ((v.platform || '渠道') + ' · ' + v.ver);
+      return {
+        key, label,
+        pick: () => this.setState({ briefSubmitPreviewItemKey: key }),
+        bg: on ? '#2457F5' : '#FFFFFF',
+        fg: on ? '#FFFFFF' : '#647187',
+        bd: on ? '#2457F5' : '#D9E1EF'
+      };
+    });
+    const briefSubmitPreviewTabUi = (tab) => {
+      const on = briefSubmitPreviewKind === tab;
+      const n = briefSubmitPreviewRowsForTab(tab).length;
+      return {
+        id: tab,
+        label: tab === 'creator' ? '红人 Brief' : '渠道 Brief',
+        count: n,
+        pick: () => this.setState({ briefSubmitPreviewTab: tab, briefSubmitPreviewItemKey: '' }),
+        bg: on ? '#2457F5' : '#FFFFFF',
+        fg: on ? '#FFFFFF' : '#647187',
+        bd: on ? '#2457F5' : '#D9E1EF',
+        countBg: on ? 'rgba(255,255,255,.18)' : '#F1F4F8',
+        countFg: on ? '#FFFFFF' : '#8792A5'
+      };
+    };
+    const briefSubmitPreviewTabs = briefSubmitPreviewKinds.map(t => briefSubmitPreviewTabUi(t));
+    const briefSubmitPreviewShowKindTabs = briefSubmitPreviewKinds.length > 0;
+    const briefSubmitPreviewShowItemTabs = briefSubmitPreviewItemTabs.length > 1;
+    const briefSubmitPreviewActiveLabel = briefSubmitPreviewActiveRow ? this.briefLinePreviewLabel(briefSubmitPreviewActiveRow) : '';
+    const briefSubmitKindCountsNote = (() => {
+      const parts = [];
+      const c = briefSubmitPreviewRowsForTab('channel').length;
+      const r = briefSubmitPreviewRowsForTab('creator').length;
+      if (c) parts.push('渠道 ' + c);
+      if (r) parts.push('红人 ' + r);
+      return parts.join(' · ');
+    })();
+    const briefCanSubmitBundle = !briefPendingSubmit && briefSubmitCandidates.length > 0;
     return {
       nav, crumbRoot, crumbLeaf,
       navWidth: collapsed ? '68px' : '252px',
@@ -7392,9 +8544,9 @@ class Component extends DCLogic {
         ? tasks.filter(t => !t.check).length + ' 项任务待处理 · ' + apPendingCount + ' 项等你审批'
         : tasks.filter(t => !t.check).length + ' 项任务待处理 · 审批已清空',
       tkTabs: [
-        { id: 'list', label: '任务清单', note: '卡住流程的事 + 我的待办', badge: '' },
+        { id: 'list', label: '任务清单', note: '审批结果 + 卡住流程 + 我的待办', badge: (taskApprovalOpen + taskTodoOpen) ? String(taskApprovalOpen + taskTodoOpen) : '' },
         { id: 'mail', label: '待回复邮件', note: '按等待时长排序 · 24h 预警 / 48h 升级', badge: facts.replies.length ? String(facts.replies.length) : '' },
-        { id: 'approval', label: '审批清单', note: '九类审批 · 结果回流到对应模块与提醒', badge: apPendingCount ? String(apPendingCount) : '' }
+        { id: 'approval', label: '审批清单', note: '八类审批 · 结果回流到对应模块与提醒', badge: apPendingCount ? String(apPendingCount) : '' }
       ].map(t => {
         const on = (s.tkTab || 'list') === t.id;
         return {
@@ -7691,22 +8843,87 @@ class Component extends DCLogic {
       apEmpty: (() => {
         const tab = s.apTab || 'pending';
         const wantStatus = tab === 'pending' ? '待审批' : (tab === 'approved' ? '已通过' : '已驳回');
-        const wantType = s.apType || '全部类型';
+        const wantType = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型');
         return apPool.filter(x => x.status === wantStatus && (wantType === '全部类型' || x.type === wantType)).length === 0;
       })(),
       apTypes: (() => {
-        const cur = s.apType || '全部类型';
-        return ['全部类型', '选品', 'Campaign', 'Strategy', 'Brief', '红人合作', '寄样', '素材入库', '付款', '合同变更'].map(t => {
+        const cur = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型');
+        return ['全部类型', 'Campaign', 'Strategy', 'Brief', '红人合作', '寄样', '素材入库', '付款', '合同变更'].map(t => {
           const on = cur === t;
           return { label: t, pick: () => this.setState({ apType: t }), bg: on ? '#2457F5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#647187', bd: on ? '#2457F5' : '#E2E8F2' };
         });
       })(),
       apRows: (() => {
         const tab = s.apTab || 'pending';
-        const wantType = s.apType || '全部类型';
+        const wantType = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型');
         const wantStatus = tab === 'pending' ? '待审批' : (tab === 'approved' ? '已通过' : '已驳回');
         const list = apPool.filter(x => x.status === wantStatus && (wantType === '全部类型' || x.type === wantType));
+        const expandedKey = s.apCampaignExpandedKey || '';
         return list.map((b, i) => {
+          const detailOpen = expandedKey === b.key && (b.isCampaign || b.isStrategy || b.isBrief || b.isCoopDeal);
+          const campDetailOpen = detailOpen && b.isCampaign;
+          const strDetailOpen = detailOpen && b.isStrategy;
+          const briefDetailOpen = detailOpen && b.isBrief;
+          const coopDetailOpen = detailOpen && b.isCoopDeal;
+          const campSub = campDetailOpen && b.campaignId
+            ? (s.campaignSubmits || []).find(x => x.id === b.campaignId)
+            : null;
+          const strSub = strDetailOpen && b.strategySubmitId
+            ? (s.strategySubmits || []).find(x => x.id === b.strategySubmitId)
+            : null;
+          const briefSub = briefDetailOpen && b.briefSubmitId
+            ? (s.briefSubmits || []).find(x => x.id === b.briefSubmitId)
+            : null;
+          const coopSub = coopDetailOpen && b.coopDealSubmitId
+            ? (s.campaignCoopSubmits || []).find(x => x.id === b.coopDealSubmitId)
+            : null;
+          const campPreview = campSub ? this.buildCampaignSubmitPreview(campSub) : null;
+          const strPreview = strSub ? this.buildStrategySubmitPreview(strSub) : null;
+          const briefPreview = briefSub ? this.buildBriefSubmitPreview(briefSub) : null;
+          const coopPreview = coopSub ? this.buildCoopDealSubmitPreview(coopSub) : null;
+          const briefPackItems = briefSub ? (briefSub.items || []) : [];
+          const apBriefRowsForTab = (tab) => briefPackItems.filter(it => this.briefRowKind(it) === tab);
+          const apBriefKinds = ['channel', 'creator'].filter(t => apBriefRowsForTab(t).length > 0);
+          let apBriefTab = s.apBriefPreviewTab === 'creator' ? 'creator' : 'channel';
+          if (!apBriefRowsForTab(apBriefTab).length && apBriefKinds.length) apBriefTab = apBriefKinds[0];
+          const apBriefTabRows = apBriefRowsForTab(apBriefTab);
+          const apBriefActiveRow = apBriefTabRows.find(it => this.briefLineKey(it) === (s.apBriefPreviewItemKey || ''))
+            || apBriefTabRows[0]
+            || null;
+          const apBriefPreviewTabUi = (tab) => {
+            const on = apBriefTab === tab;
+            const count = apBriefRowsForTab(tab).length;
+            return {
+              id: tab,
+              label: tab === 'creator' ? '红人 Brief' : '渠道 Brief',
+              count,
+              pick: () => this.setState({ apBriefPreviewTab: tab, apBriefPreviewItemKey: '' }),
+              bg: on ? '#2457F5' : '#FFFFFF',
+              fg: on ? '#FFFFFF' : '#647187',
+              bd: on ? '#2457F5' : '#D9E1EF',
+              countBg: on ? 'rgba(255,255,255,.18)' : '#F1F4F8',
+              countFg: on ? '#FFFFFF' : '#8792A5'
+            };
+          };
+          const briefPreviewSectionsTabbed = !apBriefActiveRow ? [] : this.briefSubmitItemSections(apBriefActiveRow)
+            .map(sec => ({ isBundleHeader: false, title: sec.title, body: sec.body }));
+          const apBriefPreviewItemTabs = apBriefTabRows.map(v => {
+            const key = this.briefLineKey(v);
+            const on = apBriefActiveRow && key === this.briefLineKey(apBriefActiveRow);
+            const label = this.briefRowKind(v) === 'creator'
+              ? ((v.creator || '红人') + ' · ' + v.ver)
+              : ((v.platform || '渠道') + ' · ' + v.ver);
+            return {
+              key, label,
+              pick: () => this.setState({ apBriefPreviewItemKey: key }),
+              bg: on ? '#2457F5' : '#FFFFFF',
+              fg: on ? '#FFFFFF' : '#647187',
+              bd: on ? '#2457F5' : '#D9E1EF'
+            };
+          });
+          const briefPreviewTitleTabbed = briefPreview && apBriefActiveRow
+            ? (briefSub.name + ' · ' + this.briefLinePreviewLabel(apBriefActiveRow))
+            : '';
           const decided = b.status !== '待审批';
           const open = s.apPanel === b.key;
           const meta = statusMetaBrief(b.status);
@@ -7717,6 +8934,7 @@ class Component extends DCLogic {
               const patch = {
                 approvals: { ...(st.approvals || {}), [b.key]: { status, comment: c, by: 'Helen · Marketing Lead', when: '2026-08-20' } },
                 apPanel: null, apComment: '',
+                apCampaignExpandedKey: st.apCampaignExpandedKey === b.key ? '' : st.apCampaignExpandedKey,
                 notifSeen: (st.notifSeen || []).filter(x => x !== 'ap-' + b.key),
                 notifLog: [{ kind: 'approval', title: status + ' · ' + b.notifName, note: c || '无意见', when: '刚刚' }, ...(st.notifLog || [])]
               };
@@ -7738,13 +8956,70 @@ class Component extends DCLogic {
                   patch.qualityAdded = (st.qualityAdded || []).filter(x => x !== h2);
                 }
               }
+              if (b.isStrategy) {
+                patch.strategyApproved = { ...(st.strategyApproved || {}), [b.strategyVersionKey]: status };
+                if (status === '已通过') {
+                  Object.assign(patch, this.bumpStrategyVersionAfterApproval(
+                    { ...st, ...patch },
+                    b.strategyVersionKey,
+                    (st.strategySubmits || []).find(x => x.id === b.strategySubmitId)
+                  ));
+                }
+              }
+              if (b.isBrief) {
+                const sub = (st.briefSubmits || []).find(x => x.id === b.briefSubmitId);
+                if (sub && Array.isArray(sub.items)) {
+                  if (status === '已通过') {
+                    Object.assign(patch, this.bumpBriefBundleAfterApproval({ ...st, ...patch }, sub));
+                  } else if (status === '已驳回') {
+                    patch.briefVersions = (st.briefVersions || []).map(v => {
+                      const hit = sub.items.some(it => it.sku === v.sku && it.platform === v.platform && (it.mode || 'channel') === (v.mode || 'channel') && it.ver === v.ver && (it.creator || '') === (v.creator || ''));
+                      return hit ? { ...v, status: '已驳回', comment: c, by: 'Helen · Marketing Lead' } : v;
+                    });
+                  }
+                }
+              }
+              if (b.isCampaign && status === '已通过') {
+                const sub = (st.campaignSubmits || []).find(x => x.id === b.campaignId);
+                if (sub) {
+                  const exists = (st.newCampaigns || []).some(c => c.timelineKey === sub.timelineKey);
+                  if (!exists) {
+                    patch.newCampaigns = [{
+                      sku: sub.sku, name: sub.name, brand: sub.brand, owner: sub.owner,
+                      goal: sub.goal, kpi: sub.kpi, contentTarget: sub.contentTarget, viewsTarget: sub.viewsTarget,
+                      budget: sub.budget, start: sub.start, end: sub.end,
+                      timelineKey: sub.timelineKey, timelinePhases: sub.timelinePhases
+                    }, ...(st.newCampaigns || [])];
+                  }
+                  patch.promoted = (st.promoted || []).includes(sub.sku) ? st.promoted : [...(st.promoted || []), sub.sku];
+                  if (!(st.budgetLines || []).some(bl => bl.sku === sub.sku && bl.campaign === sub.goal)) {
+                    patch.budgetLines = [...(st.budgetLines || []), {
+                      sku: sub.sku, name: sub.name, campaign: sub.goal,
+                      pool: Number(sub.budget) || 0, committed: 0, paid: 0
+                    }];
+                  }
+                }
+              }
+              if (b.isCoopDeal && status === '已通过') {
+                const sub = (st.campaignCoopSubmits || []).find(x => x.id === b.coopDealSubmitId);
+                if (sub && sub.sku) {
+                  const sku = sub.sku;
+                  const handles = (sub.handles || []).filter(Boolean);
+                  const prevDeals = (st.campaignCoopDeals || {})[sku] || [];
+                  patch.campaignCoopDeals = {
+                    ...(st.campaignCoopDeals || {}),
+                    [sku]: [...handles.filter(h => prevDeals.indexOf(h) < 0), ...prevDeals]
+                  };
+                  const prevCoop = st.coopList || [];
+                  patch.coopList = [...handles.filter(h => prevCoop.indexOf(h) < 0), ...prevCoop];
+                }
+              }
               return patch;
             });
           };
           return {
             idx: i + 1, title: b.title, meta: b.meta,
             status: b.status, statusBg: meta[1], statusFg: meta[0],
-            bd: b.status === '待审批' ? '#F0C9B8' : '#E2E8F2',
             comment: b.comment || '', by: b.by || '',
             commentLabel: b.by ? '审批意见 · ' + b.by : '审批意见',
             canDecide: !decided, decided,
@@ -7765,25 +9040,102 @@ class Component extends DCLogic {
                 patch.qualityAdded = (st.qualityAdded || []).filter(x => x !== h3);
                 patch.blackAdded = (st.blackAdded || []).filter(x => x !== h3);
               }
+              if (b.isCoopDeal) {
+                const sub = (st.campaignCoopSubmits || []).find(x => x.id === b.coopDealSubmitId);
+                const prev = (st.approvals || {})[b.key];
+                if (sub && prev && prev.status === '已通过') {
+                  const sku = sub.sku;
+                  const handleSet = new Set(sub.handles || []);
+                  patch.campaignCoopDeals = {
+                    ...(st.campaignCoopDeals || {}),
+                    [sku]: ((st.campaignCoopDeals || {})[sku] || []).filter(h => !handleSet.has(h))
+                  };
+                  patch.coopList = (st.coopList || []).filter(h => !handleSet.has(h));
+                }
+              }
               return patch;
             }),
             typeText: b.type, typeBg: b.typeBg, typeFg: b.typeFg,
-            viewLabel: b.viewLabel,
-            view: () => this.setState(b.goState)
+            viewLabel: detailOpen ? '收起详情' : b.viewLabel,
+            view: detailOpen
+              ? () => this.setState({ apCampaignExpandedKey: '' })
+              : ((b.isCampaign || b.isStrategy || b.isBrief || b.isCoopDeal) && b.viewGo ? b.viewGo : (() => this.setState(b.goState))),
+            campDetailOpen,
+            strDetailOpen,
+            briefDetailOpen,
+            coopDetailOpen,
+            campDetailClosed: !campDetailOpen && !strDetailOpen && !briefDetailOpen && !coopDetailOpen,
+            campPreviewNote: campPreview ? campPreview.note : '',
+            campPreviewHighlights: campPreview ? campPreview.highlights : [],
+            campPreviewKpi: campPreview ? campPreview.kpiLine : '',
+            strPreviewNote: strPreview ? strPreview.note : '',
+            strPreviewHighlights: strPreview ? strPreview.highlights : [],
+            strPreviewTitle: strPreview ? strPreview.previewTitle : '',
+            strPreviewSections: strPreview ? strPreview.sections : [],
+            briefPreviewNote: briefPreview ? briefPreview.note : '',
+            briefPreviewHighlights: briefPreview ? briefPreview.highlights : [],
+            briefPreviewTabs: briefSub ? apBriefKinds.map(t => apBriefPreviewTabUi(t)) : [],
+            briefPreviewShowKindTabs: apBriefKinds.length > 0,
+            briefPreviewItemTabs: apBriefPreviewItemTabs,
+            briefPreviewShowItemTabs: apBriefPreviewItemTabs.length > 1,
+            briefPreviewTitle: briefPreview ? briefPreviewTitleTabbed : '',
+            briefPreviewSections: briefPreview ? briefPreviewSectionsTabbed : [],
+            briefPreviewPaneBg: apBriefTab === 'creator' ? '#F6FBF7' : '#F5F8FE',
+            briefPreviewPaneBd: apBriefTab === 'creator' ? '#D4E8D9' : '#D9E4FF',
+            openBriefInStudio: briefSub ? () => {
+              try {
+                localStorage.setItem('aios.briefSubmits', JSON.stringify(s.briefSubmits || []));
+                localStorage.setItem('aios.approvals', JSON.stringify(s.approvals || {}));
+                localStorage.setItem('aios.campaignBriefVersions', JSON.stringify(s.briefVersions || []));
+              } catch (_) {}
+              window.location.href = './6-Brief-Studio.html?edit=1&sku=' + encodeURIComponent(briefSub.sku) + '&flow=submit';
+            } : () => {},
+            openStrategyInStudio: strSub ? () => {
+              try {
+                localStorage.setItem('aios.strategySubmits', JSON.stringify(s.strategySubmits || []));
+                localStorage.setItem('aios.approvals', JSON.stringify(s.approvals || {}));
+                localStorage.setItem('aios.campaignStrategyVersions', JSON.stringify(s.campaignStrategyVersions || []));
+              } catch (_) {}
+              window.location.href = './5-Strategy-Studio.html?edit=1&sku=' + encodeURIComponent(strSub.sku) + '&flow=submit';
+            } : () => {},
+            openCampInCampaigns: campSub ? () => {
+              try {
+                localStorage.setItem('aios.campaignSubmits', JSON.stringify(s.campaignSubmits || []));
+                localStorage.setItem('aios.approvals', JSON.stringify(s.approvals || {}));
+                localStorage.setItem('aios.newCampaigns', JSON.stringify(s.newCampaigns || []));
+              } catch (_) {}
+              const q = new URLSearchParams({
+                view: 'campaignDetail',
+                campaignSubmitId: campSub.id,
+                campaignName: campSub.name + ' · ' + campSub.goal,
+                campaignSku: campSub.sku,
+                campaignTab: 'goals'
+              });
+              window.location.href = './4-Campaigns.html?' + q.toString();
+            } : () => {},
+            coopPreviewNote: coopPreview ? coopPreview.note : '',
+            coopPreviewHighlights: coopPreview ? coopPreview.highlights : [],
+            openCoopInCampaigns: coopSub ? this.openCoopDealSubmitView(coopSub) : () => {},
+            bd: detailOpen ? '#B8CBFF' : (b.status === '待审批' ? '#F0C9B8' : '#E2E8F2')
           };
         });
       })(),
-      apEmptyNote: (s.apType || '全部类型') === '全部类型' ? '该分组下暂无记录。' : '「' + (s.apType || '') + '」类型下暂无该状态的记录。',
+      apEmptyNote: (() => { const t = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型'); return t === '全部类型' ? '该分组下暂无记录。' : '「' + t + '」类型下暂无该状态的记录。'; })(),
       promoQueue, promoCount, promoEmpty, strategyTitle, strategyMeta, budgetTotalText,
       swQueueNote: (s.promoted || []).length > 0
         ? '产品库已勾选「推广」的 ' + (s.promoted || []).length + ' 个产品已排在最前，每个产品的输入与章节状态独立保存'
         : '在 Products 产品库勾选「推广」，产品会自动出现在这里；每个产品的输入与章节状态独立保存',
       swBenchOpen: !!s.benchOpen, swBenchClosed: !s.benchOpen,
-      swDocMode: !!s.docMode, swShowRail: !s.docMode && swIsForm,
-      swContentPadding: swIsGen ? '0' : '18px',
-      swShowGenPanel: swIsGen && !s.docMode,
-      swEditInputs: () => this.setState(st2 => ({ docMode: false, sw: { ...st2.sw, step: 1 } })),
-      swCloseBench: () => this.setState({ benchOpen: false }),
+      swDocMode, swShowRail: !swDocMode && swIsForm,
+      swShowFlowStages: !swDocMode,
+      swShowSaveVersion: !swDocMode,
+      swVersionReadOnlyNote: swDocMode ? '当前为历史/已定稿版本，仅可查看正文；提交审核请在工作台编辑最新草稿。' : '',
+      swShowVersionReadOnlyNote: swDocMode,
+      swContentPadding: (swIsGen || swIsSubmit) ? (swIsGen ? '0' : '18px') : '18px',
+      swShowGenPanel: swIsGen && !sw.generated,
+      swIsSubmit,
+      swEditInputs: () => this.setState(st2 => ({ docMode: false, swFlowStage: 'prepare', sw: { ...st2.sw, step: 1 } })),
+      swCloseBench: () => this.setState({ benchOpen: false, swFlowStage: 'prepare', docMode: false }),
       swBenchTitle: sSku.name + ' 策略',
       swBenchAsin: sSku.asin, swBenchSku: sSku.sku,
       swBenchAsinUrl: 'https://www.amazon.com/dp/' + sSku.asin,
@@ -7822,19 +9174,28 @@ class Component extends DCLogic {
       swHasVersionNotice: !!s.swVersionNotice,
       swVersionNotice: s.swVersionNotice || '',
       swSteps, swInputSteps: swSteps.filter(x => x.no <= 8), swStep, swModuleName, swModuleFields, swModuleUploads, swModuleSources,
-      swBenchSectionsVisible: !s.docMode,
-      swBenchSections: [
-        { id: 'input', label: '输入项', note: '8 组资料填写' },
-        { id: 'check', label: '完整性检查', note: '证据映射 + 缺失项' },
-        { id: 'result', label: '生成结果', note: '基于输入生成的策略正文' }
+      swBenchSectionsVisible: false,
+      swFlowStages: [
+        { id: 'prepare', label: '准备输入', note: '8 组资料' },
+        { id: 'check', label: '完整性检查', note: '证据与缺失' },
+        { id: 'confirm', label: '生成与确认', note: '策略正文' },
+        { id: 'submit', label: '提交审核', note: '定稿送审' }
       ].map(t => {
-        const on = t.id === 'result' ? swIsGen : (t.id === 'check' ? swIsCheck : swIsForm);
+        const on = swFlowStage === t.id;
+        const submitLocked = t.id === 'submit' && !swCanSubmitStrict && !swStrategyPending && !swStrategyApproved;
         return {
           ...t,
-          bg: on ? '#2457F5' : 'transparent', bd: on ? '#2457F5' : 'transparent',
-          fg: on ? '#FFFFFF' : '#647187', noteFg: on ? '#FFFFFF' : '#8792A5',
-          pick: () => {
-            this.setState(st2 => ({ sw: { ...st2.sw, step: t.id === 'result' ? 10 : (t.id === 'check' ? 9 : (st2.sw.step <= 8 ? st2.sw.step : 1)) } }));
+          bg: on ? '#2457F5' : 'transparent', bd: on ? '#2457F5' : '#E2E8F2',
+          fg: on ? '#FFFFFF' : (submitLocked ? '#A2ABBA' : '#647187'),
+          noteFg: on ? 'rgba(255,255,255,.82)' : '#8792A5',
+          pick: submitLocked ? () => {} : () => {
+            this.setState(st2 => {
+              let step = st2.sw.step;
+              if (t.id === 'prepare') step = Math.min(Math.max(step, 1), 8);
+              else if (t.id === 'check') step = 9;
+              else step = 10;
+              return { swFlowStage: t.id, docMode: false, sw: { ...st2.sw, step } };
+            });
             requestAnimationFrame(() => {
               const el = document.getElementById('strategy-bench-top');
               if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -7842,6 +9203,105 @@ class Component extends DCLogic {
           }
         };
       }),
+      swStatusStrip: swCurrentVersionName + ' v' + swCurrentVersion + ' · ' + swApprovalStatus + ' · 章节 ' + swConfirmedCount + '/' + swSections.length + ' 已确认 · 输入 ' + swInputPct + '% · 门禁 ' + (swGateLevel === 'green' ? '绿色' : swGateLevel === 'yellow' ? '黄色' : '红色'),
+      swShowRejectBanner: swStrategyRejected && !!swRejectNote,
+      swRejectBannerText: swRejectNote,
+      swStrategyPending, swStrategyPendingClosed: !swStrategyPending, swStrategyApproved, swCanSubmitStrict,
+      swIsSubmitClosed: !swIsSubmit,
+      swSubmitChecklist: swSubmitChecklist.map(x => ({ ...x, okFg: x.ok ? '#4E7156' : '#C4636D', okIcon: x.ok ? '✓' : '○' })),
+      swSubmitGateHint: swSubmitGateHint || '',
+      swShowSubmitGateHint: !!swSubmitGateHint,
+      swSubmitPreviewSections, swSubmitPreviewTitle,
+      swSubmitForApproval: () => {
+        if (!swCanSubmitStrict) return;
+        const id = sSku.sku + '-v' + swCurrentVersion;
+        const snapshot = makeCurrentSwSnapshot(swCurrentVersion, 'Strategy Studio · 提交审核');
+        this.setState(st2 => {
+          const submit = {
+            id, sku: sSku.sku, name: sSku.name, ver: swCurrentVersion,
+            versionName: swCurrentVersionName, mode: st2.sw.mode,
+            sections: swSections.length, confirmed: swConfirmedCount,
+            by: sSku.owner || '陈曦', when: '2026-09-08'
+          };
+          return {
+            strategySubmits: [submit, ...(st2.strategySubmits || []).filter(x => x.id !== id)],
+            strategyApproved: { ...(st2.strategyApproved || {}), [swVersionKey]: '待审批' },
+            approvals: { ...(st2.approvals || {}), ['str-' + id]: { status: '待审批', comment: '', by: '', when: '2026-09-08' } },
+            campaignStrategyVersions: upsertSwSnapshot(st2.campaignStrategyVersions || [], snapshot),
+            swFlowStage: 'submit',
+            doneTaskKeys: (st2.doneTaskKeys || []).filter(x => x !== 'str-' + id),
+            notifLog: [{ kind: 'approval', title: '策略已提交审核 · ' + sSku.name + ' v' + swCurrentVersion, note: swCurrentVersionName + ' · 等待 Marketing Lead 定稿审批', when: '刚刚' }, ...(st2.notifLog || [])],
+            sw: { ...st2.sw, savedAt: '刚刚' }
+          };
+        });
+      },
+      swPrimaryLabel: (() => {
+        if (swDocMode) return '退出只读查看';
+        if (swStrategyPending) return '审核中 · 查看提交';
+        if (swFlowStage === 'submit') return swCanSubmitStrict ? '提交策略审核' : '提交条件未满足';
+        if (swFlowStage === 'prepare') return '下一步：完整性检查';
+        if (swFlowStage === 'check') return '下一步：生成与确认';
+        if (!sw.generated) return '生成策略（' + swModeName + '）';
+        if (swCanSubmitStrict) return '提交策略审核';
+        if (swAllChaptersConfirmed) return '前往提交审核';
+        return '继续确认章节';
+      })(),
+      swPrimaryBg: (swFlowStage === 'submit' && !swCanSubmitStrict && !swStrategyPending) ? '#F8FAFE' : '#2457F5',
+      swPrimaryFg: (swFlowStage === 'submit' && !swCanSubmitStrict && !swStrategyPending) ? '#A2ABBA' : '#FFFFFF',
+      swPrimaryBd: (swFlowStage === 'submit' && !swCanSubmitStrict && !swStrategyPending) ? '#E2E8F2' : '#2457F5',
+      swPrimaryGo: () => {
+        if (swDocMode) {
+          const rec = (this.state.library || []).find(x => x.sku === sSku.sku);
+          const latestVer = rec ? Number(rec.ver) || 1 : swCurrentVersion;
+          this.setState({ docMode: false, benchOpen: false, swFlowStage: 'confirm', swVersionNotice: '' });
+          if (latestVer !== swCurrentVersion) this.switchSku(sSku.sku);
+          return;
+        }
+        if (swStrategyPending) { this.setState({ swFlowStage: 'submit' }); return; }
+        if (swFlowStage === 'prepare') { this.setState(st2 => ({ swFlowStage: 'check', sw: { ...st2.sw, step: 9 } })); return; }
+        if (swFlowStage === 'check') {
+          this.setState(st2 => ({ swFlowStage: 'confirm', sw: { ...st2.sw, step: 10 } }));
+          return;
+        }
+        if (swFlowStage === 'confirm') {
+          if (!sw.generated) {
+            const prev = (s.library || []).find(x => x.sku === sSku.sku);
+            this.setState(st2 => ({
+              swFlowStage: 'confirm',
+              sw: { ...st2.sw, generated: true, step: 10, confirmed: [], regen: {}, editing: null, loadedStatus: null, verBase: prev ? prev.ver + 1 : 1 },
+              library: st2.library.some(x => x.sku === sSku.sku)
+                ? st2.library.map(x => x.sku === sSku.sku ? { ...x, ver: x.ver + 1, date: '2026-08-22', mode: st2.sw.mode, sections: swSectionCount, confirmed: 0, status: swGateStatus } : x)
+                : [{ sku: sSku.sku, name: sSku.name, brand: sSku.brand, owner: sSku.owner, date: '2026-08-22', mode: st2.sw.mode, ver: 1, status: swGateStatus, sections: swSectionCount, confirmed: 0 }, ...st2.library]
+            }));
+            return;
+          }
+          if (swCanSubmitStrict) { this.setState({ swFlowStage: 'submit' }); return; }
+          if (swAllChaptersConfirmed) { this.setState({ swFlowStage: 'submit' }); return; }
+          return;
+        }
+        if (swFlowStage === 'submit' && swCanSubmitStrict) {
+          const id = sSku.sku + '-v' + swCurrentVersion;
+          const snapshot = makeCurrentSwSnapshot(swCurrentVersion, 'Strategy Studio · 提交审核');
+          this.setState(st2 => {
+            const submit = {
+              id, sku: sSku.sku, name: sSku.name, ver: swCurrentVersion,
+              versionName: swCurrentVersionName, mode: st2.sw.mode,
+              sections: swSections.length, confirmed: swConfirmedCount,
+              by: sSku.owner || '陈曦', when: '2026-09-08'
+            };
+            return {
+              strategySubmits: [submit, ...(st2.strategySubmits || []).filter(x => x.id !== id)],
+              strategyApproved: { ...(st2.strategyApproved || {}), [swVersionKey]: '待审批' },
+              approvals: { ...(st2.approvals || {}), ['str-' + id]: { status: '待审批', comment: '', by: '', when: '2026-09-08' } },
+              campaignStrategyVersions: upsertSwSnapshot(st2.campaignStrategyVersions || [], snapshot),
+              swFlowStage: 'submit',
+              doneTaskKeys: (st2.doneTaskKeys || []).filter(x => x !== 'str-' + id),
+              notifLog: [{ kind: 'approval', title: '策略已提交审核 · ' + sSku.name + ' v' + swCurrentVersion, note: swCurrentVersionName + ' · 等待 Marketing Lead 定稿审批', when: '刚刚' }, ...(st2.notifLog || [])],
+              sw: { ...st2.sw, savedAt: '刚刚' }
+            };
+          });
+        }
+      },
       swIsForm, swIsCheck, swIsGen, swScores, swRisks, swSources, swSourceCount: swSources.length,
       swEvidenceClaims, swEvidencePct, swInputPct, swAiPending, swMissing, swMissingCount: swMissing.length,
       swGateLabel, swGateColor, swGateBg, swGateNote, swHold,
@@ -7873,6 +9333,7 @@ class Component extends DCLogic {
       swGenerate: () => this.setState(st2 => {
         const prev = st2.library.find(x => x.sku === sSku.sku);
         return {
+        swFlowStage: 'confirm',
         sw: { ...st2.sw, generated: true, step: 10, confirmed: [], regen: {}, editing: null, loadedStatus: null, verBase: prev ? prev.ver + 1 : 1 },
         library: st2.library.some(x => x.sku === sSku.sku)
           ? st2.library.map(x => x.sku === sSku.sku ? { ...x, ver: x.ver + 1, date: '2026-08-22', mode: st2.sw.mode, sections: swSectionCount, confirmed: 0, status: swGateStatus } : x)
@@ -7963,6 +9424,29 @@ class Component extends DCLogic {
               { label: '星级', value: p.stars + ' ★' }, { label: 'Review', value: p.reviews }
             ].map(x => ({ ...x, plain: !x.link })),
             showFill: on && s.spPanel === 'fill', showAi: on && s.spPanel === 'ai',
+            showStrategy: on && s.spPanel === 'strategy' && !!(rec && total > 0 && done >= total),
+            strategyPreviewTitle: (() => {
+              const libVer = rec ? rec.ver : 1;
+              const snap = (s.campaignStrategyVersions || []).find(v => v.sku === sku && Number(v.ver) === Number(libVer))
+                || (s.campaignStrategyVersions || []).find(v => v.sku === sku);
+              const n = snap && Array.isArray(snap.sections) ? snap.sections.length : (on && total ? total : 0);
+              return p.name + ' · 共 ' + n + ' 章';
+            })(),
+            strategyPreviewSections: (() => {
+              const libVer = rec ? rec.ver : 1;
+              const snap = (s.campaignStrategyVersions || []).find(v => v.sku === sku && Number(v.ver) === Number(libVer))
+                || (s.campaignStrategyVersions || []).find(v => v.sku === sku);
+              if (snap && Array.isArray(snap.sections) && snap.sections.length) {
+                return snap.sections.map(sec => ({ title: sec.no + '. ' + sec.title, body: sec.body || '' }));
+              }
+              if (on && total > 0) return swSections.map(x => ({ title: x.no + '. ' + x.title, body: x.body || '' }));
+              return [{ title: '暂无正文', body: '请在工作台生成并确认章节后查看。' }];
+            })(),
+            openStrategyBench: (e) => {
+              if (e && e.stopPropagation) e.stopPropagation();
+              this.switchSku(sku);
+              this.setState({ benchOpen: true, docMode: false, spPanel: null, swFlowStage: 'confirm' });
+            },
             fillBg: on && s.spPanel === 'fill' ? '#F8FAFE' : '#FFFFFF',
             fillBd: on && s.spPanel === 'fill' ? '#C8D4E8' : '#EEF2F8',
             aiBg: on && s.spPanel === 'ai' ? '#E8EEFF' : '#FFFFFF',
@@ -8006,8 +9490,16 @@ class Component extends DCLogic {
             gen: (e) => {
               if (e && e.stopPropagation) e.stopPropagation();
               this.switchSku(sku);
-              this.setState({ benchOpen: true, docMode: !!rec && total > 0 && done >= total });
-              if (rec && !(total > 0 && done >= total)) { this.setState(st2 => ({ sw: { ...st2.sw, step: 1, generated: true } })); return; }
+              const ready = !!(rec && total > 0 && done >= total);
+              if (ready) {
+                this.setState(st2 => ({
+                  benchOpen: false, docMode: false, stVaultMenu: null,
+                  spPanel: st2.strategySku === sku && st2.spPanel === 'strategy' ? null : 'strategy'
+                }));
+                return;
+              }
+              this.setState({ benchOpen: true, docMode: false, swFlowStage: 'prepare' });
+              if (rec && !ready) { this.setState(st2 => ({ sw: { ...st2.sw, step: 1, generated: true } })); return; }
               this.setState(st2 => {
                 const r = st2.library.find(y => y.sku === sku);
                 if (r) return { sw: { ...st2.sw, step: 10, generated: true, editing: null } };
@@ -8020,7 +9512,8 @@ class Component extends DCLogic {
           };
         }).filter(Boolean);
       })(),
-	      stTabQueue: s.stTab === 'queue', stTabWork: s.stTab !== 'queue', stTabLib: false,
+	      stTabQueue: s.stTab === 'queue', stTabQueueClosed: s.stTab === 'queue' && !s.benchOpen,
+	      stTabWork: s.stTab !== 'queue', stTabWorkList: s.stTab !== 'queue' && !s.benchOpen, stTabLib: false,
 	      stTabs: [
 	        { id: 'queue', label: '待生成', note: promoQueue.length + ' 个产品待生成' },
 	        { id: 'work', label: '列表', note: '八模块输入 · 完整性检查 · 生成' }
@@ -8076,8 +9569,14 @@ class Component extends DCLogic {
       cmTabList: s.cmTab === 'list',
       cmTabTime: s.cmTab === 'time',
       isNewCampaign: page === 'newCampaign',
+      ncResubmit: !!s.campaignResubmitId,
+      ncResubmitComment: (() => {
+        const id = s.campaignResubmitId;
+        if (!id) return '';
+        return ((s.approvals || {})['cmp-' + id] || {}).comment || '';
+      })(),
       ncOpen: () => this.setState({ page: 'newCampaign' }),
-      ncClose: () => this.setState({ page: 'campaigns' }),
+      ncClose: () => this.setState({ page: 'campaigns', campaignResubmitId: '' }),
       ncSku: s.ncSku || '',
       ncSkuOpen: !!s.ncSkuOpen,
       ncToggleSku: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState(st => ({ ncSkuOpen: !st.ncSkuOpen, ncGoalOpen: false })); },
@@ -8140,29 +9639,46 @@ class Component extends DCLogic {
             },
             { label: '内容数量目标', type: 'number', value: contentTarget, ph: '例：90', note: '用于计算内容产出目标达成率', set: (e) => this.setState({ ncContentTarget: e.target.value }) },
             { label: '播放量目标', type: 'text', value: viewsTarget, ph: '例：2.6M', note: '支持直接填写 2600000、2.6M 或 2600K', set: (e) => this.setState({ ncViewsTarget: e.target.value }) },
-            { label: '营销预算（USD）', type: 'number', value: budget, ph: '例：42000', note: '创建后写入 Budget Mgt 预算池', set: (e) => this.setState({ ncBudget: e.target.value }) },
+            { label: '营销预算（USD）', type: 'number', value: budget, ph: '例：42000', note: '审核通过后写入 Budget Mgt 预算池', set: (e) => this.setState({ ncBudget: e.target.value }) },
             { label: '开始时间', type: 'date', value: start, ph: '', note: '时间目标起点', set: (e) => this.setState({ ncStart: e.target.value, ncTimelineShift: 0, ncTimelineDates: {}, ncTimelineEdit: false, ncTimelinePhaseEdit: null }) },
             { label: '结束时间', type: 'date', value: end, ph: '', note: '时间目标终点', set: (e) => this.setState({ ncEnd: e.target.value, ncTimelineShift: 0, ncTimelineDates: {}, ncTimelineEdit: false, ncTimelinePhaseEdit: null }) }
           ]).map(x => ({ ...x, isInput: !x.isSelect })),
           ncSummary: ready
-            ? '将创建：' + p.name + ' · ' + goal + ' · ' + contentTarget + ' 条内容 · ' + viewsTarget + ' 播放 · $' + Number(budget).toLocaleString('en-US') + ' · ' + start + ' 至 ' + end
+            ? '将提交审核：' + p.name + ' · ' + goal + ' · ' + contentTarget + ' 条内容 · ' + viewsTarget + ' 播放 · $' + Number(budget).toLocaleString('en-US') + ' · ' + start + ' 至 ' + end
             : '营销目标、内容数量、播放量、预算、开始与结束时间为必填',
           ncBtnBg: ready ? '#2457F5' : '#F5F8FE',
           ncBtnFg: ready ? '#FFFFFF' : '#A2ABBA',
           ncBtnBd: ready ? '#2457F5' : '#E2E8F2',
           ncCreate: () => {
             if (!ready) return;
-            const timelineKey = 'new-' + p.sku.toLowerCase() + '-' + Date.now();
-            this.setState(st => ({
-              page: 'campaigns', ncSku: '', ncGoal: '', ncContentTarget: '', ncViewsTarget: '', ncBudget: '', ncStart: '', ncEnd: '', ncKpi: '', cmTab: 'list',
-              ncTimelineShift: 0, ncTimelineDates: {}, ncTimelineEdit: false, ncTimelinePhaseEdit: null,
-              promoted: (st.promoted || []).includes(p.sku) ? st.promoted : [...(st.promoted || []), p.sku],
-              newCampaigns: [{ sku: p.sku, name: p.name, brand: p.brand, owner: p.owner, goal, kpi, contentTarget: Number(contentTarget), viewsTarget, budget: Number(budget), start: ncTimelinePreview.startIso || start, end: ncTimelinePreview.endIso || end, timelineKey, timelinePhases: ncTimelinePreview.serialized }, ...(st.newCampaigns || [])],
-              budgetLines: (st.budgetLines || []).some(b => b.sku === p.sku)
-                ? st.budgetLines
-                : [...(st.budgetLines || []), { sku: p.sku, name: p.name, campaign: goal, pool: Number(budget), committed: 0, paid: 0 }],
-              notifLog: [{ kind: 'campaign', title: '新建 Campaign · ' + p.name, note: goal + ' · $' + Number(budget).toLocaleString('en-US') + ' · ' + start + ' 至 ' + end, when: '刚刚' }, ...(st.notifLog || [])]
-            }));
+            const resubmitId = s.campaignResubmitId || '';
+            const subId = resubmitId || ('cs-' + Date.now());
+            const prevSub = resubmitId ? (s.campaignSubmits || []).find(x => x.id === resubmitId) : null;
+            const timelineKey = prevSub?.timelineKey || ('new-' + p.sku.toLowerCase() + '-' + Date.now());
+            const sub = {
+              id: subId, sku: p.sku, name: p.name, brand: p.brand, owner: p.owner,
+              goal, kpi, contentTarget: Number(contentTarget), viewsTarget,
+              budget: Number(budget), start: ncTimelinePreview.startIso || start, end: ncTimelinePreview.endIso || end,
+              timelineKey, timelinePhases: ncTimelinePreview.serialized, by: '陈曦', when: '刚刚'
+            };
+            this.setState(st => {
+              const approvals = { ...(st.approvals || {}) };
+              if (resubmitId) delete approvals['cmp-' + resubmitId];
+              const campaignSubmits = resubmitId
+                ? (st.campaignSubmits || []).map(x => x.id === resubmitId ? sub : x)
+                : [sub, ...(st.campaignSubmits || [])];
+              return {
+                page: 'campaigns', campaignResubmitId: '',
+                ncSku: '', ncGoal: '', ncContentTarget: '', ncViewsTarget: '', ncBudget: '', ncStart: '', ncEnd: '', ncKpi: '', cmTab: 'list',
+                ncTimelineShift: 0, ncTimelineDates: {}, ncTimelineEdit: false, ncTimelinePhaseEdit: null,
+                campaignSubmits, approvals,
+                doneTaskKeys: (st.doneTaskKeys || []).filter(x => x !== 'cmp-' + resubmitId),
+                notifLog: [
+                  { kind: 'approval', title: (resubmitId ? '已重新提交 Campaign 立项审核 · ' : '已提交 Campaign 立项审核 · ') + p.name, note: goal + ' · $' + Number(budget).toLocaleString('en-US') + ' · 等待 Marketing Lead 在 My Tasks 审批', when: '刚刚' },
+                  ...(st.notifLog || [])
+                ]
+              };
+            });
           }
         };
       })(),
@@ -8230,18 +9746,63 @@ class Component extends DCLogic {
       showBriefList: () => this.setState({ briefView: 'list' }),
       showBriefEditor: () => this.setState({ briefView: 'editor' }),
       briefIter, briefSavedCount: bVersions.length,
-      briefSubmitLabel: !bViewV ? '先保存版本再申请' : (bViewV.status === '草稿' ? '申请审核' : (bViewV.status === '待审批' ? '审核中' : '已通过')),
-      briefSubmitBg: bViewV && bViewV.status === '草稿' ? '#2457F5' : '#F7F9FC',
-      briefSubmitFg: bViewV && bViewV.status === '草稿' ? '#FFFFFF' : '#A2ABBA',
-      briefSubmitBd: bViewV && bViewV.status === '草稿' ? '#2457F5' : '#EAF0FF',
-      briefSubmitCursor: bViewV && bViewV.status === '草稿' ? 'pointer' : 'default',
-      submitViewedBrief: () => {
-        if (!bViewV || bViewV.status !== '草稿') return;
-        this.setState(st => ({
-          briefVersions: (st.briefVersions || []).map(v =>
-            (v.sku === bViewV.sku && v.platform === bViewV.platform && (v.mode || 'channel') === (bViewV.mode || 'channel') && v.ver === bViewV.ver)
-              ? { ...v, status: '待审批' } : v)
+      briefSubmitOpen: !!s.briefSubmitOpen,
+      briefToggleSubmitPanel: () => this.setState(st => ({ briefSubmitOpen: !st.briefSubmitOpen })),
+      briefSubmitPanelLabel: s.briefSubmitOpen ? '收起提交审核' : '提交审核',
+      briefBundlePending: !!briefPendingSubmit,
+      briefBundlePendingClosed: !briefPendingSubmit,
+      briefShowRejectBanner: !!briefRejectNote && !briefPendingSubmit,
+      briefRejectBannerText: briefRejectNote,
+      briefStatusStrip: bProd.name + ' · 渠道/红人 Brief 共 ' + briefLatestByLine.length + ' 条 · ' + (briefPendingSubmit ? '打包审核中' : (briefSubmitCandidates.length ? briefSubmitCandidates.length + ' 条待提交' : '暂无待提交')),
+      briefSubmitBundleLines,
+      briefSubmitPreviewTabs,
+      briefSubmitPreviewShowKindTabs,
+      briefSubmitPreviewItemTabs,
+      briefSubmitPreviewShowItemTabs,
+      briefSubmitBundleCount: briefSubmitCandidates.length,
+      briefSubmitBundleNote: briefPendingSubmit
+        ? '当前有一包 Brief 正在 My Tasks 审批中，审批结束前不可重复提交。'
+        : ('将一并提交：' + briefSubmitCandidates.length + ' 份' + (briefSubmitKindCountsNote ? '（' + briefSubmitKindCountsNote + '）' : '') + '。'),
+      briefSubmitPreviewSections,
+      briefSubmitPreviewPaneBg: briefSubmitPreviewKind === 'creator' ? '#F6FBF7' : '#F5F8FE',
+      briefSubmitPreviewPaneBd: briefSubmitPreviewKind === 'creator' ? '#D4E8D9' : '#D9E4FF',
+      briefSubmitPreviewTitle: briefSubmitPreviewActiveRow
+        ? (bProd.name + ' · ' + briefSubmitPreviewActiveLabel + (briefPendingSubmit ? ' · 审批中' : ''))
+        : (bProd.name + ' · 暂无可预览的 Brief'),
+      briefSubmitLabel: briefPendingSubmit ? '审核中 · 查看提交' : (briefCanSubmitBundle ? '提交全部 Brief 审核' : '暂无可提交版本'),
+      briefSubmitBg: briefCanSubmitBundle ? '#2457F5' : '#F7F9FC',
+      briefSubmitFg: briefCanSubmitBundle ? '#FFFFFF' : '#A2ABBA',
+      briefSubmitBd: briefCanSubmitBundle ? '#2457F5' : '#EAF0FF',
+      briefSubmitCursor: briefCanSubmitBundle ? 'pointer' : 'default',
+      briefSubmitForApproval: () => {
+        if (briefPendingSubmit) {
+          this.setState({ briefSubmitOpen: true });
+          return;
+        }
+        if (!briefSubmitCandidates.length) return;
+        const id = bSkuId + '-bundle-' + Date.now();
+        const lang = s.briefLang || 'zh';
+        const items = briefSubmitCandidates.map(v => ({
+          sku: v.sku, name: v.name || bProd.name, platform: v.platform, mode: v.mode || 'channel', ver: v.ver,
+          creator: v.creator || '', creatorStyle: v.creatorStyle || '', iter: v.iter || 1, prompt: v.prompt || '',
+          sections: this.briefBlocksToSections(buildBriefBlocksForRow(v, lang))
         }));
+        const submit = { id, sku: bSkuId, name: bProd.name, items, by: bProd.owner || '陈曦', when: '刚刚' };
+        this.setState(st => {
+          const keys = new Set(items.map(it => it.sku + '|' + it.platform + '|' + (it.mode || 'channel') + '|' + it.ver + '|' + (it.creator || '')));
+          return {
+            briefSubmits: [submit, ...(st.briefSubmits || [])],
+            approvals: { ...(st.approvals || {}), ['brf-' + id]: { status: '待审批', comment: '', by: '', when: '刚刚' } },
+            briefVersions: (st.briefVersions || []).map(v => {
+              const hit = keys.has(v.sku + '|' + v.platform + '|' + (v.mode || 'channel') + '|' + v.ver + '|' + (v.creator || ''));
+              return hit ? { ...v, status: '待审批' } : v;
+            }),
+            briefSubmitOpen: true,
+            doneTaskKeys: (st.doneTaskKeys || []).filter(x => x !== 'brf-' + id),
+            notifLog: [{ kind: 'approval', title: 'Brief 打包已提交审核 · ' + bProd.name, note: items.length + ' 份 Brief · 等待 Marketing Lead 审批', when: '刚刚' }, ...(st.notifLog || [])],
+            briefStudioNotice: '已提交 ' + items.length + ' 份 Brief 打包审核。'
+          };
+        });
       },
       briefModeCreator: bShowCreatorContext, briefModeChannel: !bShowCreatorContext,
       briefCreator: s.briefCreator || '', briefCreatorStyle: s.briefCreatorStyle || '', briefCreatorAudience: s.briefCreatorAudience || '',
@@ -8251,9 +9812,9 @@ class Component extends DCLogic {
       briefStudioSetupOpen: s.briefStudioSetupOpen !== false,
       briefStudioSetupArrow: s.briefStudioSetupOpen !== false ? '收起 ↑' : '展开 ↓',
       briefStudioSetupToggle: () => this.setState(st => ({ briefStudioSetupOpen: st.briefStudioSetupOpen === false })),
-      briefStudioModeChannel: briefEditorTab === 'channel', briefStudioModeCreator: briefEditorTab === 'creator',
-      briefStudioSetupTitle: briefEditorTab === 'creator' ? '选择红人生成 Brief' : '选择渠道生成 Brief',
-      briefStudioSetupSummary: briefEditorTab === 'creator' ? ('已选择 ' + bStudioSelectedCreators.length + ' 位具体红人') : ('已选择 ' + bStudioSelectedChannels.join('、')),
+      briefStudioModeChannel: briefEditorKind === 'channel', briefStudioModeCreator: briefEditorKind === 'creator',
+      briefStudioSetupTitle: briefEditorKind === 'creator' ? '选择红人生成 Brief' : '选择渠道生成 Brief',
+      briefStudioSetupSummary: briefEditorKind === 'creator' ? ('已选择 ' + bStudioSelectedCreators.length + ' 位具体红人') : ('已选择 ' + bStudioSelectedChannels.join('、')),
       briefStudioChannelOptions: ['TikTok', 'Instagram', 'YouTube'].map(label => {
         const on = bStudioSelectedChannels.includes(label);
         return {
@@ -8285,12 +9846,12 @@ class Component extends DCLogic {
       briefStudioCreatorEmpty: bStudioCreatorMatches.length === 0,
       briefStudioHasSelectedCreators: bStudioSelectedCreators.length > 0,
       briefStudioSelectedCreators: bStudioSelectedCreators.map(handle => ({ handle, avatar: creatorAvatarMap[handle] || '../avatars/mia.jpg', remove: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState(st => ({ briefStudioCreators: (st.briefStudioCreators || []).filter(x => x !== handle), briefStudioNotice: '' })); } })),
-      briefStudioGenerateHint: briefEditorTab === 'creator' ? '每位红人生成并保存一份个性化 Brief' : '每个渠道生成并保存一份渠道 Brief',
-      briefStudioGenerateLabel: '生成并保存 ' + (briefEditorTab === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) + ' 份 Brief',
-      briefStudioGenerateBg: (briefEditorTab === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) ? '#2457F5' : '#F5F8FE',
-      briefStudioGenerateFg: (briefEditorTab === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) ? '#FFFFFF' : '#A2ABBA',
-      briefStudioGenerateBd: (briefEditorTab === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) ? '#2457F5' : '#E2E8F2',
-      briefStudioGenerateCursor: (briefEditorTab === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) ? 'pointer' : 'default',
+      briefStudioGenerateHint: briefEditorKind === 'creator' ? '每位红人生成并保存一份个性化 Brief' : '每个渠道生成并保存一份渠道 Brief',
+      briefStudioGenerateLabel: '生成并保存 ' + (briefEditorKind === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) + ' 份 Brief',
+      briefStudioGenerateBg: (briefEditorKind === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) ? '#2457F5' : '#F5F8FE',
+      briefStudioGenerateFg: (briefEditorKind === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) ? '#FFFFFF' : '#A2ABBA',
+      briefStudioGenerateBd: (briefEditorKind === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) ? '#2457F5' : '#E2E8F2',
+      briefStudioGenerateCursor: (briefEditorKind === 'creator' ? bStudioSelectedCreators.length : bStudioSelectedChannels.length) ? 'pointer' : 'default',
       briefStudioNotice: s.briefStudioNotice || '', briefStudioHasNotice: !!s.briefStudioNotice,
       briefStudioNoticeBg: /^请先/.test(s.briefStudioNotice || '') ? '#FBEEDA' : '#E4EFE4',
       briefStudioNoticeBd: /^请先/.test(s.briefStudioNotice || '') ? '#F1D7AA' : '#CFE3D3',
@@ -8303,7 +9864,7 @@ class Component extends DCLogic {
       briefTuneCols: s.briefTuneOpen ? 'minmax(0,1fr) minmax(300px,.48fr)' : 'minmax(0,1fr)',
       briefTuneToggle: () => this.setState(st => ({ briefTuneOpen: !st.briefTuneOpen })),
       briefStudioGenerate: () => {
-        const targets = briefEditorTab === 'creator'
+        const targets = briefEditorKind === 'creator'
           ? bStudioSelectedCreators.map(handle => {
               const creator = creatorDefs.find(c => c.handle === handle);
               if (!creator) return null;
@@ -8312,32 +9873,44 @@ class Component extends DCLogic {
             }).filter(Boolean)
           : bStudioSelectedChannels.map(channel => ({ channel, creator: null }));
         if (!targets.length) {
-          this.setState({ briefStudioSetupOpen: true, briefStudioCreatorPickerOpen: briefEditorTab === 'creator', briefStudioNotice: briefEditorTab === 'creator' ? '请先选择至少一位具体红人。' : '请先选择至少一个渠道。' });
+          this.setState({ briefStudioSetupOpen: true, briefStudioCreatorPickerOpen: briefEditorKind === 'creator', briefStudioNotice: briefEditorKind === 'creator' ? '请先选择至少一位具体红人。' : '请先选择至少一个渠道。' });
           return;
         }
         this.setState(st => {
           const existingSnapshot = Array.isArray(st.briefStudioExistingKeys) && st.briefStudioExistingKeys.length
             ? st.briefStudioExistingKeys
             : (st.briefVersions || []).filter(v => v.sku === bSkuId).map(v => bSkuId + '|' + v.platform + '|' + (v.mode || 'channel') + '|' + v.ver);
-          const nextByChannel = {};
+          const nextByLine = {};
           const created = targets.map(pair => {
             const mode = pair.creator ? 'creator' : 'channel';
-            if (!nextByChannel[pair.channel]) {
-              const same = (st.briefVersions || []).filter(v => v.sku === bSkuId && v.platform === pair.channel && (v.mode || 'channel') === mode);
-              nextByChannel[pair.channel] = same.reduce((max, v) => Math.max(max, parseInt(String(v.ver || '').replace(/\D/g, ''), 10) || 0), 0) + 1;
+            const creator = pair.creator ? pair.creator.handle : '';
+            const lineKey = pair.channel + '|' + mode + '|' + creator;
+            if (nextByLine[lineKey] == null) {
+              const same = (st.briefVersions || []).filter(v => v.sku === bSkuId && v.platform === pair.channel && (v.mode || 'channel') === mode && (v.creator || '') === creator);
+              nextByLine[lineKey] = same.reduce((max, v) => Math.max(max, parseInt(String(v.ver || '').replace(/\D/g, ''), 10) || 0), 0) + 1;
             }
-            const nextNo = nextByChannel[pair.channel]++;
-            return { sku: bSkuId, name: bProd.name, platform: pair.channel, ver: 'v' + nextNo, date: '2026-09-08', status: '草稿', iter: 1, prompt: pair.creator ? '基于所选红人的内容风格生成' : '基于所选渠道生成', mode, creator: pair.creator ? pair.creator.handle : '', creatorStyle: pair.creator ? pair.creator.niche : '', origin: 'brief-studio-generated' };
+            const nextNo = nextByLine[lineKey]++;
+            return { sku: bSkuId, name: bProd.name, platform: pair.channel, ver: 'v' + nextNo, date: '2026-09-08', status: '草稿', iter: 1, prompt: pair.creator ? '基于所选红人的内容风格生成' : '基于所选渠道生成', mode, creator, creatorStyle: pair.creator ? pair.creator.niche : '', origin: 'brief-studio-generated' };
           });
           const first = created[0];
+          const firstMode = first.mode || 'channel';
+          const firstTab = firstMode === 'creator' || firstMode === 'style' ? 'creator' : 'channel';
+          const firstVaultKey = first.platform + '|' + firstMode + '|' + first.ver;
+          const firstViewKey = first.sku + '|' + first.platform + '|' + firstMode + '|' + first.ver;
           const newKeys = created.map(v => v.sku + '|' + v.platform + '|' + (v.mode || 'channel') + '|' + v.ver);
           return {
-            briefVersions: [...created, ...(st.briefVersions || [])], platform: first.platform, briefMode: first.mode, briefEditorTab: first.mode, briefCreator: first.creator, briefCreatorStyle: first.creatorStyle,
-            viewedVersion: first.sku + '|' + first.platform + '|creator|' + first.ver,
+            briefVersions: [...created, ...(st.briefVersions || [])],
+            platform: first.platform,
+            briefMode: firstMode,
+            briefEditorTab: firstTab,
+            briefCreator: first.creator || '',
+            briefCreatorStyle: first.creatorStyle || '',
+            viewedVersion: firstViewKey,
+            vaultSel: { ...(st.vaultSel || {}), [bSkuId]: firstVaultKey },
             briefStudioNewKeys: Array.from(new Set([...(st.briefStudioNewKeys || []), ...newKeys])),
             briefStudioExistingKeys: existingSnapshot,
             briefStudioSetupOpen: false,
-            briefStudioNotice: '已生成并保存 ' + created.length + ' 份' + (first.mode === 'creator' ? '红人 Brief' : '渠道 Brief') + '。'
+            briefStudioNotice: '已生成并保存 ' + created.length + ' 份' + (firstTab === 'creator' ? '红人 Brief' : '渠道 Brief') + '，已加入左侧列表。'
           };
         });
       },
@@ -8383,9 +9956,25 @@ class Component extends DCLogic {
       }),
       briefVault: bVaultArr,
       briefEditorItems, briefEditorTabs, briefEditorVisibleItems, briefEditorEmpty: briefEditorVisibleItems.length === 0,
-      briefEditorEmptyText: briefEditorTab === 'creator' ? '暂无红人 Brief，请在右侧选择具体红人生成并保存' : '暂无渠道 Brief，请在右侧选择渠道生成并保存',
+      briefEditorEmptyText: briefEditorKind === 'creator' ? '暂无红人 Brief，请在右侧选择具体红人生成并保存' : '暂无渠道 Brief，请在右侧选择渠道生成并保存',
       briefEditorCount: briefEditorVisibleItems.length + ' 份', briefEditorProduct: bProd.name,
-      briefEditorTabNote: briefEditorTab === 'creator' ? '按具体红人查看版本' : '按渠道查看版本',
+      briefEditorTabNote: briefEditorKind === 'creator' ? '按具体红人查看版本' : '按渠道查看版本',
+      briefEditorShowKindTabs,
+      briefDeleteOpen: !!s.briefDeletePending,
+      briefDeleteName: (s.briefDeletePending && s.briefDeletePending.title) || '',
+      briefDeleteCancel: () => this.setState({ briefDeletePending: null }),
+      briefDeleteKeep: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      briefDeleteConfirm: () => this.setState(st => {
+        const p = st.briefDeletePending;
+        if (!p || !p.cardKey) return { briefDeletePending: null };
+        const nextVersions = (st.briefVersions || []).filter(v => this.briefVersionCardKey(v) !== p.cardKey);
+        return {
+          briefVersions: nextVersions,
+          viewedVersion: st.viewedVersion === p.viewKey ? null : st.viewedVersion,
+          briefDeletePending: null,
+          briefStudioNotice: '已删除该 Brief 版本。'
+        };
+      }),
       briefListNote: '按产品查看与制作 Brief，内容与该产品的策略同步',
       briefProducts: (() => {
         const skus = [];
@@ -8461,14 +10050,27 @@ class Component extends DCLogic {
               briefFromStrategy: (st2.briefFromStrategy || []).filter(y => y.sku !== sku),
               briefPanel: st2.briefPanel === sku ? null : st2.briefPanel
             })),
-            make: () => this.setState(st2 => ({
-              briefId: 'brf-' + sku, briefView: 'editor',
-              briefStudioNewKeys: [],
-              briefStudioExistingKeys: (st2.briefVersions || []).filter(v => v.sku === sku).map(v => sku + '|' + v.platform + '|' + (v.mode || 'channel') + '|' + v.ver),
-              briefVersions: (st2.briefVersions || []).map(v => v.sku === sku ? { ...v, briefStudioSession: 'existing' } : v),
-              briefFromStrategy: (st2.briefFromStrategy || []).some(y => y.sku === sku)
-                ? st2.briefFromStrategy : [{ sku, name: p.name, platform: 'TikTok' }, ...(st2.briefFromStrategy || [])]
-            }))
+            make: () => this.setState(st2 => {
+              const skuRows = (st2.briefVersions || []).filter(v => v.sku === sku);
+              const prefer = skuRows.find(v => (v.mode || 'channel') !== 'creator' && v.mode !== 'style') || skuRows[0] || null;
+              const viewedVersion = prefer
+                ? (sku + '|' + prefer.platform + '|' + (prefer.mode || 'channel') + '|' + prefer.ver)
+                : st2.viewedVersion;
+              const openTab = prefer && (prefer.mode === 'creator' || prefer.mode === 'style') ? 'creator' : (st2.briefEditorTab || 'channel');
+              return {
+                briefId: 'brf-' + sku, briefView: 'editor',
+                briefEditorTab: openTab, briefMode: openTab,
+                platform: prefer ? prefer.platform : (st2.platform || 'TikTok'),
+                viewedVersion,
+                briefStudioSetupOpen: true,
+                briefStudioCreatorPickerOpen: openTab === 'creator',
+                briefStudioNewKeys: [],
+                briefStudioExistingKeys: skuRows.map(v => sku + '|' + v.platform + '|' + (v.mode || 'channel') + '|' + v.ver),
+                briefVersions: (st2.briefVersions || []).map(v => v.sku === sku ? { ...v, briefStudioSession: 'existing' } : v),
+                briefFromStrategy: (st2.briefFromStrategy || []).some(y => y.sku === sku)
+                  ? st2.briefFromStrategy : [{ sku, name: p.name, platform: 'TikTok' }, ...(st2.briefFromStrategy || [])]
+              };
+            })
           };
         }).filter(Boolean);
       })(),
@@ -8541,7 +10143,14 @@ class Component extends DCLogic {
       setProductPromotionFilter: (e) => this.setState({ productPromotionFilter: e.target.value, productSelection: [] }),
       setSkuQuery: (e) => this.setState({ skuQuery: e.target.value }),
       clearSku: () => this.setState({ skuQuery: '', productPromotionFilter: 'all', productSelection: [] }),
-      nextActions, campaigns, products, learnings, topCreators: topCreatorsRows, cbSortHead, tasks, pd,
+      nextActions, campaigns, products, learnings, topCreators: topCreatorsRows, cbSortHead, tasks,
+      taskApprovalResults, taskTodos, hasTaskApprovalResults: taskApprovalResults.length > 0, hasTaskTodos: taskTodos.length > 0,
+      taskApprovalSectionNote: taskApprovalOpen ? taskApprovalOpen + ' 条待处理' : '暂无待处理',
+      taskTodoSectionNote: taskTodoOpen ? taskTodoOpen + ' 条待处理' : '已全部完成',
+      taskTodoHeadPadTop: taskApprovalResults.length > 0 ? '14px' : '10px',
+      taskTodoHeadBorderTop: taskApprovalResults.length > 0 ? '1px solid #EDF1F7' : 'none',
+      taskTodoHeadMarginTop: taskApprovalResults.length > 0 ? '4px' : '0',
+      pd,
       dbTabs: [
         { id: 'core', label: '核心数据', note: '目标 / 漏斗 / 质量与效率' },
         { id: 'staff', label: '人员榜单', note: '推广专员业绩达成' },
@@ -8650,7 +10259,7 @@ class Component extends DCLogic {
       creators, campaignKpis, kanban, assets,
       cooperationStageHeaders, cooperationRows, cooperationSummary, cooperationLegend,
       cooperationEmpty: cooperationRows.length === 0,
-      cooperationEmptyText: String(s.coopQuery || '').trim() ? '没有匹配该账号的合作红人，请尝试其他关键词。' : '暂无合作红人。从“邮件”模块确认达成合作后，红人会出现在这里。',
+      cooperationEmptyText: String(s.coopQuery || '').trim() ? '没有匹配该账号的合作红人，请尝试其他关键词。' : '暂无合作红人。在「邮件」模块提交合作申请并通过 My Tasks 审批后，红人会出现在这里。',
       coopQuery: s.coopQuery || '',
       coopQueryActive: !!String(s.coopQuery || '').trim(),
       coopQuerySet: (e) => this.setState({ coopQuery: e.target.value }),
@@ -8843,47 +10452,28 @@ class Component extends DCLogic {
         campaignStrategyNotice: '新策略已提交当前 Campaign 审核，未存入 Strategy Studio 版本库。'
       })),
       campaignStrategyHasNotice: !!s.campaignStrategyNotice, campaignStrategyNotice: s.campaignStrategyNotice || '',
-      campaignBriefTabs, campaignBriefVisibleRows, campaignBriefListEmpty: campaignBriefVisibleRows.length === 0,
-      campaignBriefListEmptyText: campaignBriefTab === 'creator' ? '暂无基于具体红人生成的 Brief' : '暂无基于渠道生成的 Brief',
+      campaignBriefVisibleRows, campaignBriefPanelNote,
+      campaignBriefListEmpty: campaignBriefVisibleRows.length === 0,
+      campaignBriefListEmptyText: '暂无已审核通过的 Brief。请先在 Brief Studio 提交并完成审批。',
       campaignEmails, campaignEmailKpis,
       campaignEmailSubTabs, campaignPendingEmails, campaignSentEmails,
-      campaignEmailCoopCandidates,
-      campaignEmailCoopCandidatesEmpty: campaignEmailCoopCandidates.length === 0,
-      campaignEmailCoopPickerOpen: !!s.campaignEmailCoopPickerOpen,
-      campaignEmailCoopSelectedCount: campaignEmailCoopSelected.length,
-      campaignEmailCoopButtonLabel: '发送邮件',
-      campaignEmailCoopButtonBg: campaignEmailCoopSelected.length ? '#2457F5' : '#F1F4F8',
-      campaignEmailCoopButtonFg: campaignEmailCoopSelected.length ? '#FFFFFF' : '#A2ABBA',
-      campaignEmailCoopButtonBd: campaignEmailCoopSelected.length ? '#2457F5' : '#E2E8F2',
-      campaignEmailCoopButtonCursor: campaignEmailCoopSelected.length ? 'pointer' : 'default',
-      campaignEmailCoopButtonShadow: campaignEmailCoopSelected.length ? '0 3px 8px rgba(36,87,245,.16)' : 'none',
-      campaignEmailCoopOpen: (e) => {
+      campaignOutreachCreators, campaignOutreachSummary, campaignEmailIntentFilters,
+      campaignOutreachEmpty: campaignOutreachCreators.length === 0,
+      campaignOutreachEmptyText: campaignOutreachAll.length ? '当前筛选下暂无红人，请切换合作意向。' : '暂无已建联红人。发送建联邮件后，这里会展示红人资料、往来邮件与 AI 合作分析。',
+      campaignEmailSelectHighIntent: () => this.setState({
+        campaignEmailIntentFilter: 'high',
+        campaignEmailCoopSelected: campaignOutreachAll.filter(c => c.intent === 'high' && c.coopLabel !== '已合作' && c.coopLabel !== '审批中').map(c => c.handle)
+      }),
+      campaignEmailCoopButtonLabel: '提交审核',
+      campaignEmailCoopButtonBg: campaignEmailCoopCanSubmit ? '#2457F5' : '#F1F4F8',
+      campaignEmailCoopButtonFg: campaignEmailCoopCanSubmit ? '#FFFFFF' : '#A2ABBA',
+      campaignEmailCoopButtonBd: campaignEmailCoopCanSubmit ? '#2457F5' : '#E2E8F2',
+      campaignEmailCoopButtonCursor: campaignEmailCoopCanSubmit ? 'pointer' : 'default',
+      campaignEmailCoopButtonShadow: campaignEmailCoopCanSubmit ? '0 3px 8px rgba(36,87,245,.16)' : 'none',
+      campaignEmailCoopSubmit: (e) => {
         if (e && e.stopPropagation) e.stopPropagation();
-        if (!campaignEmailCoopSelected.length) return;
-        this.setState({ campaignEmailCoopPickerOpen: true });
-      },
-      campaignEmailCoopClose: () => this.setState({ campaignEmailCoopPickerOpen: false, campaignEmailCoopSelected: [] }),
-      campaignEmailCoopKeep: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
-      campaignEmailCoopConfirmBg: campaignEmailCoopCanConfirm ? '#2457F5' : '#F1F4F8',
-      campaignEmailCoopConfirmFg: campaignEmailCoopCanConfirm ? '#FFFFFF' : '#A2ABBA',
-      campaignEmailCoopConfirmBd: campaignEmailCoopCanConfirm ? '#2457F5' : '#E2E8F2',
-      campaignEmailCoopConfirmCursor: campaignEmailCoopCanConfirm ? 'pointer' : 'default',
-      campaignEmailCoopConfirm: () => {
-        if (!campaignEmailCoopCanConfirm) return;
-        this.setState(st2 => {
-          const prevDeals = (st2.campaignCoopDeals || {})[cd.sku] || [];
-          const nextDeals = [...campaignEmailCoopSelected.filter(handle => !prevDeals.includes(handle)), ...prevDeals];
-          const prevCoopList = st2.coopList || [];
-          return {
-            campaignCoopDeals: { ...(st2.campaignCoopDeals || {}), [cd.sku]: nextDeals },
-            coopList: [...campaignEmailCoopSelected.filter(handle => !prevCoopList.includes(handle)), ...prevCoopList],
-            campaignEmailCoopPickerOpen: false,
-            campaignEmailCoopSelected: [],
-            campaignEmailDrawer: null,
-            campaignEmailTab: 'sent',
-            campaignTab: 'email'
-          };
-        });
+        if (!campaignEmailCoopCanSubmit) return;
+        submitCampaignCoopApplication();
       },
       campaignEmailPendingOn: campaignEmailTab === 'pending', campaignEmailSentOn: campaignEmailTab === 'sent',
       campaignPendingEmailsEmpty: campaignPendingEmails.length === 0, campaignSentEmailsEmpty: campaignSentEmails.length === 0,

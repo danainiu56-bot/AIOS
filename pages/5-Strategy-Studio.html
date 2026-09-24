@@ -138,7 +138,7 @@
           </div>
           </sc-if>
 
-          <sc-if value="{{ stTabQueue }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ stTabQueueClosed }}" hint-placeholder-val="{{ false }}">
           <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:20px;margin-bottom:14px;box-shadow:0 8px 24px rgba(29,38,56,.04)">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
               <div style="font-size:15px;font-weight:600;letter-spacing:-.005em;color:#1D2638;flex:0 0 auto">待生成推广策略的产品 List</div>
@@ -266,7 +266,6 @@
                               <div onClick="{{ v.pick }}" title="{{ v.title }}" style="display:flex;align-items:center;gap:8px;background:{{ v.bg }};border-radius:8px;padding:7px 9px;cursor:{{ v.cursor }};white-space:nowrap" style-hover="background:#F8FAFE">
                                 <span style="flex:1;min-width:0;font-size:12.5px;color:{{ v.fg }};font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis">{{ v.label }}</span>
                                 <span style="flex:0 0 auto;font-size:11px;border-radius:999px;padding:1px 8px;background:{{ v.statusBg }};color:{{ v.statusFg }}">{{ v.status }}</span>
-                                <div onClick="{{ v.submit }}" style="flex:0 0 auto;font-size:11.5px;background:{{ v.subBg }};color:{{ v.subFg }};border:1px solid {{ v.subBd }};border-radius:999px;padding:3px 10px;cursor:{{ v.subCursor }};white-space:nowrap">{{ v.subLabel }}</div>
                               </div>
                             </sc-for>
                           </div>
@@ -280,8 +279,7 @@
             </div>
           </sc-if>
 
-          <sc-if value="{{ stTabWork }}" hint-placeholder-val="{{ false }}">
-          <sc-if value="{{ swBenchClosed }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ stTabWorkList }}" hint-placeholder-val="{{ false }}">
           <div style="margin-bottom:14px">
             <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:11px;padding:0 2px">
               <div style="font-size:15px;font-weight:600;letter-spacing:-.01em;color:#1D2638;flex:0 0 auto">产品策略清单</div>
@@ -345,8 +343,8 @@
 	                    <div style="display:flex;justify-content:flex-end;align-items:center;gap:7px;position:relative;z-index:{{ sp.versionZ }}">
 	                      <div onClick="{{ sp.openAi }}" style="font-size:12px;color:#1D48D8;border:1px solid #D9E4FF;background:#F7F9FF;border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap">AI 解析 {{ sp.riskCount }}</div>
 	                      <div onClick="{{ sp.toggleVersionMenu }}" style="font-size:12px;color:{{ sp.versionFg }};border:1px solid {{ sp.versionBd }};background:{{ sp.versionBg }};border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap">查看版本</div>
-	                      <sc-if value="{{ sp.versionMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ sp.keepVersionMenu }}" style="position:absolute;top:calc(100% + 7px);right:0;z-index:95;min-width:390px;max-height:310px;overflow-y:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:14px;box-shadow:0 16px 36px rgba(29,38,56,.16);padding:6px"><sc-if value="{{ sp.versionMenuEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;text-align:center;padding:16px">当前产品暂无策略版本</div></sc-if><sc-for list="{{ sp.versions }}" as="v" hint-placeholder-count="3"><div onClick="{{ v.pick }}" title="{{ v.title }}" style="display:flex;align-items:center;gap:8px;background:{{ v.bg }};border-radius:9px;padding:8px 10px;cursor:{{ v.cursor }};white-space:nowrap" style-hover="background:#F8FAFE"><span style="flex:1;min-width:0;font-size:12.5px;color:{{ v.fg }};font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis">{{ v.label }}</span><span style="flex:0 0 auto;font-size:11px;border-radius:999px;padding:2px 8px;background:{{ v.statusBg }};color:{{ v.statusFg }}">{{ v.status }}</span><div onClick="{{ v.submit }}" style="flex:0 0 auto;font-size:11.5px;background:{{ v.subBg }};color:{{ v.subFg }};border:1px solid {{ v.subBd }};border-radius:999px;padding:4px 10px;cursor:{{ v.subCursor }};white-space:nowrap">{{ v.subLabel }}</div></div></sc-for></div></sc-if>
-	                      <div onClick="{{ sp.gen }}" style="font-size:12px;background:#FFFFFF;color:#647187;border:1px solid #E2E8F2;border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap" style-hover="background:#F8FAFE;color:#1D2638;border-color:#C8D4E8">编辑</div>
+	                      <sc-if value="{{ sp.versionMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ sp.keepVersionMenu }}" style="position:absolute;top:calc(100% + 7px);right:0;z-index:95;min-width:390px;max-height:310px;overflow-y:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:14px;box-shadow:0 16px 36px rgba(29,38,56,.16);padding:6px"><sc-if value="{{ sp.versionMenuEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;text-align:center;padding:16px">当前产品暂无策略版本</div></sc-if><sc-for list="{{ sp.versions }}" as="v" hint-placeholder-count="3"><div onClick="{{ v.pick }}" title="{{ v.title }}" style="display:flex;align-items:center;gap:8px;background:{{ v.bg }};border-radius:9px;padding:8px 10px;cursor:{{ v.cursor }};white-space:nowrap" style-hover="background:#F8FAFE"><span style="flex:1;min-width:0;font-size:12.5px;color:{{ v.fg }};font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis">{{ v.label }}</span><span style="flex:0 0 auto;font-size:11px;border-radius:999px;padding:2px 8px;background:{{ v.statusBg }};color:{{ v.statusFg }}">{{ v.status }}</span></div></sc-for></div></sc-if>
+	                      <div onClick="{{ sp.gen }}" style="font-size:12px;background:{{ sp.genBg }};color:{{ sp.genFg }};border:1px solid {{ sp.genBd }};border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap" style-hover="background:#F8FAFE;color:#1D2638;border-color:#C8D4E8">{{ sp.genLabel }}</div>
 	                    </div>
                   </div>
 
@@ -366,6 +364,24 @@
                       <div style="margin-top:14px;border-radius:12px;padding:11px 13px;background:{{ swGateBg }}">
                         <div style="font-size:13px;font-weight:500;color:{{ swGateColor }}">{{ swGateLabel }}</div>
                         <div style="font-size:12px;color:#647187;margin-top:2px;text-wrap:pretty">{{ swGateNote }}</div>
+                      </div>
+                    </div>
+                  </sc-if>
+
+                  <sc-if value="{{ sp.showStrategy }}" hint-placeholder-val="{{ false }}">
+                    <div style="border-top:1px solid #C8D4FF;background:#F5F8FE;padding:15px 17px;animation:fadeUp .16s ease both">
+                      <div style="font-size:13px;font-weight:600;color:#1D2638;margin-bottom:4px">策略正文预览</div>
+                      <div style="font-size:12px;color:#8792A5;margin-bottom:10px;text-wrap:pretty">{{ sp.strategyPreviewTitle }}</div>
+                      <div style="max-height:min(480px,55vh);overflow-y:auto;border:1px solid #EDF1F7;border-radius:12px;padding:8px 10px;background:#FFFFFF">
+                        <sc-for list="{{ sp.strategyPreviewSections }}" as="p" hint-placeholder-count="15">
+                          <div style="border:1px solid #EEF2F8;border-radius:11px;padding:12px 14px;margin-bottom:8px">
+                            <div style="font-size:13px;font-weight:600;color:#1D2638;margin-bottom:8px;text-wrap:pretty">{{ p.title }}</div>
+                            <div style="font-size:13px;color:#334155;line-height:1.65;text-wrap:pretty">{{ p.body }}</div>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="margin-top:12px;display:flex;justify-content:flex-end">
+                        <div onClick="{{ sp.openStrategyBench }}" style="font-size:12.5px;border:1px solid #2457F5;background:#FFFFFF;color:#2457F5;border-radius:999px;padding:6px 13px;cursor:pointer">进入工作台编辑</div>
                       </div>
                     </div>
                   </sc-if>
@@ -391,43 +407,43 @@
               </div>
             </div>
           </div>
-
           </sc-if>
 
           <sc-if value="{{ swBenchOpen }}" hint-placeholder-val="{{ true }}">
-          <div id="strategy-bench-top" class="campaign-strategy-anchor" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:13px 18px;margin-bottom:14px">
-            <div style="font-size:16px;font-weight:600;letter-spacing:-.01em;color:#1D2638;flex:0 0 auto">{{ swBenchTitle }}</div>
-            <div onClick="{{ expStrategy }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#F8FAFE;color:#647187;border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">导出策略 PDF</div>
-            <span style="font-size:12.5px;color:#647187;flex:0 0 auto;white-space:nowrap">ASIN <a href="{{ swBenchAsinUrl }}" target="_blank" rel="noopener" style="font-variant-numeric:tabular-nums">{{ swBenchAsin }} ↗</a> · SKU <span style="font-variant-numeric:tabular-nums">{{ swBenchSku }}</span></span>
-            <div style="flex:1;min-width:0"></div>
-            <div style="font-size:12px;color:#8792A5;flex:0 0 auto">已自动保存 · {{ swSavedAt }}</div>
-            <div style="font-size:12.5px;color:#647187;flex:0 0 auto">总完整度 {{ swInputPct }}%</div>
-            <div style="position:relative;z-index:65;flex:0 0 auto">
-              <div onClick="{{ swToggleVersionMenu }}" style="font-size:12.5px;border:1px solid {{ swVersionBd }};background:{{ swVersionBg }};color:{{ swVersionFg }};border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap">版本选择：{{ swVersionLabel }} ▾</div>
-              <sc-if value="{{ swVersionMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ swKeepVersionMenu }}" style="position:absolute;top:38px;right:0;width:300px;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:13px;padding:7px;box-shadow:0 16px 36px rgba(29,38,56,.14)"><div style="display:flex;align-items:center;gap:8px;padding:5px 8px 7px"><div style="font-size:11px;color:#A2ABBA;flex:1">当前产品的策略版本</div><div onClick="{{ swOpenVersionManager }}" style="font-size:11.5px;color:#2457F5;cursor:pointer;white-space:nowrap">版本管理</div></div><sc-for list="{{ swVersionOptions }}" as="v" hint-placeholder-count="3"><div onClick="{{ v.pick }}" style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;background:{{ v.bg }};cursor:pointer" style-hover="background:#F7F9FF"><span style="width:17px;height:17px;border-radius:999px;border:1px solid {{ v.radioBd }};background:{{ v.radioBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:9px;flex:0 0 17px">{{ v.mark }}</span><div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;color:{{ v.fg }}">{{ v.label }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px">{{ v.meta }}</div></div><span style="font-size:10px;color:{{ v.statusFg }};background:{{ v.statusBg }};border-radius:999px;padding:2px 7px">{{ v.status }}</span></div></sc-for></div></sc-if>
+          <div id="strategy-bench-top" class="campaign-strategy-anchor" style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+              <div onClick="{{ swCloseBench }}" style="flex:0 0 auto;font-size:13px;color:#8792A5;cursor:pointer;white-space:nowrap" style-hover="color:#1D2638">← 返回策略列表</div>
+              <div style="flex:1;min-width:0;font-size:17px;font-weight:600;letter-spacing:-.015em;color:#1D2638">{{ swBenchTitle }}</div>
+              <div onClick="{{ swPrimaryGo }}" style="flex:0 0 auto;font-size:12.5px;font-weight:600;border:1px solid {{ swPrimaryBd }};background:{{ swPrimaryBg }};color:{{ swPrimaryFg }};border-radius:999px;padding:7px 16px;cursor:pointer;white-space:nowrap">{{ swPrimaryLabel }}</div>
             </div>
-            <div onClick="{{ swUpdateVersion }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #C8D4E8;background:#FFFFFF;color:#334155;border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#8CAFFF;color:#1D48D8">保存更新</div>
-            <div style="position:relative;z-index:64;flex:0 0 auto">
-              <div onClick="{{ swOpenSaveAs }}" style="font-size:12.5px;border:1px solid #2457F5;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap" style-hover="background:#1D48D8">另存版本</div>
-              <sc-if value="{{ swSaveAsOpen }}" hint-placeholder-val="{{ false }}">
-                <div onClick="{{ swKeepSaveAs }}" style="position:absolute;top:40px;right:0;width:330px;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:13px;padding:13px;box-shadow:0 16px 36px rgba(29,38,56,.16)">
-                  <div style="font-size:13.5px;font-weight:600;color:#1D2638;margin-bottom:9px">另存版本</div>
-                  <div style="display:flex;align-items:center;gap:9px">
-                    <div style="flex:1;min-width:0;display:flex;align-items:center;border:1px solid #C8D4E8;border-radius:9px;background:#FFFFFF;padding:0 9px">
-                      <input value="{{ swSaveAsDraft }}" onChange="{{ swSetSaveAsDraft }}" maxlength="20" placeholder="请输入版本名称" style="flex:1;min-width:0;border:0;outline:none;background:transparent;font-family:inherit;font-size:13px;color:#1D2638;padding:7px 0" />
-                      <span style="font-size:11.5px;color:#A2ABBA;white-space:nowrap">{{ swSaveAsCount }} / 20</span>
-                    </div>
-                    <div onClick="{{ swSaveAsVersion }}" style="font-size:12.5px;font-weight:600;color:{{ swSaveAsFg }};background:{{ swSaveAsBg }};border-radius:9px;padding:8px 13px;cursor:{{ swSaveAsCursor }};white-space:nowrap">保存</div>
-                  </div>
-                </div>
+            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 14px;margin-bottom:12px">
+              <div style="font-size:12.5px;color:#647187;text-wrap:pretty">{{ swStatusStrip }}</div>
+              <sc-if value="{{ swShowRejectBanner }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:8px;font-size:12.5px;color:#C4636D;text-wrap:pretty">{{ swRejectBannerText }}</div>
+              </sc-if>
+              <sc-if value="{{ swShowVersionReadOnlyNote }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:8px;font-size:12.5px;color:#1D48D8;text-wrap:pretty">{{ swVersionReadOnlyNote }}</div>
               </sc-if>
             </div>
-            <sc-if value="{{ swDocMode }}" hint-placeholder-val="{{ false }}">
-              <div onClick="{{ swEditInputs }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#F8FAFE;color:#647187;border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">编辑输入项</div>
-	            </sc-if>
-	            <div onClick="{{ swCloseBench }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#F8FAFE;color:#8792A5;border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">← 返回产品列表</div>
-	            <sc-if value="{{ swHasVersionNotice }}" hint-placeholder-val="{{ false }}"><div style="flex:1 0 100%;font-size:11.5px;color:#4E7156;text-align:right">{{ swVersionNotice }}</div></sc-if>
-	          </div>
+            <sc-if value="{{ swShowFlowStages }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:8px 10px;margin-bottom:12px">
+              <div style="flex:1;min-width:0;display:flex;gap:6px;flex-wrap:wrap">
+                <sc-for list="{{ swFlowStages }}" as="fs" hint-placeholder-count="4">
+                  <div onClick="{{ fs.pick }}" style="flex:1 1 120px;min-width:0;border:1px solid {{ fs.bd }};background:{{ fs.bg }};border-radius:10px;padding:8px 10px;cursor:pointer">
+                    <div style="font-size:12.5px;font-weight:600;color:{{ fs.fg }};white-space:nowrap">{{ fs.label }}</div>
+                    <div style="font-size:10.5px;color:{{ fs.noteFg }};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ fs.note }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ swShowSaveVersion }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <div onClick="{{ swUpdateVersion }}" style="font-size:12px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap">保存</div>
+              </div>
+              </sc-if>
+            </div>
+            </sc-if>
+            <sc-if value="{{ swHasVersionNotice }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#4E7156;text-align:right;margin-bottom:8px">{{ swVersionNotice }}</div></sc-if>
+          </div>
 
           <sc-if value="{{ swVersionManagerOpen }}" hint-placeholder-val="{{ false }}">
             <div onClick="{{ swCloseVersionManager }}" style="position:fixed;inset:0;z-index:150;background:rgba(29,38,56,.34);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeUp .14s ease both">
@@ -456,17 +472,44 @@
               </div>
             </div>
           </sc-if>
-          <sc-if value="{{ swBenchSectionsVisible }}" hint-placeholder-val="{{ true }}">
-            <div class="compact-view-tabs" style="display:flex;align-items:center;gap:4px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:5px;margin-bottom:14px">
-              <sc-for list="{{ swBenchSections }}" as="t" hint-placeholder-count="3">
-                <div onClick="{{ t.pick }}" style="flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:9px;padding:7px 13px;cursor:pointer;min-width:0">
-                  <span style="font-size:12.5px;font-weight:600;white-space:nowrap">{{ t.label }}</span>
-                  <span style="font-size:11px;color:{{ t.noteFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.note }}</span>
+          <sc-if value="{{ swIsSubmit }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:20px;margin-bottom:14px">
+              <div style="font-size:15px;font-weight:600;color:#1D2638;margin-bottom:6px">提交策略审核</div>
+              <div style="font-size:12.5px;color:#8792A5;margin-bottom:16px;text-wrap:pretty">生成并完成章节确认后即可提交审核；输入完整度与门禁颜色供审批参考，不阻断提交。通过后可在 Brief Studio 引用该版本。</div>
+              <sc-if value="{{ swStrategyPending }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#FBEEDA;border:1px solid #F0D8A8;border-radius:12px;padding:12px 14px;font-size:13px;color:#A5762C;text-wrap:pretty">该版本正在审批中，正文暂不可改。可在 My Tasks → 审批清单查看进度。</div>
+              </sc-if>
+              <sc-if value="{{ swStrategyPendingClosed }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+                  <sc-for list="{{ swSubmitChecklist }}" as="c" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:{{ c.okFg }}"><span style="width:18px;text-align:center">{{ c.okIcon }}</span><span>{{ c.label }}</span></div>
+                  </sc-for>
                 </div>
-              </sc-for>
+                <sc-if value="{{ swShowSubmitGateHint }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-bottom:14px;font-size:12.5px;color:#8792A5;line-height:1.55;text-wrap:pretty">{{ swSubmitGateHint }}</div>
+                </sc-if>
+                <div style="font-size:13px;font-weight:600;color:#1D2638;margin-bottom:4px">正文预览</div>
+                <div style="font-size:12px;color:#8792A5;margin-bottom:10px;text-wrap:pretty">{{ swSubmitPreviewTitle }}</div>
+                <div style="max-height:min(520px,55vh);overflow-y:auto;border:1px solid #EDF1F7;border-radius:12px;padding:8px 10px;background:#F8FAFE">
+                  <sc-for list="{{ swSubmitPreviewSections }}" as="p" hint-placeholder-count="15">
+                    <div style="background:#FFFFFF;border:1px solid #EEF2F8;border-radius:11px;padding:12px 14px;margin-bottom:8px">
+                      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                        <div style="font-size:13px;font-weight:600;color:#1D2638;flex:1;min-width:0;text-wrap:pretty">{{ p.title }}</div>
+                        <span style="flex:0 0 auto;font-size:11px;border-radius:999px;padding:2px 8px;background:{{ p.stateBg }};color:{{ p.stateFg }};white-space:nowrap">{{ p.stateText }}</span>
+                      </div>
+                      <div style="font-size:13px;color:#334155;line-height:1.65;text-wrap:pretty">{{ p.body }}</div>
+                      <sc-if value="{{ p.srcLine }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:11.5px;color:#1D48D8;margin-top:8px">{{ p.srcLine }}</div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+                <div onClick="{{ swSubmitForApproval }}" style="margin-top:14px;display:inline-block;font-size:13px;font-weight:600;border:1px solid {{ swCanSubmitStrict ? '#2457F5' : '#E2E8F2' }};background:{{ swCanSubmitStrict ? '#2457F5' : '#F8FAFE' }};color:{{ swCanSubmitStrict ? '#FFFFFF' : '#A2ABBA' }};border-radius:999px;padding:8px 18px;cursor:{{ swCanSubmitStrict ? 'pointer' : 'default' }}">提交策略审核</div>
+              </sc-if>
             </div>
           </sc-if>
 
+          <sc-if value="{{ swIsSubmitClosed }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;flex-wrap:wrap;align-items:stretch;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden">
             <sc-if value="{{ swShowRail }}" hint-placeholder-val="{{ true }}">
             <div style="flex:0 0 196px;min-width:0;padding:16px 10px;border-right:1px solid #EDF1F7;background:#F8FAFE;display:flex;flex-direction:column">
@@ -651,8 +694,7 @@
                         <span style="font-size:11.5px;color:#8792A5;flex:0 0 auto">{{ swModeName }} · {{ swSectionTotal }} 章</span>
                         <div style="flex:1;min-width:0"></div>
                         <span style="font-size:11.5px;color:#8792A5;font-variant-numeric:tabular-nums">已确认 {{ swConfirmedCount }} / {{ swSectionTotal }}</span>
-                        <div onClick="{{ swConfirmAll }}" style="flex:0 0 auto;font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap">全部确认</div>
-                        <div onClick="{{ swExport }}" style="flex:0 0 auto;font-size:11.5px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap">导出 Markdown</div>
+                        <div onClick="{{ swConfirmAll }}" style="flex:0 0 auto;font-size:11.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap">一键全部确认</div>
                       </div>
                       <div style="height:4px;background:#EEF2F8;border-radius:2px;overflow:hidden"><div style="height:4px;border-radius:2px;background:#6E8F74;width:{{ swConfirmPct }}%"></div></div>
                     </div>
@@ -714,6 +756,7 @@
               </sc-if>
             </div>
           </div>
+          </sc-if>
 
           <sc-if value="{{ swDrawer }}" hint-placeholder-val="{{ false }}">
             <div onClick="{{ swCloseDrawer }}" style="position:fixed;inset:0;z-index:140;background:rgba(29,38,56,.34);display:flex;align-items:center;justify-content:center;padding:24px">
@@ -738,8 +781,6 @@
                 <div style="padding:12px 18px;border-top:1px solid #E2E8F2;background:#F8FAFE;font-size:11.5px;color:#8792A5">资料仅保存在当前浏览器；删除会影响引用它的字段与策略章节。</div>
               </div>
             </div>
-          </sc-if>
-
           </sc-if>
           </sc-if>
         </div>
@@ -792,6 +833,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js"></script>
+<script src="../app-logic.js?v=18"></script>
 </body>
 </html>

@@ -177,32 +177,6 @@ a:hover {
   align-items: start;
 }
 
-.strategy-result-layout {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 196px minmax(0, 1fr);
-  align-items: stretch;
-  background: #f8fafe;
-}
-
-.strategy-result-toc {
-  position: sticky;
-  top: 12px;
-  align-self: start;
-  max-height: calc(100vh - 88px);
-  overflow-y: auto;
-  box-sizing: border-box;
-  padding: 16px 10px;
-  background: #f8fafe;
-  border-right: 1px solid #edf1f7;
-}
-
-.strategy-result-main {
-  min-width: 0;
-  padding: 18px;
-  background: #fff;
-}
-
 .campaign-detail-shell {
   transform: none !important;
   filter: none !important;
@@ -390,10 +364,6 @@ a:hover {
     grid-template-columns: 172px minmax(0, 1fr);
     gap: 12px;
   }
-
-  .strategy-result-layout {
-    grid-template-columns: 172px minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 700px) {
@@ -445,27 +415,6 @@ a:hover {
   .campaign-strategy-layout {
     display: flex;
     flex-direction: column;
-  }
-
-  .strategy-result-layout {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .strategy-result-toc {
-    position: static;
-    width: 100%;
-    max-height: none;
-    display: flex;
-    gap: 5px;
-    overflow-x: auto;
-    border-right: 0;
-    border-bottom: 1px solid #edf1f7;
-  }
-
-  .strategy-result-toc > div {
-    flex: 0 0 auto;
-    white-space: nowrap;
   }
 
   .campaign-strategy-toc {

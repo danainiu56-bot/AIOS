@@ -54,14 +54,17 @@
       </sc-if>
     </div>
 
-    <nav style="display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden;min-height:0;width:100%;max-width:100%">
+    <nav style="display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0">
       <sc-for list="{{ nav }}" as="item" hint-placeholder-count="9">
-        <div onClick="{{ item.go }}" title="{{ item.title }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;cursor:pointer;background:{{ item.bg }};color:{{ item.fg }};font-weight:{{ item.fw }};justify-content:{{ item.justify }};position:relative;min-width:0;width:100%;max-width:100%" style-hover="background:#EAF0FF">
+        <div onClick="{{ item.go }}" title="{{ item.title }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;cursor:pointer;background:{{ item.bg }};color:{{ item.fg }};font-weight:{{ item.fw }};justify-content:{{ item.justify }};position:relative" style-hover="background:#EAF0FF">
           <sc-if value="{{ navCollapsed }}" hint-placeholder-val="{{ false }}">
             <span style="width:22px;height:22px;flex:0 0 22px;border-radius:7px;display:flex;align-items:center;justify-content:center;text-align:center;font-variant-numeric:tabular-nums;font-size:10px;font-weight:700;opacity:.82;background:rgba(36,87,245,.07)">{{ item.key }}</span>
           </sc-if>
           <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
             <span style="flex:1;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px">{{ item.label }}</span>
+          </sc-if>
+          <sc-if value="{{ item.badge }}" hint-placeholder-val="{{ true }}">
+            <span style="font-variant-numeric:tabular-nums;font-size:11px;font-weight:600;background:#2457F5;color:#fff;border-radius:999px;padding:1px 6px;position:{{ item.badgePos }};top:2px;right:2px">{{ item.badge }}</span>
           </sc-if>
         </div>
       </sc-for>
@@ -568,6 +571,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="./app-logic.js"></script>
+<script src="./app-logic.js?v=5"></script>
 </body>
 </html>

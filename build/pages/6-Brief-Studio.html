@@ -142,13 +142,60 @@
 	          <sc-if value="{{ briefViewEditor }}" hint-placeholder-val="{{ false }}">
 	            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:13px 18px;margin-bottom:14px">
 	              <div style="font-size:16px;font-weight:600;letter-spacing:-.01em;color:#1D2638;flex:0 0 auto">{{ briefTitleName }}</div>
-	              <div onClick="{{ expBrief }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#F8FAFE;color:#647187;border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">导出 Brief PDF</div>
 	              <span style="font-size:12.5px;color:#647187;flex:0 0 auto;white-space:nowrap">ASIN <a href="{{ briefTitleAsinUrl }}" target="_blank" rel="noopener" style="font-variant-numeric:tabular-nums">{{ briefTitleAsin }} ↗</a> · SKU <span style="font-variant-numeric:tabular-nums">{{ briefTitleSku }}</span></span>
 	              <div style="flex:1;min-width:0"></div>
 	              <div style="font-size:12px;color:#8792A5;flex:0 0 auto">已自动保存 · {{ briefTitleSavedAt }}</div>
-	              <div style="font-size:12.5px;color:#647187;flex:0 0 auto">内容完整度 {{ briefTitleCompleteness }}%</div>
+	              <div onClick="{{ briefToggleSubmitPanel }}" style="flex:0 0 auto;font-size:12.5px;font-weight:600;border:1px solid {{ briefSubmitBd }};background:{{ briefSubmitBg }};color:{{ briefSubmitFg }};border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap">{{ briefSubmitPanelLabel }}</div>
 	              <div onClick="{{ showBriefList }}" style="flex:0 0 auto;border:1px solid #E2E8F2;background:#F8FAFE;color:#8792A5;border-radius:999px;padding:6px 14px;font-size:12.5px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">← 返回产品列表</div>
 	            </div>
+	            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 14px;margin-bottom:14px">
+	              <div style="font-size:12.5px;color:#647187;text-wrap:pretty">{{ briefStatusStrip }}</div>
+	              <sc-if value="{{ briefShowRejectBanner }}" hint-placeholder-val="{{ false }}">
+	                <div style="margin-top:8px;font-size:12.5px;color:#C4636D;text-wrap:pretty">{{ briefRejectBannerText }}</div>
+	              </sc-if>
+	            </div>
+	            <sc-if value="{{ briefSubmitOpen }}" hint-placeholder-val="{{ false }}">
+	            <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;padding:20px;margin-bottom:14px">
+	              <div style="font-size:15px;font-weight:600;color:#1D2638;margin-bottom:6px">提交 Brief 审核</div>
+	              <div style="font-size:12.5px;color:#8792A5;margin-bottom:14px;text-wrap:pretty">生成后直接打包提交：同一产品下各渠道/红人 Brief 最新版将一并送 My Tasks 审批；通过后自动 v+1 开新草稿。</div>
+	              <sc-if value="{{ briefBundlePending }}" hint-placeholder-val="{{ false }}">
+	                <div style="background:#FBEEDA;border:1px solid #F0D8A8;border-radius:12px;padding:12px 14px;font-size:13px;color:#A5762C;text-wrap:pretty;margin-bottom:14px">当前打包正在审批中，可在 My Tasks → 审批清单查看进度。</div>
+	              </sc-if>
+	                <div style="font-size:12px;color:#8792A5;margin-bottom:12px;text-wrap:pretty">{{ briefSubmitBundleNote }}</div>
+	                <div style="font-size:13px;font-weight:600;color:#1D2638;margin-bottom:8px">提交内容预览</div>
+	                <sc-if value="{{ briefSubmitPreviewShowKindTabs }}" hint-placeholder-val="{{ false }}">
+	                  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px">
+	                    <sc-for list="{{ briefSubmitPreviewTabs }}" as="t" hint-placeholder-count="2">
+	                      <div onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:999px;padding:6px 10px;cursor:pointer;white-space:nowrap">
+	                        <span>{{ t.label }}</span>
+	                        <span style="font-size:10px;background:{{ t.countBg }};color:{{ t.countFg }};border-radius:999px;padding:1px 6px">{{ t.count }}</span>
+	                      </div>
+	                    </sc-for>
+	                  </div>
+	                </sc-if>
+	                <sc-if value="{{ briefSubmitPreviewShowItemTabs }}" hint-placeholder-val="{{ false }}">
+	                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+	                    <sc-for list="{{ briefSubmitPreviewItemTabs }}" as="it" hint-placeholder-count="4">
+	                      <div onClick="{{ it.pick }}" style="font-size:12px;font-weight:600;border:1px solid {{ it.bd }};background:{{ it.bg }};color:{{ it.fg }};border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap">{{ it.label }}</div>
+	                    </sc-for>
+	                  </div>
+	                </sc-if>
+	                <div style="font-size:12px;color:#8792A5;margin-bottom:10px;text-wrap:pretty">{{ briefSubmitPreviewTitle }}</div>
+	                <div style="max-height:min(360px,45vh);overflow-y:auto;border:1px solid {{ briefSubmitPreviewPaneBd }};border-radius:12px;padding:8px 10px;background:{{ briefSubmitPreviewPaneBg }};margin-bottom:14px">
+	                  <sc-for list="{{ briefSubmitPreviewSections }}" as="p" hint-placeholder-count="8">
+	                    <div style="margin-bottom:8px">
+	                      <div style="font-size:13px;font-weight:600;color:#1D2638;margin:0 0 8px;text-wrap:pretty">{{ p.title }}</div>
+	                      <sc-if value="{{ p.body }}" hint-placeholder-val="{{ false }}">
+	                        <div style="background:#FFFFFF;border:1px solid #EEF2F8;border-radius:11px;padding:12px 14px;font-size:13px;color:#334155;line-height:1.65;text-wrap:pretty;white-space:pre-wrap">{{ p.body }}</div>
+	                      </sc-if>
+	                    </div>
+	                  </sc-for>
+	                </div>
+	                <sc-if value="{{ briefBundlePendingClosed }}" hint-placeholder-val="{{ false }}">
+                  <div onClick="{{ briefSubmitForApproval }}" style="display:inline-block;font-size:13px;font-weight:600;border:1px solid {{ briefSubmitBd }};background:{{ briefSubmitBg }};color:{{ briefSubmitFg }};border-radius:999px;padding:8px 18px;cursor:{{ briefSubmitCursor }}">{{ briefSubmitLabel }}</div>
+                </sc-if>
+	            </div>
+	            </sc-if>
 	          </sc-if>
 
           <sc-if value="{{ briefTabsVisible }}" hint-placeholder-val="{{ true }}">
@@ -299,8 +346,8 @@
 	                      <div style="text-align:center;font-size:12.5px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ bp.idx }}</div>
 	                      <div onClick="{{ bp.make }}" title="{{ bp.actionLabel }}" style="display:flex;align-items:center;gap:11px;min-width:0;cursor:pointer;border-radius:10px;padding:3px;margin:-3px;transition:background .16s ease" style-hover="background:#F5F8FE"><img src="{{ bp.image }}" alt="{{ bp.name }}" loading="lazy" style="width:40px;height:40px;flex:0 0 40px;border-radius:9px;object-fit:cover;background:#F5F8FE;border:1px solid #E2E8F2;display:block" /><div style="min-width:0"><div style="font-size:14px;font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bp.name }}</div><div style="display:flex;gap:6px;align-items:center;margin-top:4px;min-width:0;overflow:hidden"><sc-for list="{{ bp.chips }}" as="f" hint-placeholder-count="7"><span style="flex:0 0 auto;font-size:10.5px;color:#647187;white-space:nowrap"><span style="color:#A2ABBA">{{ f.label }}</span> <sc-if value="{{ f.link }}" hint-placeholder-val="{{ false }}"><a href="{{ f.link }}" target="_blank" rel="noopener" onClick="{{ bp.keepChannelMenu }}">{{ f.value }} ↗</a></sc-if><sc-if value="{{ f.plain }}" hint-placeholder-val="{{ true }}"><span style="color:#465268">{{ f.value }}</span></sc-if></span></sc-for></div></div></div>
 	                      <div style="display:flex;align-items:center;justify-content:center"><span style="min-width:46px;box-sizing:border-box;text-align:center;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ bp.scoreColor }};background:{{ bp.scoreBg }};border-radius:10px;padding:5px 8px">{{ bp.score }}</span></div>
-	                      <div style="position:relative;min-width:0"><div onClick="{{ bp.toggleChannelMenu }}" style="border:1px solid {{ bp.channelBd }};background:{{ bp.channelBg }};border-radius:10px;padding:8px 10px;cursor:pointer;min-width:0" style-hover="border-color:#8CAFFF;background:#F7F9FF"><div style="display:flex;align-items:center;gap:7px"><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ bp.channelStateBg }};color:{{ bp.channelStateFg }};white-space:nowrap">{{ bp.channelStateText }}</span><span style="font-size:11.5px;color:#465268">{{ bp.channelVersionCount }} 个版本</span><span style="margin-left:auto;font-size:10.5px;color:#2457F5;white-space:nowrap">查看 ▾</span></div><div style="font-size:10.5px;color:#A2ABBA;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bp.channelNote }}</div></div><sc-if value="{{ bp.channelMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ bp.keepChannelMenu }}" style="position:absolute;top:calc(100% + 7px);left:0;z-index:95;min-width:370px;max-height:310px;overflow-y:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:14px;box-shadow:0 16px 36px rgba(29,38,56,.16);padding:6px"><sc-if value="{{ bp.channelMenuEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;text-align:center;padding:16px">当前产品暂无渠道 Brief 版本</div></sc-if><sc-for list="{{ bp.channelVersions }}" as="v" hint-placeholder-count="3"><div onClick="{{ v.pick }}" style="background:{{ v.bg }};border-radius:9px;padding:8px 10px;cursor:pointer" style-hover="background:#F8FAFE"><div style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="flex:1;min-width:0;font-size:12.5px;color:{{ v.fg }};overflow:hidden;text-overflow:ellipsis">{{ v.label }}</span><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ v.statusBg }};color:{{ v.statusFg }}">{{ v.status }}</span><div onClick="{{ v.submit }}" style="font-size:11.5px;background:{{ v.subBg }};color:{{ v.subFg }};border:1px solid {{ v.subBd }};border-radius:999px;padding:4px 10px;cursor:{{ v.subCursor }};white-space:nowrap">{{ v.subLabel }}</div></div><sc-if value="{{ v.comment }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#C4636D;margin-top:4px">{{ v.comment }}</div></sc-if></div></sc-for></div></sc-if></div>
-	                      <div style="position:relative;min-width:0"><div onClick="{{ bp.toggleCreatorMenu }}" style="border:1px solid {{ bp.creatorBd }};background:{{ bp.creatorBg }};border-radius:10px;padding:8px 10px;cursor:pointer;min-width:0" style-hover="border-color:#8CAFFF;background:#F7F9FF"><div style="display:flex;align-items:center;gap:7px"><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ bp.creatorStateBg }};color:{{ bp.creatorStateFg }};white-space:nowrap">{{ bp.creatorStateText }}</span><span style="font-size:11.5px;color:#465268">{{ bp.creatorVersionCount }} 个版本</span><span style="margin-left:auto;font-size:10.5px;color:#2457F5;white-space:nowrap">查看 ▾</span></div><div style="font-size:10.5px;color:#A2ABBA;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bp.creatorNote }}</div></div><sc-if value="{{ bp.creatorMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ bp.keepCreatorMenu }}" style="position:absolute;top:calc(100% + 7px);right:0;z-index:95;min-width:370px;max-height:310px;overflow-y:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:14px;box-shadow:0 16px 36px rgba(29,38,56,.16);padding:6px"><sc-if value="{{ bp.creatorMenuEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;text-align:center;padding:16px">当前产品暂无红人 Brief 版本</div></sc-if><sc-for list="{{ bp.creatorVersions }}" as="v" hint-placeholder-count="3"><div onClick="{{ v.pick }}" style="background:{{ v.bg }};border-radius:9px;padding:8px 10px;cursor:pointer" style-hover="background:#F8FAFE"><div style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="flex:1;min-width:0;font-size:12.5px;color:{{ v.fg }};overflow:hidden;text-overflow:ellipsis">{{ v.label }}</span><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ v.statusBg }};color:{{ v.statusFg }}">{{ v.status }}</span><div onClick="{{ v.submit }}" style="font-size:11.5px;background:{{ v.subBg }};color:{{ v.subFg }};border:1px solid {{ v.subBd }};border-radius:999px;padding:4px 10px;cursor:{{ v.subCursor }};white-space:nowrap">{{ v.subLabel }}</div></div><sc-if value="{{ v.comment }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#C4636D;margin-top:4px">{{ v.comment }}</div></sc-if></div></sc-for></div></sc-if></div>
+	                      <div style="position:relative;min-width:0"><div onClick="{{ bp.toggleChannelMenu }}" style="border:1px solid {{ bp.channelBd }};background:{{ bp.channelBg }};border-radius:10px;padding:8px 10px;cursor:pointer;min-width:0" style-hover="border-color:#8CAFFF;background:#F7F9FF"><div style="display:flex;align-items:center;gap:7px"><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ bp.channelStateBg }};color:{{ bp.channelStateFg }};white-space:nowrap">{{ bp.channelStateText }}</span><span style="font-size:11.5px;color:#465268">{{ bp.channelVersionCount }} 个版本</span><span style="margin-left:auto;font-size:10.5px;color:#2457F5;white-space:nowrap">查看 ▾</span></div><div style="font-size:10.5px;color:#A2ABBA;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bp.channelNote }}</div></div><sc-if value="{{ bp.channelMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ bp.keepChannelMenu }}" style="position:absolute;top:calc(100% + 7px);left:0;z-index:95;min-width:370px;max-height:310px;overflow-y:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:14px;box-shadow:0 16px 36px rgba(29,38,56,.16);padding:6px"><sc-if value="{{ bp.channelMenuEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;text-align:center;padding:16px">当前产品暂无渠道 Brief 版本</div></sc-if><sc-for list="{{ bp.channelVersions }}" as="v" hint-placeholder-count="3"><div onClick="{{ v.pick }}" style="background:{{ v.bg }};border-radius:9px;padding:8px 10px;cursor:pointer" style-hover="background:#F8FAFE"><div style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="flex:1;min-width:0;font-size:12.5px;color:{{ v.fg }};overflow:hidden;text-overflow:ellipsis">{{ v.label }}</span><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ v.statusBg }};color:{{ v.statusFg }}">{{ v.status }}</span></div><sc-if value="{{ v.comment }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#C4636D;margin-top:4px">{{ v.comment }}</div></sc-if></div></sc-for></div></sc-if></div>
+	                      <div style="position:relative;min-width:0"><div onClick="{{ bp.toggleCreatorMenu }}" style="border:1px solid {{ bp.creatorBd }};background:{{ bp.creatorBg }};border-radius:10px;padding:8px 10px;cursor:pointer;min-width:0" style-hover="border-color:#8CAFFF;background:#F7F9FF"><div style="display:flex;align-items:center;gap:7px"><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ bp.creatorStateBg }};color:{{ bp.creatorStateFg }};white-space:nowrap">{{ bp.creatorStateText }}</span><span style="font-size:11.5px;color:#465268">{{ bp.creatorVersionCount }} 个版本</span><span style="margin-left:auto;font-size:10.5px;color:#2457F5;white-space:nowrap">查看 ▾</span></div><div style="font-size:10.5px;color:#A2ABBA;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bp.creatorNote }}</div></div><sc-if value="{{ bp.creatorMenuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ bp.keepCreatorMenu }}" style="position:absolute;top:calc(100% + 7px);right:0;z-index:95;min-width:370px;max-height:310px;overflow-y:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:14px;box-shadow:0 16px 36px rgba(29,38,56,.16);padding:6px"><sc-if value="{{ bp.creatorMenuEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;text-align:center;padding:16px">当前产品暂无红人 Brief 版本</div></sc-if><sc-for list="{{ bp.creatorVersions }}" as="v" hint-placeholder-count="3"><div onClick="{{ v.pick }}" style="background:{{ v.bg }};border-radius:9px;padding:8px 10px;cursor:pointer" style-hover="background:#F8FAFE"><div style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="flex:1;min-width:0;font-size:12.5px;color:{{ v.fg }};overflow:hidden;text-overflow:ellipsis">{{ v.label }}</span><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ v.statusBg }};color:{{ v.statusFg }}">{{ v.status }}</span></div><sc-if value="{{ v.comment }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#C4636D;margin-top:4px">{{ v.comment }}</div></sc-if></div></sc-for></div></sc-if></div>
 	                      <div style="display:flex;justify-content:flex-end;align-items:center;gap:7px;position:relative"><div onClick="{{ bp.openAi }}" style="font-size:12px;border:1px solid {{ bp.aiBd }};background:{{ bp.aiBg }};color:#1D48D8;border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap">AI 解析 {{ bp.riskCount }}</div><div onClick="{{ bp.make }}" style="font-size:12px;background:#FFFFFF;color:#647187;border:1px solid #E2E8F2;border-radius:999px;padding:6px 11px;cursor:pointer;white-space:nowrap">{{ bp.actionLabel }}</div><div onClick="{{ bp.remove }}" title="移出列表" style="font-size:12px;color:#A2ABBA;cursor:pointer;padding:5px">删除</div></div>
 	                    </div>
 
@@ -331,17 +378,19 @@
           <div style="display:grid;grid-template-columns:minmax(280px,330px) minmax(0,1fr);gap:16px;align-items:start">
             <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden;position:sticky;top:16px;max-height:calc(100vh - 120px);display:flex;flex-direction:column">
               <div style="padding:12px 12px 11px;border-bottom:1px solid #EDF1F7;background:#F8FAFE">
-                <div class="brief-type-tabs" style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><sc-for list="{{ briefEditorTabs }}" as="t" hint-placeholder-count="2"><div class="brief-type-tab" onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:999px;padding:6px 10px;cursor:pointer;white-space:nowrap"><span>{{ t.label }}</span><span class="brief-type-count" style="font-size:10px;background:{{ t.countBg }};color:{{ t.countFg }};border-radius:999px;padding:1px 6px">{{ t.count }}</span></div></sc-for></div>
-                <div style="font-size:11.5px;color:#A2ABBA;margin:8px 5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ briefEditorProduct }} · {{ briefEditorTabNote }}</div>
+                <sc-if value="{{ briefEditorShowKindTabs }}" hint-placeholder-val="{{ false }}">
+                  <div class="brief-type-tabs" style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:8px"><sc-for list="{{ briefEditorTabs }}" as="t" hint-placeholder-count="2"><div class="brief-type-tab" onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:999px;padding:6px 10px;cursor:pointer;white-space:nowrap"><span>{{ t.label }}</span><span class="brief-type-count" style="font-size:10px;background:{{ t.countBg }};color:{{ t.countFg }};border-radius:999px;padding:1px 6px">{{ t.count }}</span></div></sc-for></div>
+                </sc-if>
+                <div style="font-size:11.5px;color:#A2ABBA;margin:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ briefEditorProduct }} · {{ briefEditorTabNote }}</div>
               </div>
               <div style="padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
                 <sc-if value="{{ briefEditorEmpty }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#8792A5;text-align:center;background:#F8FAFE;border:1px dashed #D9E1EF;border-radius:11px;padding:24px 10px">{{ briefEditorEmptyText }}</div></sc-if>
                   <sc-for list="{{ briefEditorVisibleItems }}" as="bi" hint-placeholder-count="3">
-                  <div class="brief-version-card" data-brief-key="{{ briefTitleSku }}|{{ bi.platform }}|{{ bi.mode }}|{{ bi.ver }}|{{ bi.creator }}" data-brief-sku="{{ briefTitleSku }}" data-brief-platform="{{ bi.platform }}" data-brief-mode="{{ bi.mode }}" data-brief-ver="{{ bi.ver }}" data-brief-creator="{{ bi.creator }}" data-brief-type="{{ bi.itemType }}" onClick="{{ bi.pick }}" style="border:1px solid {{ bi.rowBd }};background:{{ bi.rowBg }};border-radius:13px;padding:11px 12px;cursor:pointer" style-hover="border-color:#B8CBFF;background:#F7F9FF">
+                  <div class="brief-version-card" data-brief-key="{{ bi.cardKey }}" onClick="{{ bi.pick }}" style="border:1px solid {{ bi.rowBd }};background:{{ bi.rowBg }};border-radius:13px;padding:11px 12px;cursor:pointer" style-hover="border-color:#B8CBFF;background:#F7F9FF">
                     <div style="display:flex;align-items:flex-start;gap:10px">
                       <div style="width:32px;height:32px;flex:0 0 32px;border-radius:9px;background:{{ bi.iconBg }};color:{{ bi.iconFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">{{ bi.channelShort }}</div>
                       <div style="min-width:0;flex:1"><div style="font-size:13px;font-weight:600;color:{{ bi.titleFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bi.title }}</div><div style="font-size:11px;color:#8792A5;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bi.meta }}</div></div>
-                      <span style="font-size:10.5px;border-radius:999px;padding:2px 7px;background:{{ bi.statusBg }};color:{{ bi.statusFg }};white-space:nowrap">{{ bi.status }}</span><button class="brief-delete-btn" type="button">删除</button>
+                      <span style="font-size:10.5px;border-radius:999px;padding:2px 7px;background:{{ bi.statusBg }};color:{{ bi.statusFg }};white-space:nowrap">{{ bi.status }}</span><button class="brief-delete-btn" type="button" onClick="{{ bi.requestDelete }}">删除</button>
                     </div>
                     <div style="font-size:11px;color:{{ bi.titleFg }};margin:7px 0 0 42px">{{ bi.viewLabel }}</div>
                   </div>
@@ -356,6 +405,8 @@
             </div>
             <sc-if value="{{ briefStudioSetupOpen }}" hint-placeholder-val="{{ true }}">
               <div style="margin-top:13px;padding-top:13px;border-top:1px solid #EDF1F7">
+                <div style="font-size:11px;font-weight:600;color:#647187;margin-bottom:7px">生成类型</div>
+                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:12px"><sc-for list="{{ briefEditorTabs }}" as="t" hint-placeholder-count="2"><div onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};border-radius:999px;padding:6px 10px;cursor:pointer;white-space:nowrap"><span>{{ t.label }}</span><span style="font-size:10px;background:{{ t.countBg }};color:{{ t.countFg }};border-radius:999px;padding:1px 6px">{{ t.count }}</span></div></sc-for></div>
                 <sc-if value="{{ briefStudioModeChannel }}" hint-placeholder-val="{{ true }}"><div><div style="font-size:11px;font-weight:600;color:#647187;margin-bottom:7px">选择渠道（可多选）</div><div style="display:flex;gap:7px;flex-wrap:wrap"><sc-for list="{{ briefStudioChannelOptions }}" as="o" hint-placeholder-count="3"><div onClick="{{ o.toggle }}" style="font-size:12.5px;border:1px solid {{ o.bd }};background:{{ o.bg }};color:{{ o.fg }};border-radius:999px;padding:6px 12px;cursor:pointer">{{ o.mark }} {{ o.label }}</div></sc-for></div></div></sc-if>
                 <sc-if value="{{ briefStudioModeCreator }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;font-weight:600;color:#647187;margin-bottom:7px">从 Influencer 库选择具体红人（可多选）</div>
                 <div style="border:1px solid {{ briefStudioCreatorPickerBd }};background:#F8FAFE;border-radius:12px;overflow:hidden">
@@ -415,7 +466,6 @@
                 <textarea value="{{ briefPrompt }}" onChange="{{ setBriefPrompt }}" rows="3" placeholder="例：语气更口语一些；强调可以带去办公室；不要提价格" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13.5px;line-height:1.7;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:12px;padding:9px 12px;outline:none;resize:vertical"></textarea>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
                   <div onClick="{{ regenBrief }}" style="flex:1 1 auto;text-align:center;font-size:13px;background:#2457F5;color:#fff;border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap">重新生成 Brief</div>
-                  <div onClick="{{ saveBriefVersion }}" style="flex:1 1 auto;text-align:center;font-size:13px;background:#2457F5;color:#fff;border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap">保存为 {{ briefNextVer }}</div>
                 </div>
               </div>
 
@@ -501,81 +551,21 @@
       </div>
     </aside>
   </sc-if>
+  <sc-if value="{{ briefDeleteOpen }}" hint-placeholder-val="{{ false }}">
+    <div class="brief-delete-overlay open" onClick="{{ briefDeleteCancel }}">
+      <div class="brief-delete-modal" role="dialog" aria-modal="true" onClick="{{ briefDeleteKeep }}">
+        <div class="brief-delete-head"><strong>删除 Brief 版本</strong><div onClick="{{ briefDeleteCancel }}" style="margin-left:auto;width:30px;height:30px;border:0;border-radius:50%;background:#F5F8FE;color:#647187;cursor:pointer;display:flex;align-items:center;justify-content:center">×</div></div>
+        <div class="brief-delete-body"><div class="brief-delete-name">{{ briefDeleteName }}</div><div class="brief-delete-note">删除后，该版本将从 Brief Studio 中移除且无法恢复。其他渠道或红人版本不会受到影响。</div></div>
+        <div class="brief-delete-actions"><div class="brief-delete-cancel" onClick="{{ briefDeleteCancel }}" style="cursor:pointer">取消</div><div class="brief-delete-confirm" onClick="{{ briefDeleteConfirm }}" style="cursor:pointer">确认删除</div></div>
+      </div>
+    </div>
+  </sc-if>
 </div>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
 <script src="../app-logic.js"></script>
-<div class="brief-delete-overlay" id="briefDeleteOverlay">
-  <div class="brief-delete-modal" role="dialog" aria-modal="true" aria-labelledby="briefDeleteTitle">
-    <div class="brief-delete-head"><strong id="briefDeleteTitle">删除 Brief 版本</strong><button id="briefDeleteClose" type="button" aria-label="关闭">×</button></div>
-    <div class="brief-delete-body"><div class="brief-delete-name" id="briefDeleteName"></div><div class="brief-delete-note">删除后，该版本将从 Brief Studio 中移除且无法恢复。其他渠道或红人版本不会受到影响。</div></div>
-    <div class="brief-delete-actions"><button class="brief-delete-cancel" id="briefDeleteCancel" type="button">取消</button><button class="brief-delete-confirm" id="briefDeleteConfirm" type="button">确认删除</button></div>
-  </div>
-</div>
-<script>
-  (() => {
-    const storageKey = 'aios.deletedBriefEntries';
-    let pendingCard = null;
-    let applying = false;
-    const readDeleted = () => { try { const value = JSON.parse(localStorage.getItem(storageKey) || '[]'); return Array.isArray(value) ? value : []; } catch (_) { return []; } };
-    const writeDeleted = (value) => localStorage.setItem(storageKey, JSON.stringify(value));
-    const closeModal = () => { document.getElementById('briefDeleteOverlay').classList.remove('open'); pendingCard = null; };
-    const updateTabCounts = (sku, deleted) => {
-      document.querySelectorAll('.brief-type-tab').forEach((tab) => {
-        const count = tab.querySelector('.brief-type-count');
-        if (!count) return;
-        if (!count.dataset.baseCount) count.dataset.baseCount = count.textContent.trim();
-        const type = tab.textContent.includes('红人') ? 'creator' : 'channel';
-        const removed = deleted.filter((item) => item.sku === sku && item.type === type).length;
-        const nextCount = String(Math.max(0, Number(count.dataset.baseCount || 0) - removed));
-        if (count.textContent.trim() !== nextCount) count.textContent = nextCount;
-      });
-    };
-    const applyDeleted = () => {
-      if (applying) return; applying = true;
-      const deleted = readDeleted();
-      const cards = Array.from(document.querySelectorAll('.brief-version-card'));
-      let sku = '';
-      cards.forEach((card) => {
-        sku = sku || card.dataset.briefSku || '';
-        if (deleted.some((item) => item.key === card.dataset.briefKey)) card.style.display = 'none';
-      });
-      if (sku) updateTabCounts(sku, deleted);
-      const activeHidden = cards.find((card) => card.style.display === 'none' && card.textContent.includes('正在查看'));
-      const fallback = cards.find((card) => card.style.display !== 'none');
-      if (activeHidden && fallback && !fallback.dataset.deleteFallbackOpened) {
-        fallback.dataset.deleteFallbackOpened = '1';
-        setTimeout(() => fallback.click(), 0);
-      }
-      document.querySelectorAll('.brief-delete-btn').forEach((button) => {
-        if (button.dataset.bound) return; button.dataset.bound = '1';
-        button.addEventListener('click', (event) => {
-          event.preventDefault(); event.stopPropagation();
-          pendingCard = button.closest('.brief-version-card');
-          const title = pendingCard ? pendingCard.querySelector('[style*="font-size:13px"]') : null;
-          document.getElementById('briefDeleteName').textContent = title ? title.textContent.trim() : '当前 Brief 版本';
-          document.getElementById('briefDeleteOverlay').classList.add('open');
-        });
-      });
-      applying = false;
-    };
-    document.getElementById('briefDeleteClose').addEventListener('click', closeModal);
-    document.getElementById('briefDeleteCancel').addEventListener('click', closeModal);
-    document.getElementById('briefDeleteOverlay').addEventListener('click', (event) => { if (event.target.id === 'briefDeleteOverlay') closeModal(); });
-    document.getElementById('briefDeleteConfirm').addEventListener('click', () => {
-      if (!pendingCard) return;
-      const record = {key:pendingCard.dataset.briefKey, sku:pendingCard.dataset.briefSku, platform:pendingCard.dataset.briefPlatform, mode:pendingCard.dataset.briefMode, ver:pendingCard.dataset.briefVer, creator:pendingCard.dataset.briefCreator || '', type:pendingCard.dataset.briefType || 'channel'};
-      const deleted = readDeleted();
-      if (!deleted.some((item) => item.key === record.key)) deleted.push(record);
-      writeDeleted(deleted);
-      window.location.reload();
-    });
-    new MutationObserver(applyDeleted).observe(document.documentElement, {childList:true, subtree:true});
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyDeleted); else applyDeleted();
-  })();
-</script>
 <script>
   (() => {
     const storageKey = 'aios.briefStudioListTab';
