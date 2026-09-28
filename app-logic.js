@@ -5047,11 +5047,11 @@ class Component extends DCLogic {
       }).sort((a, b) => (a.replied === b.replied ? b.hours - a.hours : (a.replied ? 1 : -1)));
     })();
     const creatorInQualityPool = (h) => !(s.qualityRemoved || []).includes(h) && !!(crQualityDefs[h] || (s.qualityAdded || []).includes(h));
-    const coopHandlesForList = (s.coopList || []).filter(h => !creatorInQualityPool(h) && !(s.blackAdded || []).includes(h));
+    const coopHandlesForList = (s.coopList || []).filter(h => !(s.blackAdded || []).includes(h));
     const crTab = s.crTab || 'lib';
     const crTabs = [
       { id: 'lib', label: '红人库', note: creatorDefs.length + ' 位红人 · 多维筛选' },
-      { id: 'coop', label: '合作红人 List', note: coopHandlesForList.length + ' 位履约中 · 不含已入优质/黑名单' },
+      { id: 'coop', label: '合作红人 List', note: coopHandlesForList.length + ' 位履约中 · 已标优质仍在此列表（带标记）' },
       { id: 'quality', label: '合格/优质红人', note: crQuality.length + ' 位 · 历史素材 ≥ 60 · 审批加入不设门槛' },
       { id: 'black', label: '淘汰 / 黑名单', note: crBlacklist.filter(b => b.kind === '淘汰').length + ' 位淘汰 · ' + crBlacklist.filter(b => b.kind === '黑名单').length + ' 位黑名单' },
       { id: 'lookalike', label: '相似度扩量', note: '按合格/优质红人画像推荐候选' }
@@ -12498,6 +12498,8 @@ class Component extends DCLogic {
           qualityMarkUser: !!qualityUser,
           qualityMarkSeed: !!qualitySeed && !qualityUser,
           qualityMarkNone: !qualitySeed && !qualityUser,
+          qualityBadge: qualityUser ? '优质 · 已标记' : (qualitySeed ? '优质 · 达标' : ''),
+          hasQualityBadge: isQuality,
           qualityBg: isQuality ? '#E4EFE4' : '#FFFFFF',
           qualityFg: isQuality ? '#4E7156' : '#647187',
           qualityBd: isQuality ? '#CFE3D3' : '#E2E8F2',
@@ -12542,13 +12544,14 @@ class Component extends DCLogic {
           return mine.length ? Math.max.apply(null, mine.map(x => x.hours)) : 0;
         });
         const w24 = waits.filter(x => x >= 24).length, w48 = waits.filter(x => x >= 48).length;
-        return '合作履约中 · ' + coopHandlesForList.length + ' 位（已标优质或拉黑的不在此列表）'
+        const qN = coopHandlesForList.filter(h => creatorInQualityPool(h)).length;
+        return '合作履约中 · ' + coopHandlesForList.length + ' 位（拉黑不在此列表' + (qN ? ' · ' + qN + ' 位已标优质' : '') + '）'
           + (w48 ? ' · ' + w48 + ' 位已超 48 小时未回复' : (w24 ? ' · ' + w24 + ' 位超 24 小时未回复' : (coopHandlesForList.length ? ' · 邮件均在 24 小时内' : '')));
       })(),
       coopTagModalOpen: !!s.coopTagModal,
       coopTagModalHandle: s.coopTagModalHandle || '',
       coopTagModalTitle: ({ 'quality-on': '标为优质红人', 'quality-off': '移出优质红人', black: '加入黑名单' })[s.coopTagModal] || '',
-      coopTagModalHint: ({ 'quality-on': '填写纳入优质池的依据（如 ROAS、交付、内容质量）。', 'quality-off': '填写移出优质池的原因，便于团队追溯；确认后回到合作红人 List（若仍在合作中）。', black: '填写拉黑原因；确认后移入黑名单，不再出现在合作与优质 List。' })[s.coopTagModal] || '',
+      coopTagModalHint: ({ 'quality-on': '填写纳入优质池的依据（如 ROAS、交付、内容质量）。确认后仍保留在合作红人 List，并显示优质标记，同时进入合格/优质红人 Tab。', 'quality-off': '填写移出优质池的原因，便于团队追溯；确认后仍留在合作红人 List。', black: '填写拉黑原因；确认后移入黑名单，不再出现在合作与优质 List。' })[s.coopTagModal] || '',
       coopTagModalReasonPh: ({ 'quality-on': '例：Q3 两条素材 ROAS 3.8x，交付准时', 'quality-off': '例：本轮表现回落，暂移出优质池', black: '例：多次逾期交付 / 受众不符 / 报价过高' })[s.coopTagModal] || '请填写理由',
       coopTagModalReason: s.coopTagModalReason || '',
       coopTagReasonError: s.coopTagReasonError || '',
@@ -12601,10 +12604,11 @@ class Component extends DCLogic {
           this.setState(st => ({
             coopTagReasons: nextReasons,
             qualityAdded: (st.qualityAdded || []).includes(h) ? st.qualityAdded : [...(st.qualityAdded || []), h],
-            coopList: (st.coopList || []).filter(x => x !== h),
+            qualityRemoved: (st.qualityRemoved || []).filter(x => x !== h),
+            coopList: (st.coopList || []).includes(h) ? st.coopList : [...(st.coopList || []), h],
             blackAdded: (st.blackAdded || []).filter(x => x !== h),
             alTags: { ...(st.alTags || {}), [h]: '合格/优质红人' },
-            crTab: 'quality',
+            crTab: 'coop',
             coopTagModal: '', coopTagModalHandle: '', coopTagModalReason: '', coopTagReasonError: '',
             notifLog: [{
               kind: 'tag',

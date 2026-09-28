@@ -427,7 +427,7 @@
                           <span style="font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">{{ c.handle }}</span>
                           <span style="font-size:11px;border:1px solid #E2E8F2;border-radius:999px;padding:1px 7px;color:#647187;white-space:nowrap">{{ c.platform }}</span>
                           <span style="font-size:11px;border-radius:999px;padding:1px 8px;background:{{ c.statusBg }};color:{{ c.statusFg }};white-space:nowrap">{{ c.status }}</span>
-                          <sc-if value="{{ c.isQuality }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;border-radius:999px;padding:1px 8px;background:#E4EFE4;color:#4E7156;white-space:nowrap">优质</span></sc-if>
+                          <sc-if value="{{ c.hasQualityBadge }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;border-radius:999px;padding:1px 8px;background:#E4EFE4;color:#4E7156;border:1px solid #CFE3D3;white-space:nowrap">{{ c.qualityBadge }}</span></sc-if>
                           <span style="font-size:12px;color:#8792A5;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.niche }}</span>
                         </div>
                         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">
@@ -1780,7 +1780,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js?v=21"></script>
+<script src="../app-logic.js?v=22"></script>
 <div class="crm-bulk-overlay" id="crmSampleOverlay">
   <div class="crm-bulk-modal" role="dialog" aria-modal="true" aria-labelledby="crmSampleTitle">
     <div class="crm-bulk-modal-head"><strong id="crmSampleTitle">批量寄样</strong><button id="crmSampleClose" type="button" aria-label="关闭">×</button></div>
