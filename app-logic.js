@@ -684,6 +684,28 @@ class Component extends DCLogic {
     { handle: '@lena.unwinds', product: 'Ryze 头皮按摩仪', due: '2026-09-01', overdue: 0 }
   ];
 
+  /** 签约/谈妥时为每位红人单独设置的目标（Campaign SKU × handle），目标达成 Tab 直接读取，不做均分 */
+  CREATOR_CAMPAIGN_GOALS = {
+    'RYZ-SC-01': {
+      '@dailywithlin': { content: 1, views: '80K', gmv: 1200 },
+      '@nora.pm': { content: 1, views: '60K', gmv: 800 },
+      '@sofia.homelab': { content: 2, views: '150K', gmv: 2500 },
+      '@hairbyandre': { content: 2, views: '120K', gmv: 2000 },
+      '@kaylascalp': { content: 2, views: '200K', gmv: 3500 },
+      '@june.rests': { content: 1, views: '100K', gmv: 1500 },
+      '@mia.selfcare': { content: 2, views: '450K', gmv: 5000 },
+      '@leo.calmnight': { content: 1, views: '250K', gmv: 3000 }
+    },
+    'LUM-AR-02': {
+      '@sofia.homelab': { content: 1, views: '90K', gmv: 1100 },
+      '@quietmornings': { content: 1, views: '70K', gmv: 900 },
+      '@homewithtess': { content: 2, views: '180K', gmv: 2200 },
+      '@hairbyandre': { content: 1, views: '100K', gmv: 1400 },
+      '@nora.pm': { content: 1, views: '55K', gmv: 700 }
+    },
+    'NUV-SP-07': {}
+  };
+
   // 归一化寄样单构造：CRM 与 Sample Mgt 三处创建路径共用，确保字段/tracking 规则一致
   _makeShipOrder = (input) => {
     const raw = String(input.handle || '');
@@ -7088,6 +7110,109 @@ class Component extends DCLogic {
     const cooperationRiskCount = cooperationRows.filter(row => row.stages.some(stage => stage.state === 'risk')).length;
     const assetRightsRiskCount = campaignAssets.filter(item => item.rights === '待授权').length;
     const goalRiskCount = (cd.goals || []).filter(goalItem => Number(goalItem.pct || 0) < 60).length;
+    const goalMetricNumber = (value) => {
+      const match = String(value || '').match(/[\d.]+/);
+      if (!match) return 0;
+      const amount = Number(match[0]);
+      if (/M/i.test(value)) return amount * 1000000;
+      if (/K/i.test(value)) return amount * 1000;
+      return amount;
+    };
+    const goalMetricCompact = (n) => {
+      const v = Number(n) || 0;
+      if (v >= 1000000) return (v / 1000000).toFixed(v % 1000000 ? 2 : 0).replace(/\.?0+$/, '') + 'M';
+      if (v >= 1000) return Math.round(v / 1000) + 'K';
+      return String(Math.round(v));
+    };
+    const goalMoney = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
+    const goalPctTone = (pct) => {
+      if (pct >= 100) return { tag: '已达标', bg: '#E4EFE4', fg: '#4E7156', bar: SAGE };
+      if (pct >= 60) return { tag: '进行中', bg: '#E4EEF7', fg: '#1D48D8', bar: BLUE };
+      if (pct > 0) return { tag: '落后', bg: '#FBEEDA', fg: '#A5762C', bar: AMBER };
+      return { tag: '待交付', bg: '#F5F8FE', fg: '#647187', bar: '#B7C0CF' };
+    };
+    const creatorGoalDefaults = this.CREATOR_CAMPAIGN_GOALS[cd.sku] || {};
+    const creatorGoalOverrides = s.campaignCreatorGoals || {};
+    const kanbanStageByHandle = {};
+    kanbanWithDealRecords.forEach(col => {
+      col.cards.forEach(card => {
+        if (card.handle && String(card.handle).charAt(0) === '@') kanbanStageByHandle[card.handle] = col.label;
+      });
+    });
+    const creatorGoalHandles = new Set();
+    cooperationPeople.forEach(p => creatorGoalHandles.add(p.handle));
+    facts.assets.filter(a => a.sku === cd.sku).forEach(a => creatorGoalHandles.add(a.handle));
+    (s.contactLog || []).filter(m => m.sku === cd.sku && /已发送/.test(m.status || '')).forEach(m => creatorGoalHandles.add(m.handle));
+    Object.keys(creatorGoalDefaults).forEach(h => creatorGoalHandles.add(h));
+    const cooperationByHandle = {};
+    cooperationRows.forEach(r => { cooperationByHandle[r.handle] = r; });
+    const campaignGoalCreatorRows = Array.from(creatorGoalHandles).filter(h => h && String(h).charAt(0) === '@').map(handle => {
+      const goalKey = cd.sku + '|' + handle;
+      const goalDef = creatorGoalOverrides[goalKey] || creatorGoalDefaults[handle];
+      const assetsForCreator = facts.assets.filter(a => a.sku === cd.sku && a.handle === handle);
+      const contentActualN = assetsForCreator.length;
+      const viewsActualN = assetsForCreator.reduce((sum, a) => sum + goalMetricNumber(a.views), 0);
+      const gmvActualN = assetsForCreator.reduce((sum, a) => sum + (Number(a.gmv) || 0), 0);
+      const spendN = assetsForCreator.reduce((sum, a) => sum + (Number(a.spend) || 0), 0)
+        + (Number(((s.invoices || []).find(inv => inv.sku === cd.sku && inv.handle === handle) || {}).amount) || 0);
+      const contentTargetN = goalDef ? Number(goalDef.content) || 0 : 0;
+      const viewsTargetN = goalDef ? goalMetricNumber(goalDef.views) : 0;
+      const gmvTargetN = goalDef ? Number(goalDef.gmv) || 0 : 0;
+      const pctOf = (actual, target) => (target ? Math.min(100, Math.round(actual / target * 100)) : null);
+      const contentPct = pctOf(contentActualN, contentTargetN);
+      const viewsPct = pctOf(viewsActualN, viewsTargetN);
+      const gmvPct = pctOf(gmvActualN, gmvTargetN);
+      const pctParts = [contentPct, viewsPct, gmvPct].filter(x => x !== null);
+      const compositePct = pctParts.length ? Math.round(pctParts.reduce((a, b) => a + b, 0) / pctParts.length) : 0;
+      const tone = goalDef ? goalPctTone(compositePct) : goalPctTone(0);
+      const coop = cooperationByHandle[handle];
+      const creator = creatorDefs.find(c => c.handle === handle) || {};
+      const stageLabel = kanbanStageByHandle[handle] || (coop ? (coop.progressPct >= 100 ? 'Published' : '履约中') : '已建联');
+      const hasRisk = coop && coop.stages.some(st => st.state === 'risk');
+      return {
+        handle,
+        initial: String(handle).replace('@', '').slice(0, 1).toUpperCase(),
+        profile: [creator.platform, creator.followers ? creator.followers + ' 粉丝' : ''].filter(Boolean).join(' · ') || stageLabel,
+        statusLabel: hasRisk ? '需处理' : stageLabel,
+        statusBg: hasRisk ? '#FBE3E3' : '#F5F8FE',
+        statusFg: hasRisk ? '#C4636D' : '#647187',
+        contentActual: contentActualN + ' 条',
+        contentTarget: goalDef ? contentTargetN + ' 条' : '未设置',
+        contentPct: contentPct !== null ? contentPct : 0,
+        contentBar: contentPct !== null ? contentPct : 0,
+        viewsActual: viewsActualN ? goalMetricCompact(viewsActualN) : '0',
+        viewsTarget: goalDef ? String(goalDef.views) : '—',
+        viewsPct: viewsPct !== null ? viewsPct : 0,
+        viewsBar: viewsPct !== null ? viewsPct : 0,
+        gmvActual: goalMoney(gmvActualN),
+        gmvTarget: goalDef ? goalMoney(gmvTargetN) : '—',
+        gmvPct: gmvPct !== null ? gmvPct : 0,
+        gmvBar: gmvPct !== null ? gmvPct : 0,
+        spendText: spendN ? goalMoney(spendN) : '—',
+        roasText: spendN > 0 ? (gmvActualN / spendN).toFixed(1) + 'x' : '—',
+        compositePct: goalDef ? compositePct : null,
+        compositeText: goalDef ? compositePct + '%' : '—',
+        tag: goalDef ? tone.tag : '未设目标',
+        tagBg: goalDef ? tone.bg : '#F5F8FE',
+        tagFg: goalDef ? tone.fg : '#8792A5',
+        barColor: tone.bar,
+        open: coop ? coop.open : this.openCreator(handle),
+        sortKey: goalDef ? compositePct : 999
+      };
+    }).sort((a, b) => a.sortKey - b.sortKey);
+    const campaignGoalCreatorLagCount = campaignGoalCreatorRows.filter(r => r.compositePct !== null && r.compositePct < 60).length;
+    const campaignGoalCompositePct = (() => {
+      const track = (cd.goals || []).filter(g => ['内容数量', '播放量', '预算目标', '时间目标'].indexOf(g.label) >= 0 && Number(g.pct) >= 0);
+      return track.length ? Math.round(track.reduce((s, g) => s + Number(g.pct || 0), 0) / track.length) : cd.pct;
+    })();
+    const campaignGoalOverallNote = (() => {
+      const lagGoals = (cd.goals || []).filter(g => Number(g.pct || 0) < 60).map(g => g.label);
+      const parts = ['综合完成度 ' + campaignGoalCompositePct + '%'];
+      if (campaignGoalCreatorRows.length) parts.push(campaignGoalCreatorRows.length + ' 位红人');
+      if (campaignGoalCreatorLagCount) parts.push(campaignGoalCreatorLagCount + ' 位红人达成落后');
+      else if (lagGoals.length) parts.push('Campaign 侧「' + lagGoals[0] + '」需优先纠偏');
+      return parts.join(' · ');
+    })();
     const campaignAiSummaries = {
       strategy: {
         label: '策略', tone: campaignStrategySelectedRow ? 'good' : 'warn',
@@ -7126,10 +7251,16 @@ class Component extends DCLogic {
         next: campaignTimeline.late ? '回到 Campaign 列表的「时间进度调整」统一顺延或重排。' : '按当前计划跟进关键节点，出现偏差时在外层统一调整。'
       },
       goals: {
-        label: '目标达成', tone: goalRiskCount ? 'warn' : ((cd.goals || []).length ? 'good' : 'warn'),
-        progress: (cd.goals || []).length ? '已持续跟踪内容数量、播放量、预算与时间四项目标，Campaign 当前完成度为 ' + cd.pct + '%。' : '当前尚未设置可跟踪的目标。',
-        issue: goalRiskCount ? '有 ' + goalRiskCount + ' 项目标完成度低于 60%，需要优先纠偏。' : ((cd.goals || []).length ? '各项目标整体健康，继续关注内容与播放量的增长效率。' : '缺少目标，无法判断 Campaign 是否达成。'),
-        next: goalRiskCount ? '优先处理完成度最低的目标，并联动合作、素材与排期环节。' : '保持当前节奏，并在素材数据更新后持续复核目标达成率。'
+        label: '目标达成', tone: (goalRiskCount || campaignGoalCreatorLagCount) ? 'warn' : ((cd.goals || []).length ? 'good' : 'warn'),
+        progress: (cd.goals || []).length
+          ? 'Campaign 综合 ' + campaignGoalCompositePct + '%；下方按红人展示签约时设置的条数、播放与 GMV 目标及实际表现。'
+          : '当前尚未设置可跟踪的目标。',
+        issue: campaignGoalCreatorLagCount
+          ? '有 ' + campaignGoalCreatorLagCount + ' 位红人综合达成低于 60%，建议优先跟进交付与投放。'
+          : (goalRiskCount ? '有 ' + goalRiskCount + ' 项 Campaign 目标完成度低于 60%，需要优先纠偏。' : ((cd.goals || []).length ? 'Campaign 与各红人目标整体健康，继续关注内容与 GMV 效率。' : '缺少目标，无法判断 Campaign 是否达成。')),
+        next: campaignGoalCreatorLagCount
+          ? '从达成率最低的红人开始排查：内容是否逾期、播放是否低于签约目标、GMV 是否未起量。'
+          : (goalRiskCount ? '优先处理完成度最低的 Campaign 目标，并联动合作、素材与排期环节。' : '保持当前节奏，并在素材数据更新后持续复核总目标与各红人目标。')
       }
     };
     const campaignAiSummary = campaignAiSummaries[campaignTab] || campaignAiSummaries.strategy;
@@ -10378,6 +10509,11 @@ class Component extends DCLogic {
       campaignTabStrategy: campaignTab === 'strategy', campaignTabBrief: campaignTab === 'brief',
       campaignTabEmail: campaignTab === 'email', campaignTabCooperation: campaignTab === 'cooperation',
       campaignTabAssets: campaignTab === 'assets', campaignTabTimeline: campaignTab === 'timeline', campaignTabGoals: campaignTab === 'goals',
+      campaignGoalCompositePct, campaignGoalOverallNote,
+      campaignGoalCreatorRows,
+      campaignGoalCreatorEmpty: campaignGoalCreatorRows.length === 0,
+      campaignGoalCreatorHasRows: campaignGoalCreatorRows.length > 0,
+      campaignGoalCreatorCount: campaignGoalCreatorRows.length + ' 位红人',
       campaignStrategySummary: cd.sku === 'NUV-SP-07'
         ? '该 Campaign 当前应继续停留在合规验证阶段。第三方检测与 claim 证据未补齐前，不建议开启红人外联或安排内容排期。'
         : cd.product + ' 当前以「' + cd.objective + '」为核心目标，预算已使用 ' + cd.spent + ' / ' + cd.budget + '。建议优先放大高完播的场景化内容，同时补足尚未覆盖的人群与渠道。',
