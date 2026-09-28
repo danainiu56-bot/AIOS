@@ -1079,7 +1079,49 @@
                 <span style="font-size:11.5px;color:#8792A5">四项目标加权平均</span>
               </div>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px"><sc-for list="{{ cd.goals }}" as="g" hint-placeholder-count="4"><div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;padding:16px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#8792A5;flex:1">{{ g.label }}</span><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ g.tagBg }};color:{{ g.tagFg }}">{{ g.tag }}</span></div><div style="font-size:18px;font-weight:600;margin-top:6px">{{ g.actual }}</div><div style="font-size:11.5px;color:#8792A5">目标 {{ g.target }}</div><div style="height:5px;background:#EEF2F8;border-radius:3px;overflow:hidden;margin-top:9px"><div style="height:5px;background:{{ g.color }};width:{{ g.pct }}%"></div></div><div style="font-size:11.5px;color:#647187;margin-top:8px">{{ g.note }}</div></div></sc-for></div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px"><sc-for list="{{ campaignGoalCards }}" as="g" hint-placeholder-count="4"><div onClick="{{ g.openDetail }}" style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;padding:16px;cursor:{{ g.cardCursor }}" style-hover="border-color:#B8CBFF;box-shadow:0 6px 18px rgba(36,87,245,.08)"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#8792A5;flex:1">{{ g.label }}</span><span style="font-size:11px;border-radius:999px;padding:2px 8px;background:{{ g.tagBg }};color:{{ g.tagFg }}">{{ g.tag }}</span></div><div style="font-size:18px;font-weight:600;margin-top:6px">{{ g.actual }}</div><div style="font-size:11.5px;color:#8792A5">目标 {{ g.target }}</div><div style="height:5px;background:#EEF2F8;border-radius:3px;overflow:hidden;margin-top:9px"><div style="height:5px;background:{{ g.color }};width:{{ g.pct }}%"></div></div><div style="font-size:11.5px;color:#647187;margin-top:8px">{{ g.note }}</div><sc-if value="{{ g.cardHint }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#2457F5;margin-top:8px">{{ g.cardHint }}</div></sc-if></div></sc-for></div>
+            <sc-if value="{{ campaignGoalDetailOpen }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ campaignGoalDetailClose }}" style="position:fixed;inset:0;z-index:138;background:rgba(29,38,56,.32);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px">
+                <div onClick="{{ campaignGoalDetailKeep }}" style="width:min(960px,100%);max-height:min(82vh,760px);overflow:hidden;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:18px;box-shadow:0 24px 64px rgba(29,38,56,.2);display:flex;flex-direction:column">
+                  <div style="flex:0 0 auto;padding:16px 18px;border-bottom:1px solid #EEF2F8;display:flex;align-items:flex-start;gap:10px">
+                    <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:600;color:#1D2638">{{ campaignGoalDetailTitle }}</div><div style="font-size:12px;color:#647187;margin-top:4px;line-height:1.55;text-wrap:pretty">{{ campaignGoalDetailHint }}</div></div>
+                    <span style="font-size:11px;color:#8792A5;white-space:nowrap;margin-top:2px">{{ campaignGoalDetailCount }}</span>
+                    <div onClick="{{ campaignGoalDetailClose }}" style="font-size:20px;line-height:1;color:#8792A5;cursor:pointer;padding:0 2px">×</div>
+                  </div>
+                  <div style="flex:1;overflow:auto;padding:0 2px 8px">
+                    <sc-if value="{{ campaignGoalDetailEmpty }}" hint-placeholder-val="{{ false }}">
+                      <div style="padding:36px 16px;text-align:center;font-size:13px;color:#8792A5">暂无已收录的链接或视频。素材入库或录入计划内容后会出现在此。</div>
+                    </sc-if>
+                    <sc-if value="{{ campaignGoalDetailHasRows }}" hint-placeholder-val="{{ false }}">
+                      <div style="min-width:880px">
+                        <div style="display:grid;grid-template-columns:minmax(120px,.9fr) minmax(160px,1.4fr) 72px 108px 108px 72px 120px 76px;column-gap:10px;padding:10px 16px;background:#F7F9FD;border-bottom:1px solid #DDE5F1;font-size:11px;font-weight:500;color:#8792A5">
+                          <div>红人</div><div>链接 / 素材</div><div>内容</div><div>播放</div><div>GMV</div><div style="text-align:right">花费</div><div>时间</div><div>状态</div>
+                        </div>
+                        <sc-for list="{{ campaignGoalDetailRows }}" as="lr" hint-placeholder-count="8">
+                          <div style="display:grid;grid-template-columns:minmax(120px,.9fr) minmax(160px,1.4fr) 72px 108px 108px 72px 120px 76px;column-gap:10px;padding:11px 16px;border-bottom:1px solid #EEF2F8;align-items:center;font-size:12px;color:#334155">
+                            <div style="font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ lr.handle }}</div>
+                            <div style="min-width:0">
+                              <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ lr.title }}</div>
+                              <sc-if value="{{ lr.hasUrl }}" hint-placeholder-val="{{ false }}">
+                                <div onClick="{{ lr.openUrl }}" style="font-size:10.5px;color:#2457F5;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline">{{ lr.url }}</div>
+                              </sc-if>
+                              <sc-if value="{{ lr.noUrl }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#A2ABBA;margin-top:3px">{{ lr.channel }}</div></sc-if>
+                            </div>
+                            <div style="font-variant-numeric:tabular-nums">{{ lr.contentActual }}<span style="color:#A2ABBA"> / {{ lr.contentTarget }}</span></div>
+                            <div style="font-variant-numeric:tabular-nums">{{ lr.viewsActual }}<span style="color:#A2ABBA"> / {{ lr.viewsTarget }}</span></div>
+                            <div style="font-variant-numeric:tabular-nums">{{ lr.gmvActual }}<span style="color:#A2ABBA"> / {{ lr.gmvTarget }}</span></div>
+                            <div style="text-align:right;font-variant-numeric:tabular-nums;color:#647187">{{ lr.spendText }}</div>
+                            <div style="font-size:11px;line-height:1.35"><div style="color:#647187">实 {{ lr.timeActual }}</div><div style="color:#A2ABBA;margin-top:2px">目标 {{ lr.timeTarget }}</div></div>
+                            <span style="font-size:10px;border-radius:999px;padding:2px 7px;background:{{ lr.stateBg }};color:{{ lr.stateFg }};white-space:nowrap">{{ lr.stateLabel }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <div style="flex:0 0 auto;padding:12px 16px;border-top:1px solid #EEF2F8;display:flex;justify-content:flex-end"><div onClick="{{ campaignGoalDetailClose }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:7px 16px;cursor:pointer">关闭</div></div>
+                </div>
+              </div>
+            </sc-if>
             <div style="margin-top:18px">
               <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:10px;padding:0 2px;flex-wrap:wrap">
                 <div style="flex:1;min-width:220px"><div style="font-size:16px;font-weight:600;color:#1D2638">红人目标达成</div><div style="font-size:12px;color:#8792A5;margin-top:3px">按签约时为每位红人单独设置的内容、播放与 GMV 目标统计，不做 Campaign 均分</div></div>

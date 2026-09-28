@@ -435,6 +435,7 @@ class Component extends DCLogic {
     apCampaignExpandedKey: '',
     campaignResubmitId: '',
     campaignAiSummaryOpen: false,
+    campaignGoalDetailKind: '',
     campaignStrategyVersions: [],
     campaignStrategySelected: {},
     campaignStrategyApplied: {},
@@ -7200,6 +7201,158 @@ class Component extends DCLogic {
         sortKey: goalDef ? compositePct : 999
       };
     }).sort((a, b) => a.sortKey - b.sortKey);
+    const campaignWindowTarget = (cd.goals || []).find(g => g.label === '时间目标');
+    const campaignGoalLinkRows = (() => {
+      const skuAssets = facts.assets.filter(a => a.sku === cd.sku);
+      const pendingDeliveries = this.PENDING_DELIVERY.filter(p => p.product === cd.product);
+      const pieceTargets = (handle) => {
+        const goalDef = creatorGoalDefaults[handle] || {};
+        const contentN = Math.max(1, Number(goalDef.content) || 1);
+        return {
+          views: goalDef.views ? Math.round(goalMetricNumber(goalDef.views) / contentN) : 80000,
+          viewsLabel: goalDef.views ? goalMetricCompact(Math.round(goalMetricNumber(goalDef.views) / contentN)) : '80K',
+          gmv: goalDef.gmv ? Math.round(Number(goalDef.gmv) / contentN) : 0,
+          content: 1
+        };
+      };
+      const rows = [];
+      skuAssets.forEach((a, index) => {
+        const pt = pieceTargets(a.handle);
+        const viewsN = goalMetricNumber(a.views);
+        const gmvN = Number(a.gmv) || 0;
+        const spendN = Number(a.spend) || 0;
+        const due = a.due || '';
+        const post = a.post || a.delivered || '';
+        const late = due && post && String(post) > String(due);
+        const viewsPct = pt.views ? Math.min(100, Math.round(viewsN / pt.views * 100)) : 0;
+        rows.push({
+          key: 'asset-' + index + '-' + (a.url || a.title),
+          handle: a.handle,
+          title: a.title || '未命名素材',
+          url: a.url || '',
+          hasUrl: !!a.url,
+          noUrl: !a.url,
+          channel: a.channel || '—',
+          contentActual: '1 条',
+          contentTarget: '1 条',
+          viewsActual: a.views || '0',
+          viewsTarget: pt.viewsLabel,
+          viewsPct,
+          gmvActual: goalMoney(gmvN),
+          gmvTarget: pt.gmv ? goalMoney(pt.gmv) : '—',
+          spendText: spendN ? goalMoney(spendN) : '—',
+          timeActual: post ? String(post).slice(0, 10) : '—',
+          timeTarget: due || '—',
+          timeTag: late ? '逾期' : (post ? '已发布' : '待发布'),
+          timeTagBg: late ? '#FBE3E3' : (post ? '#E4EFE4' : '#F5F8FE'),
+          timeTagFg: late ? '#C4636D' : (post ? '#4E7156' : '#647187'),
+          stateLabel: '已发布',
+          stateBg: '#E4EFE4',
+          stateFg: '#4E7156',
+          openUrl: (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            if (a.url) window.open(a.url, '_blank', 'noopener,noreferrer');
+          }
+        });
+      });
+      pendingDeliveries.forEach((p, index) => {
+        const pt = pieceTargets(p.handle);
+        const overdue = Number(p.overdue) > 0;
+        rows.push({
+          key: 'pending-' + index + '-' + p.handle,
+          handle: p.handle,
+          title: '待交付内容 · ' + (p.product || cd.product),
+          url: '',
+          hasUrl: false,
+          noUrl: true,
+          channel: '—',
+          contentActual: '0 条',
+          contentTarget: '1 条',
+          viewsActual: '0',
+          viewsTarget: pt.viewsLabel,
+          viewsPct: 0,
+          gmvActual: goalMoney(0),
+          gmvTarget: pt.gmv ? goalMoney(pt.gmv) : '—',
+          spendText: '—',
+          timeActual: '—',
+          timeTarget: p.due || '—',
+          timeTag: overdue ? '已逾期 ' + p.overdue + ' 天' : '待交付',
+          timeTagBg: overdue ? '#FBE3E3' : '#FBEEDA',
+          timeTagFg: overdue ? '#C4636D' : '#A5762C',
+          stateLabel: '待交付',
+          stateBg: '#FBEEDA',
+          stateFg: '#A5762C',
+          openUrl: () => {}
+        });
+      });
+      campaignGoalCreatorRows.forEach(cr => {
+        const goalDef = creatorGoalDefaults[cr.handle];
+        if (!goalDef) return;
+        const targetN = Number(goalDef.content) || 0;
+        const publishedN = skuAssets.filter(a => a.handle === cr.handle).length;
+        const pendingN = pendingDeliveries.filter(p => p.handle === cr.handle).length;
+        let placeholders = Math.max(0, targetN - publishedN - pendingN);
+        const pt = pieceTargets(cr.handle);
+        while (placeholders > 0) {
+          rows.push({
+            key: 'slot-' + cr.handle + '-' + placeholders,
+            handle: cr.handle,
+            title: '计划内容 #' + (targetN - placeholders + 1),
+            url: '',
+            hasUrl: false,
+            channel: '待定',
+            contentActual: '0 条',
+            contentTarget: '1 条',
+            viewsActual: '0',
+            viewsTarget: pt.viewsLabel,
+            viewsPct: 0,
+            gmvActual: goalMoney(0),
+            gmvTarget: pt.gmv ? goalMoney(pt.gmv) : '—',
+            spendText: '—',
+            timeActual: '—',
+            timeTarget: '按 Campaign 排期',
+            timeTag: '未排期',
+            timeTagBg: '#F5F8FE',
+            timeTagFg: '#8792A5',
+            stateLabel: '计划中',
+            stateBg: '#EEF2F8',
+            stateFg: '#647187',
+            openUrl: () => {}
+          });
+          placeholders -= 1;
+        }
+      });
+      return rows.sort((a, b) => {
+        const rank = (s) => (s === '已发布' ? 0 : (s === '待交付' ? 1 : 2));
+        return rank(a.stateLabel) - rank(b.stateLabel) || String(a.handle).localeCompare(String(b.handle));
+      });
+    })();
+    const campaignGoalCardKindMap = { '内容数量': 'content', '播放量': 'views', '预算目标': 'budget', '时间目标': 'time' };
+    const campaignGoalCards = (cd.goals || []).map(g => {
+      const kind = campaignGoalCardKindMap[g.label] || '';
+      return {
+        ...g,
+        cardHint: kind ? '全红人汇总 · 点击查看每条链接/视频' : '',
+        cardCursor: kind ? 'pointer' : 'default',
+        openDetail: (e) => {
+          if (e && e.stopPropagation) e.stopPropagation();
+          if (kind) this.setState({ campaignGoalDetailKind: kind });
+        }
+      };
+    });
+    const campaignGoalDetailKind = s.campaignGoalDetailKind || '';
+    const campaignGoalDetailTitles = {
+      content: '内容数量 · 链接/视频明细',
+      views: '播放量 · 链接/视频明细',
+      budget: '预算 · 链接/视频花费明细',
+      time: '时间目标 · 链接/视频排期明细'
+    };
+    const campaignGoalDetailHints = {
+      content: '汇总所有红人已发布与待交付内容，每条对应 1 个链接或计划条目。',
+      views: '每条素材的累计播放与签约时拆分到单条的播放目标。',
+      budget: '每条已发布素材关联的固定费/投放花费（待交付暂无花费）。',
+      time: 'Campaign 窗口目标「' + (campaignWindowTarget ? campaignWindowTarget.target : cd.window) + '」；下列为每条内容的应交付与实际发布时间。'
+    };
     const campaignGoalCreatorLagCount = campaignGoalCreatorRows.filter(r => r.compositePct !== null && r.compositePct < 60).length;
     const campaignGoalCompositePct = (() => {
       const track = (cd.goals || []).filter(g => ['内容数量', '播放量', '预算目标', '时间目标'].indexOf(g.label) >= 0 && Number(g.pct) >= 0);
@@ -10514,6 +10667,16 @@ class Component extends DCLogic {
       campaignGoalCreatorEmpty: campaignGoalCreatorRows.length === 0,
       campaignGoalCreatorHasRows: campaignGoalCreatorRows.length > 0,
       campaignGoalCreatorCount: campaignGoalCreatorRows.length + ' 位红人',
+      campaignGoalCards,
+      campaignGoalDetailOpen: !!campaignGoalDetailKind,
+      campaignGoalDetailTitle: campaignGoalDetailTitles[campaignGoalDetailKind] || '目标明细',
+      campaignGoalDetailHint: campaignGoalDetailHints[campaignGoalDetailKind] || '',
+      campaignGoalDetailRows: campaignGoalLinkRows,
+      campaignGoalDetailCount: campaignGoalLinkRows.length + ' 条',
+      campaignGoalDetailEmpty: campaignGoalLinkRows.length === 0,
+      campaignGoalDetailHasRows: campaignGoalLinkRows.length > 0,
+      campaignGoalDetailClose: () => this.setState({ campaignGoalDetailKind: '' }),
+      campaignGoalDetailKeep: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
       campaignStrategySummary: cd.sku === 'NUV-SP-07'
         ? '该 Campaign 当前应继续停留在合规验证阶段。第三方检测与 claim 证据未补齐前，不建议开启红人外联或安排内容排期。'
         : cd.product + ' 当前以「' + cd.objective + '」为核心目标，预算已使用 ' + cd.spent + ' / ' + cd.budget + '。建议优先放大高完播的场景化内容，同时补足尚未覆盖的人群与渠道。',
