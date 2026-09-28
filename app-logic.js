@@ -7285,46 +7285,8 @@ class Component extends DCLogic {
           openUrl: () => {}
         });
       });
-      campaignGoalCreatorRows.forEach(cr => {
-        const goalDef = creatorGoalDefaults[cr.handle];
-        if (!goalDef) return;
-        const targetN = Number(goalDef.content) || 0;
-        const publishedN = skuAssets.filter(a => a.handle === cr.handle).length;
-        const pendingN = pendingDeliveries.filter(p => p.handle === cr.handle).length;
-        let placeholders = Math.max(0, targetN - publishedN - pendingN);
-        const pt = pieceTargets(cr.handle);
-        while (placeholders > 0) {
-          rows.push({
-            key: 'slot-' + cr.handle + '-' + placeholders,
-            handle: cr.handle,
-            title: '计划内容 #' + (targetN - placeholders + 1),
-            url: '',
-            hasUrl: false,
-            noUrl: true,
-            channel: '待定',
-            contentActual: '0 条',
-            contentTarget: '1 条',
-            viewsActual: '0',
-            viewsTarget: pt.viewsLabel,
-            viewsPct: 0,
-            gmvActual: goalMoney(0),
-            gmvTarget: pt.gmv ? goalMoney(pt.gmv) : '—',
-            spendText: '—',
-            timeActual: '—',
-            timeTarget: '按 Campaign 排期',
-            timeTag: '未排期',
-            timeTagBg: '#F5F8FE',
-            timeTagFg: '#8792A5',
-            stateLabel: '计划中',
-            stateBg: '#EEF2F8',
-            stateFg: '#647187',
-            openUrl: () => {}
-          });
-          placeholders -= 1;
-        }
-      });
       return rows.sort((a, b) => {
-        const rank = (s) => (s === '已发布' ? 0 : (s === '待交付' ? 1 : 2));
+        const rank = (s) => (s === '已发布' ? 0 : 1);
         return rank(a.stateLabel) - rank(b.stateLabel) || String(a.handle).localeCompare(String(b.handle));
       });
     })();
@@ -7348,7 +7310,7 @@ class Component extends DCLogic {
       time: '时间目标 · 链接/视频排期明细'
     };
     const campaignGoalDetailHints = {
-      content: '汇总所有红人已发布与待交付内容，每条对应 1 个链接或计划条目。',
+      content: '汇总所有红人已发布与待交付内容，每条对应 1 个链接或视频。',
       views: '每条素材的累计播放与签约时拆分到单条的播放目标。',
       budget: '每条已发布素材关联的固定费/投放花费（待交付暂无花费）。',
       time: 'Campaign 窗口目标「' + (campaignWindowTarget ? campaignWindowTarget.target : cd.window) + '」；下列为每条内容的应交付与实际发布时间。'
