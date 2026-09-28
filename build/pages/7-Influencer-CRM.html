@@ -485,7 +485,15 @@
                     </div>
                     <div onClick="{{ c.toggleInfo }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.infoBd }};background:{{ c.infoBg }};color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ c.infoLabel }}</div>
                     <div onClick="{{ c.toggleCrm }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.crmBd }};background:{{ c.crmBg }};color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ c.crmLabel }}</div>
-                    <div onClick="{{ c.toggleQuality }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.qualityBd }};background:{{ c.qualityBg }};color:{{ c.qualityFg }};border-radius:999px;padding:6px 13px;cursor:{{ c.qualityCursor }};white-space:nowrap" style-hover="border-color:#CFE3D3">{{ c.qualityLabel }}</div>
+                    <sc-if value="{{ c.qualityMarkUser }}" hint-placeholder-val="{{ false }}">
+                      <div onClick="{{ c.toggleQuality }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.qualityBd }};background:{{ c.qualityBg }};color:{{ c.qualityFg }};border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;min-width:4.6em;text-align:center" style-hover="border-color:#CFE3D3">移出优质</div>
+                    </sc-if>
+                    <sc-if value="{{ c.qualityMarkSeed }}" hint-placeholder-val="{{ false }}">
+                      <div style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.qualityBd }};background:{{ c.qualityBg }};color:{{ c.qualityFg }};border-radius:999px;padding:6px 13px;cursor:default;white-space:nowrap;min-width:4.6em;text-align:center">已入优质</div>
+                    </sc-if>
+                    <sc-if value="{{ c.qualityMarkNone }}" hint-placeholder-val="{{ false }}">
+                      <div onClick="{{ c.toggleQuality }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.qualityBd }};background:{{ c.qualityBg }};color:{{ c.qualityFg }};border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;min-width:4.6em;text-align:center" style-hover="border-color:#CFE3D3">标为优质</div>
+                    </sc-if>
                     <div onClick="{{ c.markBlack }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C4636D;color:#C4636D">拉黑</div>
                     <div onClick="{{ c.removeCoop }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C4636D;color:#C4636D">移出合作</div>
                   </div>
@@ -1772,7 +1780,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js"></script>
+<script src="../app-logic.js?v=21"></script>
 <div class="crm-bulk-overlay" id="crmSampleOverlay">
   <div class="crm-bulk-modal" role="dialog" aria-modal="true" aria-labelledby="crmSampleTitle">
     <div class="crm-bulk-modal-head"><strong id="crmSampleTitle">批量寄样</strong><button id="crmSampleClose" type="button" aria-label="关闭">×</button></div>

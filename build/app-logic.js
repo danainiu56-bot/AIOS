@@ -12495,7 +12495,9 @@ class Component extends DCLogic {
                 { label: '累计 GMV', value: '—', color: '#A2ABBA' },
                 { label: '综合 ROAS', value: '—', color: '#A2ABBA' }
               ],
-          qualityLabel: qualityUser ? '取消优质' : (qualitySeed ? '✓ 优质红人' : '标为优质'),
+          qualityMarkUser: !!qualityUser,
+          qualityMarkSeed: !!qualitySeed && !qualityUser,
+          qualityMarkNone: !qualitySeed && !qualityUser,
           qualityBg: isQuality ? '#E4EFE4' : '#FFFFFF',
           qualityFg: isQuality ? '#4E7156' : '#647187',
           qualityBd: isQuality ? '#CFE3D3' : '#E2E8F2',
