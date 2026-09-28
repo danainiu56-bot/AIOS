@@ -490,7 +490,13 @@ class Component extends DCLogic {
     ctmNew: { deal: '付费合作', name: '', nameZh: '', ver: 'v1', seed: '', lang: 'en', en: '', zh: '', error: '' },
     reportTab: 'campaign',
     showVersions: false,
-    coopList: ['@mia.selfcare', '@kaylascalp', '@leo.calmnight', '@june.rests'],
+    coopList: ['@sofia.homelab', '@nora.pm', '@dailywithlin', '@hairbyandre'],
+    coopTagModal: '',
+    coopTagModalHandle: '',
+    coopTagModalReason: '',
+    coopTagReasonError: '',
+    coopTagReasons: {},
+    qualityRemoved: [],
     coopQuery: '',
     coopActionType: '',
     coopActionHandle: '',
@@ -1772,6 +1778,11 @@ class Component extends DCLogic {
       });
       const order = { '待审批': 0, '已驳回': 1, '已通过': 2 };
       return tagItems.concat(coopDealItems).concat(campItems).concat(strItems).concat(others).concat(payItems).concat(briefItems).sort((a, b) => (order[a.status] - order[b.status]));
+    })();
+    const AP_APPROVAL_TYPE_CHIPS = ['全部类型', 'Campaign', 'Strategy', 'Brief', '红人合作'];
+    const apTypeFilter = (() => {
+      const raw = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型');
+      return AP_APPROVAL_TYPE_CHIPS.includes(raw) ? raw : '全部类型';
     })();
     const apPendingCount = apPool.filter(x => x.status === '待审批').length;
     const apPendingKinds = Object.keys(apPool.filter(x => x.status === '待审批').reduce((m, x) => { m[x.type] = 1; return m; }, {})).length;
@@ -4225,7 +4236,8 @@ class Component extends DCLogic {
     ];
     const crBlacklist = crBlackDefs.map(x => ({ ...x, kind: '黑名单' })).concat(crDropDefs).concat((s.blackAdded || []).map(h => {
       const d2 = creatorDefs.find(x => x.handle === h) || {};
-      return { handle: h, initial: (h.slice(1, 2) || '?').toUpperCase(), platform: d2.platform || 'TIKTOK', niche: d2.niche || '—', nation: d2.nation || '—', market: d2.market || '—', followers: d2.followers || '—', gender: d2.gender || '—', age: d2.age || '—', job: d2.job || '—', avgViews: d2.avgViews || '—', er30: d2.er30 || '—', quote: d2.quote || '—', fit: d2.fit || 40, kind: '黑名单', reasonTag: '素材表现不佳', detail: '在 Asset Library 中被标记为拉黑，后续不进入候选与 AI 推荐。', date: '2026-08-30', by: '陈曦' };
+      const tagReason = ((s.coopTagReasons || {})[h] || {}).black || '';
+      return { handle: h, initial: (h.slice(1, 2) || '?').toUpperCase(), platform: d2.platform || 'TIKTOK', niche: d2.niche || '—', nation: d2.nation || '—', market: d2.market || '—', followers: d2.followers || '—', gender: d2.gender || '—', age: d2.age || '—', job: d2.job || '—', avgViews: d2.avgViews || '—', er30: d2.er30 || '—', quote: d2.quote || '—', fit: d2.fit || 40, kind: '黑名单', reasonTag: tagReason ? tagReason.slice(0, 16) : '合作标记', detail: tagReason || '在合作红人 List 中标记拉黑，后续不进入候选与 AI 推荐。', date: '2026-08-30', by: '陈曦' };
     })).filter(b => (s.blackRestored || []).indexOf(b.handle) < 0).map(b => {
       const bare = b.handle.slice(1);
       const url = { TIKTOK: 'https://www.tiktok.com/' + b.handle, INSTAGRAM: 'https://www.instagram.com/' + bare, YOUTUBE: 'https://www.youtube.com/' + b.handle };
@@ -4323,7 +4335,9 @@ class Component extends DCLogic {
         ]
       }
     };
-    const qualityBase = Object.keys(crQualityDefs).concat((s.qualityAdded || []).filter(h => !crQualityDefs[h]));
+    const qualityRemovedList = s.qualityRemoved || [];
+    const qualityBase = Object.keys(crQualityDefs).filter(h => !qualityRemovedList.includes(h))
+      .concat((s.qualityAdded || []).filter(h => !crQualityDefs[h] && !qualityRemovedList.includes(h)));
     const crQuality = qualityBase.map(h => {
       const c = creatorDefs.find(x => x.handle === h);
       if (!c) return null;
@@ -4343,12 +4357,21 @@ class Component extends DCLogic {
             goal, fromTag: true
           };
         }).filter(Boolean);
-      const q = crQualityDefs[h] || { grade: 'A 级 · 由素材标记', roas: approvedAssets.length ? (approvedAssets[0].roas || '—') : '—', products: [], assets: [] };
+      const qReason = ((s.coopTagReasons || {})[h] || {}).quality || '';
+      const fromCoopMark = (s.qualityAdded || []).includes(h) && !crQualityDefs[h];
+      const q = crQualityDefs[h] || {
+        grade: fromCoopMark ? 'A 级 · 合作标记优质' : 'A 级 · 由素材标记',
+        roas: approvedAssets.length ? (approvedAssets[0].roas || '—') : '—',
+        products: fromCoopMark ? [{ name: '—', meta: '由合作红人 List 标记 · ' + (qReason || '待补充依据') }] : [],
+        assets: []
+      };
       const qAssetsAll = (q.assets || []).concat(approvedAssets);
       const qFit = crAiScore(c);
       const [qsBg, qsFg] = crStatusMap[c.status] || ['#F5F8FE', '#647187'];
       return {
         handle: c.handle, initial: c.initial, avatar: creatorAvatarMap[c.handle] || '../avatars/mia.jpg', platform: c.platform, grade: q.grade, roas: q.roas,
+        qualityReason: qReason,
+        hasQualityReason: !!qReason,
         niche: c.niche, fit: qFit, fitColor: this.scoreColor(qFit),
         status: c.status, statusBg: qsBg, statusFg: qsFg,
         links: crLinksOf(c),
@@ -4385,7 +4408,25 @@ class Component extends DCLogic {
           goalNote: a.goal >= 100 ? '超出目标 ' + (a.goal - 100) + ' 个百分点' : '距目标 ' + (100 - a.goal) + ' 个百分点',
           open: () => this.setState({ page: 'assets' })
         })),
-        assetCount: 0
+        assetCount: 0,
+        removeQuality: (e) => {
+          if (e && e.stopPropagation) e.stopPropagation();
+          this.setState({
+            coopTagModal: 'quality-off',
+            coopTagModalHandle: c.handle,
+            coopTagModalReason: '',
+            coopTagReasonError: ''
+          });
+        },
+        markBlack: (e) => {
+          if (e && e.stopPropagation) e.stopPropagation();
+          this.setState({
+            coopTagModal: 'black',
+            coopTagModalHandle: c.handle,
+            coopTagModalReason: '',
+            coopTagReasonError: ''
+          });
+        }
       };
     }).filter(Boolean).map(q2 => ({ ...q2, assetCount: q2.assets.length, hasAssets: q2.assets.length > 0, noAssets: q2.assets.length === 0 }))
       .filter(q2 => q2.assets.length > 0 || (s.qualityAdded || []).indexOf(q2.handle) >= 0);
@@ -5005,10 +5046,12 @@ class Component extends DCLogic {
         return true;
       }).sort((a, b) => (a.replied === b.replied ? b.hours - a.hours : (a.replied ? 1 : -1)));
     })();
+    const creatorInQualityPool = (h) => !(s.qualityRemoved || []).includes(h) && !!(crQualityDefs[h] || (s.qualityAdded || []).includes(h));
+    const coopHandlesForList = (s.coopList || []).filter(h => !creatorInQualityPool(h) && !(s.blackAdded || []).includes(h));
     const crTab = s.crTab || 'lib';
     const crTabs = [
       { id: 'lib', label: '红人库', note: creatorDefs.length + ' 位红人 · 多维筛选' },
-      { id: 'coop', label: '合作红人 List', note: (s.coopList || []).length + ' 位已加入合作' },
+      { id: 'coop', label: '合作红人 List', note: coopHandlesForList.length + ' 位履约中 · 不含已入优质/黑名单' },
       { id: 'quality', label: '合格/优质红人', note: crQuality.length + ' 位 · 历史素材 ≥ 60 · 审批加入不设门槛' },
       { id: 'black', label: '淘汰 / 黑名单', note: crBlacklist.filter(b => b.kind === '淘汰').length + ' 位淘汰 · ' + crBlacklist.filter(b => b.kind === '黑名单').length + ' 位黑名单' },
       { id: 'lookalike', label: '相似度扩量', note: '按合格/优质红人画像推荐候选' }
@@ -9099,21 +9142,16 @@ class Component extends DCLogic {
       apEmpty: (() => {
         const tab = s.apTab || 'pending';
         const wantStatus = tab === 'pending' ? '待审批' : (tab === 'approved' ? '已通过' : '已驳回');
-        const wantType = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型');
-        return apPool.filter(x => x.status === wantStatus && (wantType === '全部类型' || x.type === wantType)).length === 0;
+        return apPool.filter(x => x.status === wantStatus && (apTypeFilter === '全部类型' || x.type === apTypeFilter)).length === 0;
       })(),
-      apTypes: (() => {
-        const cur = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型');
-        return ['全部类型', 'Campaign', 'Strategy', 'Brief', '红人合作', '寄样', '素材入库', '付款', '合同变更'].map(t => {
-          const on = cur === t;
-          return { label: t, pick: () => this.setState({ apType: t }), bg: on ? '#2457F5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#647187', bd: on ? '#2457F5' : '#E2E8F2' };
-        });
-      })(),
+      apTypes: AP_APPROVAL_TYPE_CHIPS.map(t => {
+        const on = apTypeFilter === t;
+        return { label: t, pick: () => this.setState({ apType: t }), bg: on ? '#2457F5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#647187', bd: on ? '#2457F5' : '#E2E8F2' };
+      }),
       apRows: (() => {
         const tab = s.apTab || 'pending';
-        const wantType = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型');
         const wantStatus = tab === 'pending' ? '待审批' : (tab === 'approved' ? '已通过' : '已驳回');
-        const list = apPool.filter(x => x.status === wantStatus && (wantType === '全部类型' || x.type === wantType));
+        const list = apPool.filter(x => x.status === wantStatus && (apTypeFilter === '全部类型' || x.type === apTypeFilter));
         const expandedKey = s.apCampaignExpandedKey || '';
         return list.map((b, i) => {
           const detailOpen = expandedKey === b.key && (b.isCampaign || b.isStrategy || b.isBrief || b.isCoopDeal);
@@ -9376,7 +9414,7 @@ class Component extends DCLogic {
           };
         });
       })(),
-      apEmptyNote: (() => { const t = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型'); return t === '全部类型' ? '该分组下暂无记录。' : '「' + t + '」类型下暂无该状态的记录。'; })(),
+      apEmptyNote: (() => { const t = apTypeFilter; return t === '全部类型' ? '该分组下暂无记录。' : '「' + t + '」类型下暂无该状态的记录。'; })(),
       promoQueue, promoCount, promoEmpty, strategyTitle, strategyMeta, budgetTotalText,
       swQueueNote: (s.promoted || []).length > 0
         ? '产品库已勾选「推广」的 ' + (s.promoted || []).length + ' 个产品已排在最前，每个产品的输入与章节状态独立保存'
@@ -12080,8 +12118,8 @@ class Component extends DCLogic {
       }),
       coopWaitTabs: [['all', '全部'], ['pending', '待回复'], ['warn', '超 24h'], ['stale', '超 48h']].map(([k, label]) => {
         const on = (s.coopWait || 'all') === k;
-        const n = k === 'all' ? (s.coopList || []).length
-          : (s.coopList || []).filter(h => {
+        const n = k === 'all' ? coopHandlesForList.length
+          : coopHandlesForList.filter(h => {
               const mine = facts.replies.filter(x => x.handle === h);
               if (!mine.length) return false;
               const w = Math.max.apply(null, mine.map(x => x.hours));
@@ -12092,7 +12130,7 @@ class Component extends DCLogic {
           bg: on ? '#2457F5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#647187', bd: on ? '#2457F5' : '#E2E8F2'
         };
       }),
-      coopCreators: (s.coopList || []).filter(h => {
+      coopCreators: coopHandlesForList.filter(h => {
         const k = s.coopWait || 'all';
         if (k === 'all') return true;
         const mine = facts.replies.filter(x => x.handle === h);
@@ -12199,8 +12237,12 @@ class Component extends DCLogic {
           };
         })();
         const crmOpen = s.crmOpen === h;
+        const qualityUser = (s.qualityAdded || []).includes(h);
+        const qualitySeed = !!crQualityDefs[h];
+        const isQuality = qualityUser || qualitySeed;
         return {
           ...row, idx: i + 1,
+          isQuality,
           infoOpen: s.crInfoOpen === h,
           infoLabel: s.crInfoOpen === h ? '收起联系方式' : '联系方式',
           infoBg: s.crInfoOpen === h ? '#F8FAFE' : '#FFFFFF',
@@ -12453,6 +12495,31 @@ class Component extends DCLogic {
                 { label: '累计 GMV', value: '—', color: '#A2ABBA' },
                 { label: '综合 ROAS', value: '—', color: '#A2ABBA' }
               ],
+          qualityLabel: qualityUser ? '取消优质' : (qualitySeed ? '✓ 优质红人' : '标为优质'),
+          qualityBg: isQuality ? '#E4EFE4' : '#FFFFFF',
+          qualityFg: isQuality ? '#4E7156' : '#647187',
+          qualityBd: isQuality ? '#CFE3D3' : '#E2E8F2',
+          qualityCursor: qualitySeed && !qualityUser ? 'default' : 'pointer',
+          toggleQuality: (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            if (qualitySeed && !qualityUser) return;
+            const on = (s.qualityAdded || []).includes(h);
+            this.setState({
+              coopTagModal: on ? 'quality-off' : 'quality-on',
+              coopTagModalHandle: h,
+              coopTagModalReason: '',
+              coopTagReasonError: ''
+            });
+          },
+          markBlack: (e) => {
+            if (e && e.stopPropagation) e.stopPropagation();
+            this.setState({
+              coopTagModal: 'black',
+              coopTagModalHandle: h,
+              coopTagModalReason: '',
+              coopTagReasonError: ''
+            });
+          },
           removeCoop: (e) => {
             if (e && e.stopPropagation) e.stopPropagation();
             this.setState(st => {
@@ -12466,16 +12533,111 @@ class Component extends DCLogic {
           }
         };
       }).filter(Boolean),
-      coopEmpty: (s.coopList || []).length === 0,
+      coopEmpty: coopHandlesForList.length === 0,
       coopNote: (() => {
-        const waits = (s.coopList || []).map(h => {
+        const waits = coopHandlesForList.map(h => {
           const mine = facts.replies.filter(x => x.handle === h);
           return mine.length ? Math.max.apply(null, mine.map(x => x.hours)) : 0;
         });
         const w24 = waits.filter(x => x >= 24).length, w48 = waits.filter(x => x >= 48).length;
-        return '已加入合作的红人 · ' + (s.coopList || []).length + ' 位'
-          + (w48 ? ' · ' + w48 + ' 位已超 48 小时未回复' : (w24 ? ' · ' + w24 + ' 位超 24 小时未回复' : ' · 邮件均在 24 小时内'));
+        return '合作履约中 · ' + coopHandlesForList.length + ' 位（已标优质或拉黑的不在此列表）'
+          + (w48 ? ' · ' + w48 + ' 位已超 48 小时未回复' : (w24 ? ' · ' + w24 + ' 位超 24 小时未回复' : (coopHandlesForList.length ? ' · 邮件均在 24 小时内' : '')));
       })(),
+      coopTagModalOpen: !!s.coopTagModal,
+      coopTagModalHandle: s.coopTagModalHandle || '',
+      coopTagModalTitle: ({ 'quality-on': '标为优质红人', 'quality-off': '移出优质红人', black: '加入黑名单' })[s.coopTagModal] || '',
+      coopTagModalHint: ({ 'quality-on': '填写纳入优质池的依据（如 ROAS、交付、内容质量）。', 'quality-off': '填写移出优质池的原因，便于团队追溯；确认后回到合作红人 List（若仍在合作中）。', black: '填写拉黑原因；确认后移入黑名单，不再出现在合作与优质 List。' })[s.coopTagModal] || '',
+      coopTagModalReasonPh: ({ 'quality-on': '例：Q3 两条素材 ROAS 3.8x，交付准时', 'quality-off': '例：本轮表现回落，暂移出优质池', black: '例：多次逾期交付 / 受众不符 / 报价过高' })[s.coopTagModal] || '请填写理由',
+      coopTagModalReason: s.coopTagModalReason || '',
+      coopTagReasonError: s.coopTagReasonError || '',
+      coopTagReasonHasError: !!s.coopTagReasonError,
+      coopTagConfirmReady: !!String(s.coopTagModalReason || '').trim(),
+      coopTagConfirmBg: String(s.coopTagModalReason || '').trim() ? '#2457F5' : '#DDE5F1',
+      coopTagConfirmFg: String(s.coopTagModalReason || '').trim() ? '#FFFFFF' : '#A2ABBA',
+      coopTagConfirmCursor: String(s.coopTagModalReason || '').trim() ? 'pointer' : 'not-allowed',
+      coopTagModalKeep: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
+      coopTagModalClose: () => this.setState({ coopTagModal: '', coopTagModalHandle: '', coopTagModalReason: '', coopTagReasonError: '' }),
+      coopTagReasonSet: (e) => this.setState({ coopTagModalReason: e.target.value, coopTagReasonError: '' }),
+      coopTagConfirm: () => {
+        const action = s.coopTagModal;
+        const h = s.coopTagModalHandle;
+        const reason = String(s.coopTagModalReason || '').trim();
+        if (!action || !h) return;
+        if (!reason) return this.setState({ coopTagReasonError: '请填写理由后再确认' });
+        const bareH = h.slice(1);
+        const prevR = (s.coopTagReasons || {})[h] || {};
+        const nextReasons = { ...(s.coopTagReasons || {}), [h]: { ...prevR } };
+        if (action === 'black') {
+          nextReasons[h] = { ...nextReasons[h], black: reason };
+          this.setState(st => {
+            const mine = (st.coopAdded || []).includes(bareH);
+            const wasQuality = !!(crQualityDefs[h] || (st.qualityAdded || []).includes(h)) && !(st.qualityRemoved || []).includes(h);
+            const qRemoved = (st.qualityRemoved || []).includes(h) ? (st.qualityRemoved || []) : [...(st.qualityRemoved || []), h];
+            return {
+              coopTagReasons: nextReasons,
+              blackAdded: (st.blackAdded || []).includes(h) ? st.blackAdded : [...(st.blackAdded || []), h],
+              coopList: (st.coopList || []).filter(x => x !== h),
+              qualityAdded: (st.qualityAdded || []).filter(x => x !== h),
+              qualityRemoved: wasQuality ? qRemoved : (st.qualityRemoved || []),
+              shortlist: mine ? st.shortlist.filter(x => x !== bareH) : st.shortlist,
+              coopAdded: (st.coopAdded || []).filter(x => x !== bareH),
+              alTags: { ...(st.alTags || {}), [h]: '淘汰/拉黑' },
+              crTab: 'black',
+              coopTagModal: '', coopTagModalHandle: '', coopTagModalReason: '', coopTagReasonError: '',
+              notifLog: [{
+                kind: 'tag',
+                title: '已加入黑名单 · ' + h,
+                note: reason,
+                when: '刚刚'
+              }, ...(st.notifLog || [])]
+            };
+          });
+          return;
+        }
+        if (action === 'quality-on') {
+          nextReasons[h] = { ...nextReasons[h], quality: reason };
+          this.setState(st => ({
+            coopTagReasons: nextReasons,
+            qualityAdded: (st.qualityAdded || []).includes(h) ? st.qualityAdded : [...(st.qualityAdded || []), h],
+            coopList: (st.coopList || []).filter(x => x !== h),
+            blackAdded: (st.blackAdded || []).filter(x => x !== h),
+            alTags: { ...(st.alTags || {}), [h]: '合格/优质红人' },
+            crTab: 'quality',
+            coopTagModal: '', coopTagModalHandle: '', coopTagModalReason: '', coopTagReasonError: '',
+            notifLog: [{
+              kind: 'tag',
+              title: '已标为优质红人 · ' + h,
+              note: reason,
+              when: '刚刚'
+            }, ...(st.notifLog || [])]
+          }));
+          return;
+        }
+        if (action === 'quality-off') {
+          nextReasons[h] = { ...nextReasons[h], qualityOff: reason };
+          this.setState(st => {
+            const isSeed = !!crQualityDefs[h];
+            const qRemoved = isSeed && !(st.qualityRemoved || []).includes(h)
+              ? [...(st.qualityRemoved || []), h] : (st.qualityRemoved || []);
+            const backCoop = !(st.blackAdded || []).includes(h);
+            return {
+              coopTagReasons: nextReasons,
+              qualityAdded: (st.qualityAdded || []).filter(x => x !== h),
+              qualityRemoved: qRemoved,
+              coopList: backCoop && !(st.coopList || []).includes(h) ? [...(st.coopList || []), h] : (st.coopList || []),
+              alTags: { ...(st.alTags || {}), [h]: '继续合作' },
+              crTab: 'coop',
+              coopTagModal: '', coopTagModalHandle: '', coopTagModalReason: '', coopTagReasonError: '',
+              notifLog: [{
+                kind: 'tag',
+                title: '已移出优质 · ' + h,
+                note: reason,
+                when: '刚刚'
+              }, ...(st.notifLog || [])]
+            };
+          });
+        }
+      },
       crFilters, clearCrFilter: () => this.setState({ crFilter: {}, crOpen: null }),
       crLibNote: '筛选后 ' + creators.length + ' / ' + creatorDefs.length + ' 位红人 · 均播与 ER 取近 30 天',
       crHeadNote: creatorDefs.length + ' 位红人 · ' + s.shortlist.length + ' 位在 shortlist · 按 FIT 打分降序',

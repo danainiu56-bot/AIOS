@@ -427,6 +427,7 @@
                           <span style="font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">{{ c.handle }}</span>
                           <span style="font-size:11px;border:1px solid #E2E8F2;border-radius:999px;padding:1px 7px;color:#647187;white-space:nowrap">{{ c.platform }}</span>
                           <span style="font-size:11px;border-radius:999px;padding:1px 8px;background:{{ c.statusBg }};color:{{ c.statusFg }};white-space:nowrap">{{ c.status }}</span>
+                          <sc-if value="{{ c.isQuality }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;border-radius:999px;padding:1px 8px;background:#E4EFE4;color:#4E7156;white-space:nowrap">优质</span></sc-if>
                           <span style="font-size:12px;color:#8792A5;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.niche }}</span>
                         </div>
                         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">
@@ -484,6 +485,8 @@
                     </div>
                     <div onClick="{{ c.toggleInfo }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.infoBd }};background:{{ c.infoBg }};color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ c.infoLabel }}</div>
                     <div onClick="{{ c.toggleCrm }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.crmBd }};background:{{ c.crmBg }};color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">{{ c.crmLabel }}</div>
+                    <div onClick="{{ c.toggleQuality }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid {{ c.qualityBd }};background:{{ c.qualityBg }};color:{{ c.qualityFg }};border-radius:999px;padding:6px 13px;cursor:{{ c.qualityCursor }};white-space:nowrap" style-hover="border-color:#CFE3D3">{{ c.qualityLabel }}</div>
+                    <div onClick="{{ c.markBlack }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C4636D;color:#C4636D">拉黑</div>
                     <div onClick="{{ c.removeCoop }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C4636D;color:#C4636D">移出合作</div>
                   </div>
 
@@ -950,6 +953,11 @@
                       </div>
                     </div>
                   </div>
+                  <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:11px 16px;border-top:1px solid #EDF1F7;background:#F8FAFE;border-radius:0 0 17px 17px">
+                    <div style="flex:1;min-width:0"></div>
+                    <div onClick="{{ q.removeQuality }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">移出优质</div>
+                    <div onClick="{{ q.markBlack }}" style="flex:0 0 auto;font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C4636D;color:#C4636D">拉黑</div>
+                  </div>
                 </div>
               </sc-for>
             </div>
@@ -1034,6 +1042,26 @@
                   </sc-if>
                 </div>
               </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ coopTagModalOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ coopTagModalClose }}" style="position:fixed;inset:0;z-index:185;background:rgba(29,38,56,.32);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px">
+              <div onClick="{{ coopTagModalKeep }}" style="width:min(440px,100%);background:#FFFFFF;border:1px solid #D9E1EF;border-radius:16px;box-shadow:0 20px 48px rgba(29,38,56,.18);padding:18px 18px 16px">
+                <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:16px;font-weight:600;color:#1D2638">{{ coopTagModalTitle }}</div>
+                    <div style="font-size:12px;color:#647187;margin-top:4px;line-height:1.55;text-wrap:pretty">{{ coopTagModalHint }}</div>
+                    <div style="font-size:12px;color:#8792A5;margin-top:6px">{{ coopTagModalHandle }}</div>
+                  </div>
+                  <div onClick="{{ coopTagModalClose }}" style="font-size:20px;line-height:1;color:#8792A5;cursor:pointer;padding:0 2px">×</div>
+                </div>
+                <textarea value="{{ coopTagModalReason }}" onChange="{{ coopTagReasonSet }}" rows="4" placeholder="{{ coopTagModalReasonPh }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;line-height:1.6;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:12px;padding:10px 12px;outline:none;resize:vertical;min-height:96px"></textarea>
+                <sc-if value="{{ coopTagReasonHasError }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#C4636D;margin-top:8px">{{ coopTagReasonError }}</div></sc-if>
+                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+                  <div onClick="{{ coopTagModalClose }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 14px;cursor:pointer">取消</div>
+                  <div onClick="{{ coopTagConfirm }}" style="font-size:12.5px;border:1px solid {{ coopTagConfirmBg }};background:{{ coopTagConfirmBg }};color:{{ coopTagConfirmFg }};border-radius:999px;padding:7px 16px;cursor:{{ coopTagConfirmCursor }}">确认</div>
+                </div>
+              </div>
             </div>
           </sc-if>
           </div>
