@@ -7300,6 +7300,7 @@ class Component extends DCLogic {
             title: '计划内容 #' + (targetN - placeholders + 1),
             url: '',
             hasUrl: false,
+            noUrl: true,
             channel: '待定',
             contentActual: '0 条',
             contentTarget: '1 条',
@@ -7332,7 +7333,6 @@ class Component extends DCLogic {
       const kind = campaignGoalCardKindMap[g.label] || '';
       return {
         ...g,
-        cardHint: kind ? '全红人汇总 · 点击查看每条链接/视频' : '',
         cardCursor: kind ? 'pointer' : 'default',
         openDetail: (e) => {
           if (e && e.stopPropagation) e.stopPropagation();
