@@ -73,7 +73,7 @@ const SETTINGS_MODULES = [
   ['dash', 'Dashboard'], ['tasks', 'My Tasks'], ['products', 'Products'], ['campaigns', 'Campaigns'],
   ['strategy', 'Strategy Studio'], ['brief', 'Brief Studio'], ['creators', 'Influencer CRM'],
   ['samples', 'Sample Mgt'], ['assets', 'Asset Library'], ['finance', 'Budget Mgt'],
-  ['reports', 'Reports'], ['contracts', 'Contract Mgt'], ['prompts', '提示词管理'], ['settings', 'Settings']
+  ['reports', 'Reports'], ['contracts', 'Contract Mgt'], ['prompts', 'Prompt Mgt'], ['settings', 'Settings']
 ];
 const SETTINGS_BRANDS = ['Ryze', 'Aura', 'Lumo', 'Nuvia', 'Verre', 'Pace'];
 /** 待生成队列 UI 示例（无 library 记录时始终展示，便于调页面） */
@@ -1950,7 +1950,7 @@ class Component extends DCLogic {
       ['brief', '04', 'Brief Studio', facts.pendingApprovals.length ? String(facts.pendingApprovals.length) : ''], ['creators', '05', 'Influencer CRM', ''], ['samples', '05', 'Sample Mgt', ''],
       ['assets', '07', 'Asset Library', ''],
       ['finance', '09', 'Budget Mgt', facts.invPending ? String(facts.invPending) : ''],
-      ['reports', '10', 'Reports', ''], ['contracts', '11', 'Contract Mgt', ''], ['prompts', '14', '提示词管理', ''], ['settings', '12', 'Settings', '']
+      ['reports', '10', 'Reports', ''], ['contracts', '11', 'Contract Mgt', ''], ['prompts', '14', 'Prompt Mgt', ''], ['settings', '12', 'Settings', '']
     ];
     const rootOf = { productDetail: 'products', campaignDetail: 'campaigns', newCampaign: 'campaigns', creatorProfile: 'creators', contact: 'creators', assetDetail: 'assets', samples: 'samples', contracts: 'contracts', finance: 'finance' };
     const activeRoot = rootOf[page] || page;
