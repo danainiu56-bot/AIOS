@@ -1,3 +1,71 @@
+// Shared local contract registry used by Asset Library and Contract Mgt.
+// A quality label never grants usage rights; only an explicitly linked signed contract does.
+window.AIOSAssetContracts = (() => {
+  const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (_) { return fallback; } };
+  const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+  const campaign = value => String(value || '').trim().replace(/^(Ryze|Lumo|Aura|Nuvia)\s*·\s*/, '').toLowerCase();
+  const handle = value => String(value || '').trim().replace(/^@/, '').toLowerCase();
+  const key = a => JSON.stringify([campaign(a.campaign), a.sku, handle(a.handle), String(a.url || a.title).trim()]);
+  // Existing records have no verified usage scope. Never invent rights from their cooperation type.
+  const seed = [
+    ['CTR-2026-008','@mia.selfcare','Q3 北美种草','RYZ-SC-01','2026-08-20','2027-02-19','active'],
+    ['CTR-2026-007','@kaylascalp','Q3 北美种草','RYZ-SC-01','2026-08-16','2027-02-15','active'],
+    ['CTR-2026-006','@leo.calmnight','Q3 北美种草','RYZ-SC-01','2026-06-12','','expiring'],
+    ['CTR-2026-009','@nora.pm','秋季家居氛围','LUM-AR-02','','','pending'],
+    ['CTR-2026-005','@june.rests','Q3 北美种草','RYZ-SC-01','2026-07-28','2027-01-27','active'],
+    ['CTR-2026-004','@hairbyandre','春季焕新','LUM-AR-02','2026-04-08','2026-08-07','ended'],
+    ['CTR-2026-003','@dailywithlin','Q3 北美种草','RYZ-SC-01','2026-07-19','2027-01-18','active']
+  ].map(([id,creator,campaign,sku,signedDate,expiryDate,status]) => ({id,creator,campaign,sku,signedDate,expiryDate,status}));
+  const records = () => [...seed, ...read('aios.signedAssetContracts', [])];
+  const matches = (c,a) => handle(c.creator) === handle(a.handle) && c.sku === a.sku && campaign(c.campaign) === campaign(a.campaign) && (!c.assetKey || c.assetKey === key(a));
+  const today = () => { const d=new Date(); return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'); };
+  const status = c => {
+    if (!c) return '未关联合同';
+    const review = read('aios.approvals', {})['contract-' + c.id];
+    if (review?.status === '已驳回' || c.status === 'rejected') return '合同已驳回';
+    if (c.status === 'pending' && review?.status !== '已通过') return '合同待审核';
+    if (!c.signedDate || !c.signedConfirmed) return '待确认签署与条款';
+    if (!['ad','social'].includes(c.rightsType) || !c.rightsScope) return '授权条款待确认';
+    if (!c.fileStored) return '待补签署文件';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(c.expiryDate || '') || c.expiryDate < c.signedDate) return '授权期限待确认';
+    if (c.expiryDate < today() || c.status === 'ended') return '授权已过期';
+    if (c.signedDate > today()) return '授权未生效';
+    return '已授权';
+  };
+  const authorization = a => {
+    const id = read('aios.assetContractLinks', {})[key(a)];
+    const contract = records().find(c=>c.id === id && matches(c,a));
+    const label = id && !contract ? '合同不匹配' : status(contract);
+    return {contract, label, valid: label === '已授权'};
+  };
+  const link = (a,id) => {
+    if (id) { const c=records().find(c=>c.id===id); if (!c || !matches(c,a) || status(c)!=='已授权') throw new Error('请选择匹配且已签署生效的授权合同'); }
+    const links=read('aios.assetContractLinks', {});
+    if(id) links[key(a)]=id; else delete links[key(a)];
+    write('aios.assetContractLinks',links);
+  };
+  const db = () => new Promise((resolve,reject) => {
+    const request=indexedDB.open('aios-contract-files',1);
+    request.onupgradeneeded=()=>request.result.createObjectStore('files');
+    request.onsuccess=()=>resolve(request.result); request.onerror=()=>reject(request.error);
+  });
+  const file = async (id, value) => {
+    const database=await db();
+    return new Promise((resolve,reject)=>{
+      const transaction=database.transaction('files',value ? 'readwrite':'readonly');
+      const store=transaction.objectStore('files');
+      const request=value ? store.put(value,id) : store.get(id);
+      transaction.oncomplete=()=>{database.close();resolve(request.result);};
+      transaction.onerror=transaction.onabort=()=>{database.close();reject(transaction.error);};
+    });
+  };
+  const save = async (record, blob) => {
+    await file(record.id,blob);
+    write('aios.signedAssetContracts',[...read('aios.signedAssetContracts',[]),{...record,fileStored:true}]);
+  };
+  return {read,write,key,records,matches,status,authorization,link,file,save,today};
+})();
+
 (() => {
 const defineAiosComponent = () => {
 const SAGE = '#6E8F74', BLUE = '#2457F5', RUST = '#C4636D';
@@ -5,7 +73,7 @@ const SETTINGS_MODULES = [
   ['dash', 'Dashboard'], ['tasks', 'My Tasks'], ['products', 'Products'], ['campaigns', 'Campaigns'],
   ['strategy', 'Strategy Studio'], ['brief', 'Brief Studio'], ['creators', 'Influencer CRM'],
   ['samples', 'Sample Mgt'], ['assets', 'Asset Library'], ['finance', 'Budget Mgt'],
-  ['reports', 'Reports'], ['contracts', 'Contract Mgt'], ['settings', 'Settings']
+  ['reports', 'Reports'], ['contracts', 'Contract Mgt'], ['prompts', '提示词管理'], ['settings', 'Settings']
 ];
 const SETTINGS_BRANDS = ['Ryze', 'Aura', 'Lumo', 'Nuvia', 'Verre', 'Pace'];
 /** 待生成队列 UI 示例（无 library 记录时始终展示，便于调页面） */
@@ -82,6 +150,14 @@ class Component extends DCLogic {
   get accent() { return this.props.accent ?? '#2457F5'; }
 
   componentDidMount() {
+    this._assetRulesRefresh = () => this.setState({ assetRulesRevision: Date.now() });
+    window.addEventListener('focus', this._assetRulesRefresh);
+    window.addEventListener('storage', this._assetRulesRefresh);
+    const refreshAtMidnight = () => {
+      const next = new Date(); next.setHours(24,0,0,20);
+      this._assetExpiryTimer = setTimeout(() => { this._assetRulesRefresh(); refreshAtMidnight(); }, next - new Date());
+    };
+    refreshAtMidnight();
     this._ddHandler = () => {
       const keys = ['crOpen', 'alFilterOpen', 'alTagOpen', 'vaultOpen', 'vaultMenu', 'stVaultMenu', 'swVersionMenu', 'swSaveAsOpen', 'campaignStrategyMenu', 'campaignEmailContractMenuOpen', 'tkMailFilterOpen', 'contactProdOpen', 'sampleProdOpen', 'briefPickOpen', 'ncSkuOpen', 'ncGoalOpen', 'mailProdOpen', 'assetTagOpen', 'swSelOpen', 'smpFilterOpen', 'rangeOpen', 'funnelRangeOpen', 'subjScoreOpen', 'bodyScoreOpen', 'notifOpen', 'bkTagOpen', 'smOpen', 'smBulkProdOpen', 'smBulkCarrierOpen', 'arFilterOpen', 'smpRangeOpen', 'expRangeOpen', 'alRightsOpen', 'aqFilterOpen', 'assetEntryCampaignOpen'];
       const st = this.state, patch = {};
@@ -121,6 +197,7 @@ class Component extends DCLogic {
         try { localStorage.removeItem('aios.smpStage'); } catch (_) {}
       }
     } catch (_) {}
+    this.setState(st => ({ shipOrders: (st.shipOrders || []).map(o => o.shipmentId ? o : { ...o, shipmentId: this._newShipId() }) }));
     this.setState(st => {
       if (st.creatorAddresses && Object.keys(st.creatorAddresses).length) return {};
       return { creatorAddresses: this._seedCreatorAddresses(st.shipOrders || []) };
@@ -261,6 +338,9 @@ class Component extends DCLogic {
 
   componentDidUpdate() {
     try {
+      localStorage.setItem('aios.medicalCreatorsRemoved', JSON.stringify(this.state.medicalCreatorsRemoved || []));
+      localStorage.setItem('aios.medicalCreators', JSON.stringify(this.state.medicalCreators || []));
+      localStorage.setItem('aios.alEntries', JSON.stringify(this.state.alEntries || []));
       localStorage.setItem('aios.promotedProducts', JSON.stringify(this.state.promoted || []));
       localStorage.setItem('aios.campaignStrategyVersions', JSON.stringify(this.state.campaignStrategyVersions || []));
       localStorage.setItem('aios.campaignBriefVersions', JSON.stringify((this.state.briefVersions || []).filter(x => x.mode === 'segment' || x.mode === 'creator' || x.mode === 'style' || x.origin === 'brief-studio-generated')));
@@ -276,6 +356,7 @@ class Component extends DCLogic {
       localStorage.setItem('aios.campaignCoopDeals', JSON.stringify(this.state.campaignCoopDeals || {}));
       localStorage.setItem('aios.approvals', JSON.stringify(this.state.approvals || {}));
       localStorage.setItem('aios.newCampaigns', JSON.stringify(this.state.newCampaigns || []));
+      localStorage.setItem('aios.coopPaymentReceipts', JSON.stringify(this.state.coopPaymentReceipts || {}));
       localStorage.setItem('aios.settingsOrg', JSON.stringify({
         navHidden: this.state.settingsNavHidden || [],
         navOrder: this.state.settingsNavOrder || [],
@@ -295,11 +376,17 @@ class Component extends DCLogic {
   }
 
   componentWillUnmount() {
+    clearTimeout(this._assetExpiryTimer);
+    window.removeEventListener('focus', this._assetRulesRefresh);
+    window.removeEventListener('storage', this._assetRulesRefresh);
     if (this._ddHandler) document.removeEventListener('click', this._ddHandler);
     if (this._promotedStorageHandler) window.removeEventListener('storage', this._promotedStorageHandler);
     if (this._productDrawerKeyHandler) document.removeEventListener('keydown', this._productDrawerKeyHandler);
   }
   state = {
+    alEntries: (() => {
+      try { const entries = JSON.parse(localStorage.getItem('aios.alEntries') || '[]'); return Array.isArray(entries) ? entries : []; } catch (_) { return []; }
+    })(),
     page: (() => {
       const p = new URLSearchParams(window.location.search);
       if (window.AIOS_PAGE === 'campaigns' && p.get('view') === 'campaignDetail') return 'campaignDetail';
@@ -497,12 +584,26 @@ class Component extends DCLogic {
     coopTagReasonError: '',
     coopTagReasons: {},
     qualityRemoved: [],
+    medicalCreatorsRemoved: (() => {
+      try { const saved = JSON.parse(localStorage.getItem('aios.medicalCreatorsRemoved') || '[]'); return Array.isArray(saved) ? saved : []; } catch (_) { return []; }
+    })(),
+    medicalCreators: (() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aios.medicalCreators') || '[]');
+        return Array.isArray(saved) ? saved.filter(h => typeof h === 'string') : [];
+      } catch (_) { return []; }
+    })(),
     coopQuery: '',
     coopActionType: '',
     coopActionHandle: '',
     coopContractFiles: {},
     coopBriefFiles: {},
     coopPostLinks: {},
+    coopPaymentReceipts: (() => {
+      try { return JSON.parse(localStorage.getItem('aios.coopPaymentReceipts') || '{}') || {}; }
+      catch (_) { return {}; }
+    })(),
+    coopPaymentDraft: null,
     coopPostChannel: 'TikTok',
     coopPostUrl: '',
     coopActionNotice: '',
@@ -714,6 +815,7 @@ class Component extends DCLogic {
   };
 
   // 归一化寄样单构造：CRM 与 Sample Mgt 三处创建路径共用，确保字段/tracking 规则一致
+  _newShipId = () => 'SHP-' + crypto.randomUUID();
   _makeShipOrder = (input) => {
     const raw = String(input.handle || '');
     const handle = raw.charAt(0) === '@' ? raw : '@' + raw;
@@ -722,6 +824,7 @@ class Component extends DCLogic {
     const extra = String((input.addr && (input.addr.line1 || input.addr.city)) || '') + String(input.date || '') + String(input.replyIdx || 0);
     const trkHash = Math.abs((handle.length * 7351 + qty * 17 + productStr.length * 131 + extra.length * 97 + (Date.now() % 10000)) % 899999);
     return {
+      shipmentId: input.shipmentId || this._newShipId(),
       handle, replyIdx: input.replyIdx !== undefined ? input.replyIdx : -1,
       product: productStr, sku: input.sku || '', campaign: input.campaign || '',
       qty, date: input.date || '08/20',
@@ -989,23 +1092,83 @@ class Component extends DCLogic {
     YouTube: 'https://cdn.simpleicons.org/youtube/FF0000'
   })[channel] || 'https://cdn.simpleicons.org/linktree/647187';
 
+  assetTypesOf = (fm) => [
+    ...(fm.isUnqualified ? ['不合格素材'] : (fm.isQualified ? ['合格素材'] : []))
+  ];
+
+  assetMetricPeriods = [
+    { id: 'p', label: '刚发布' },
+    { id: 'w', label: '发布一周' },
+    { id: 'm', label: '发布一个月' }
+  ];
+
+  assetMetricsError = (fm) => {
+    let filled = false;
+    for (const period of this.assetMetricPeriods) {
+      const valueOf = (key) => String(fm[period.id + '_' + key] ?? '').trim();
+      if (!['views', 'cpv', 'gmv', 'er'].some(key => valueOf(key))) continue;
+      filled = true;
+      for (const [key, label] of [['views', 'Views'], ['cpv', 'CPV'], ['gmv', '红人 GMV']]) {
+        const value = valueOf(key);
+        if (!value && key === 'gmv') continue;
+        if (!value) return period.label + '：请填写' + label;
+        const pattern = key === 'views' ? /^(?:\d+(?:\.\d+)?|\.\d+)[KM]?$/i : /^(?:\d+(?:\.\d+)?|\.\d+)$/;
+        if (!pattern.test(value) || !Number.isFinite(key === 'views' ? this.toNumU(value) : Number(value))) return period.label + '：请填写有效的' + label + '（非负数）';
+      }
+      const er = valueOf('er');
+      if (er && (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(er) || Number(er) > 100)) return period.label + '：请填写有效的 ER %（0–100），也可留空';
+    }
+    return filled ? '' : '请至少填写一个时间段的 Views 和 CPV';
+  };
+
+  latestAssetMetrics = (entry) => {
+    const period = [...this.assetMetricPeriods].reverse().find(p => String(entry[p.id + '_views'] ?? '').trim() !== '');
+    if (!period) return { views: entry.views ?? '0', er: entry.er ?? '', cpv: entry.cpv, gmv: entry.gmv, label: '' };
+    return {
+      views: entry[period.id + '_views'], er: entry[period.id + '_er'] ?? '',
+      cpv: entry[period.id + '_cpv'] ?? entry.cpv,
+      gmv: entry[period.id + '_gmv'] ?? entry.gmv, label: period.label
+    };
+  };
+
+  assetQuality = (asset) => {
+    const marks = window.AIOSAssetContracts.read('aios.assetQualityMarks', {});
+    const mark = marks[window.AIOSAssetContracts.key(asset)];
+    if (mark) return mark.value;
+    const approved = this.tagStateOf('asset', asset.handle, asset.title).approved;
+    if (approved === '合格素材') return '合格素材';
+    if (['不合格素材', '淘汰素材'].includes(approved)) return '不合格素材';
+    if (asset.types?.includes('不合格素材')) return '不合格素材';
+    return asset.types?.includes('合格素材') ? '合格素材' : '未打标';
+  };
+  isQualifiedAsset = a => this.assetQuality(a) === '合格素材';
+  isUnqualifiedAsset = a => this.assetQuality(a) === '不合格素材';
+  markAssetQuality = (asset, value) => {
+    try {
+      const store = window.AIOSAssetContracts;
+      store.write('aios.assetQualityMarks', { ...store.read('aios.assetQualityMarks', {}), [store.key(asset)]: { value, at: new Date().toISOString() } });
+      this.setState({ assetTagOpen: null, assetRuleNotice: '「' + asset.title + '」' + (value === '未打标' ? '已清除质量标记' : '已标记为' + value) });
+    } catch (_) { this.setState({ assetRuleNotice: '保存失败，未更改标记。请检查浏览器存储空间后重试。' }); }
+  };
+
   entryToAsset = (e) => {
     const fmtV = (n) => n >= 1000000 ? (n / 1000000).toFixed(2) + 'M' : (n >= 1000 ? Math.round(n / 1000) + 'K' : String(n));
-    const rawV = e.m_views || e.w_views || e.views || '0';
+    const latest = this.latestAssetMetrics(e);
+    const rawV = latest.views;
     const vNum = this.toNumU(rawV);
-    const rawEr = e.m_er || e.w_er || e.er || '0';
-    const erTxt = String(rawEr).indexOf('%') >= 0 ? String(rawEr) : (parseFloat(rawEr) || 0) + '%';
-    const rights = !e.isRights ? 'pending' : (/广告/.test(e.rightsType || '') ? 'ad' : (e.rightsType ? 'social' : 'pending'));
+    const rawEr = latest.er;
+    const erTxt = String(rawEr).trim() === '' ? '—' : (String(rawEr).includes('%') ? String(rawEr) : (parseFloat(rawEr) || 0) + '%');
+    const rights = 'pending';
     return {
       handle: e.handle || '未填写', title: e.title || '未命名素材',
       product: e.product || '手工录入', sku: e.sku || '待补充',
       channel: e.channel || (/youtube/i.test(e.url || '') ? 'YouTube' : (/instagram/i.test(e.url || '') ? 'Instagram' : 'TikTok')),
       post: e.post || '2026-08-20', url: e.url || '#',
       views: fmtV(vNum), er: erTxt, spend: Number(e.spend) || 0,
-      gmv: Number(e.gmv) || 0, orders: Number(e.m_conv) || Number(e.w_conv) || 0,
+      gmv: Number(latest.gmv) || 0, reportedCpv: latest.cpv, metricPeriod: latest.label, orders: Number(e.m_conv) || Number(e.w_conv) || 0,
       due: e.post || '2026-08-20', delivered: e.post || '2026-08-20',
-      rights, isRights: !!e.isRights,
-      campaign: e.campaign || '手工录入', sub: (e.campaign || '手工录入') + ' · 首周 ' + (e.w_views || '—') + ' / 最新 ' + (e.m_views || '—'),
+      rights, isRights: !!e.isRights, types: Array.isArray(e.types) ? [...e.types] : undefined,
+      campaign: e.campaign || '手工录入', sub: (e.campaign || '手工录入') + ' · ' + this.assetMetricPeriods.map(p => p.label + ' ' + (e[p.id + '_views'] ?? '—')).join(' / '),
       brand: e.brand || '手工录入', owner: e.owner || '陈曦',
       rightsType: e.rightsType, rightsMonths: e.rightsMonths, rightsScope: e.rightsScope, contract: e.contract
     };
@@ -1109,19 +1272,11 @@ class Component extends DCLogic {
     return { pending: false, approved: null, rejected: true, tag: sub.tag };
   };
 
-  assetTagOf = (a, pass) => {
-    const stt = this.tagStateOf('asset', a.handle, a.title);
-    if (stt.pending) return { tag: stt.tag + ' · 待审核', bg: '#FBEEDA', fg: '#A5762C', note: '已提交推广 leader 审核，通过后才会进入对应分类' };
-    if (stt.rejected) return { tag: stt.tag + ' · 已驳回', bg: '#F7EDEE', fg: '#C4636D', note: '打标申请已被驳回，可修改后重新提交' };
-    if (stt.approved) {
-      const ok = { '合格素材': { bg: '#FBEEDA', fg: '#A5762C', note: '已审核通过，计入合格素材清单' }, '授权素材': { bg: '#E4EEF7', fg: '#1D48D8', note: '已审核通过，计入授权素材清单' }, '淘汰素材': { bg: '#F7EDEE', fg: '#C4636D', note: '已审核通过，不进入复用池' } }[stt.approved];
-      if (ok) return { tag: stt.approved, bg: ok.bg, fg: ok.fg, note: ok.note };
-    }
-    const rights = a.rights === 'ad' || a.rights === 'social';
-    if (rights && pass) return { tag: '授权 · 合格', bg: '#E4EFE4', fg: '#4E7156', note: '已获授权且 ER 达标，可直接复用与投放' };
-    if (rights) return { tag: '授权素材', bg: '#E4EEF7', fg: '#1D48D8', note: '已获授权，但 ER 未达合格线' };
-    if (pass) return { tag: '合格素材', bg: '#FBEEDA', fg: '#A5762C', note: 'ER 达标计入合格数，授权待补' };
-    return { tag: '淘汰素材', bg: '#F7EDEE', fg: '#C4636D', note: '既未达合格线也无授权，不进入复用池' };
+  assetTagOf = (a) => {
+    const tag = this.assetQuality(a);
+    return { tag, bg: tag === '合格素材' ? '#E4EFE4' : tag === '不合格素材' ? '#F7EDEE' : '#F5F8FE',
+      fg: tag === '合格素材' ? '#4E7156' : tag === '不合格素材' ? '#C4636D' : '#8792A5',
+      note: tag === '未打标' ? '手动标记后进入对应分类，表现数据不自动决定分类' : '已手动标记；授权状态由关联合同独立确定' };
   };
 
   toNumU = (v) => { const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n * (/M/i.test(String(v)) ? 1000000 : (/K/i.test(String(v)) ? 1000 : 1)); };
@@ -1129,12 +1284,12 @@ class Component extends DCLogic {
   deriveFacts() {
     const s = this.state;
     const num = this.toNumU;
-    const assets = this.ASSET_SEED.concat((s.alEntries || []).map(this.entryToAsset));
+    const assets = this.ASSET_SEED.concat((s.alEntries || []).map(this.entryToAsset)).map(a => { const auth = window.AIOSAssetContracts.authorization(a); return { ...a, rights: auth.valid ? auth.contract.rightsType : 'pending' }; });
     const views = assets.reduce((t, a) => t + num(a.views), 0);
     const spend = assets.reduce((t, a) => t + a.spend, 0);
     const gmv = assets.reduce((t, a) => t + a.gmv, 0);
     const orders = assets.reduce((t, a) => t + (a.orders || 0), 0);
-    const qualified = assets.filter(a => parseFloat(a.er) >= 5).length;
+    const qualified = assets.filter(this.isQualifiedAsset).length;
     const adReady = assets.filter(a => a.rights === 'ad').length;
     const pendingRights = assets.filter(a => a.rights === 'pending').length;
     const cpv = views ? spend / views : 0;
@@ -1193,6 +1348,7 @@ class Component extends DCLogic {
       finance: '10-Budget-Mgt.html',
       reports: '11-Reports.html',
       contracts: '12-Contract-Mgt.html',
+      prompts: '15-Prompt-Mgt.html',
       settings: '13-Settings.html'
     };
     const target = routes[page];
@@ -1645,7 +1801,7 @@ class Component extends DCLogic {
     const AP_TYPE_STYLE = {
       'Campaign': ['#E4EEF7', '#1D48D8'], 'Strategy': ['#EEF2FF', '#3F5FCC'],
       'Brief': ['#F1F5FF', '#1D48D8'], '红人合作': ['#E4EFE4', '#4E7156'], '寄样': ['#FBEEDA', '#A5762C'],
-      '素材入库': ['#F5F8FE', '#647187'], '付款': ['#F7EDEE', '#C4636D'], '合同变更': ['#EAF0F4', '#365581']
+      '素材入库': ['#F5F8FE', '#647187'], '付款': ['#F7EDEE', '#C4636D'], '合同审核': ['#EAF0F4', '#365581']
     };
     const apSeedDefs = [
       { id: 'inf-1', type: '红人合作', title: '@sofia.homelab 合作条件申请批准', meta: '付费合作 $850（高于均值 31%）· Lumo 便携香氛机 · 提交人 苏敏', page: 'creators', view: '查看红人' },
@@ -1653,7 +1809,8 @@ class Component extends DCLogic {
       { id: 'smp-1', type: '寄样', title: '批量寄样申请 · 6 位红人 / 8 件', meta: 'Ryze 头皮按摩仪 × 8 · 物流预估 $186 · 提交人 林浩', page: 'samples', view: '查看寄样' },
       { id: 'ast-1', type: '素材入库', title: '@june.rests 前后对比 申请入库为合格素材', meta: 'ER 13.8% · 字幕含「见效」需重剪 · 提交人 林浩', page: 'assets', view: '查看素材' },
       { id: 'ast-2', type: '素材入库', title: '@leo.calmnight 一周实测 申请入库', meta: 'Views 214K · 授权待补 · 提交人 陈曦 · 提交 2026-08-15', page: 'assets', view: '查看素材', preset: '已通过', comment: '数据达标，入库为合格素材；授权走单独流程。' },
-      { id: 'ctr-1', type: '合同变更', title: '@hairbyandre 素材二次授权补充协议', meta: '新增白名单投放 3 个月 · 追加买断 $240 · 提交人 苏敏', page: 'contracts', view: '查看合同' }
+      { id: 'contract-CTR-2026-009', type: '合同审核', title: 'CTR-2026-009 · @nora.pm 产品置换合同', meta: '秋季家居氛围 · Lumo 便携香氛机 · 样品价值 USD 129 · 提交人 林浩', page: 'contracts', view: '查看合同', contractId: 'CTR-2026-009', viewGo: () => { window.location.href = './12-Contract-Mgt.html?record=CTR-2026-009'; } },
+      { id: 'ctr-1', type: '合同审核', title: '@hairbyandre 素材二次授权补充协议', meta: '新增白名单投放 3 个月 · 追加买断 $240 · 提交人 苏敏', page: 'contracts', view: '查看合同' }
     ];
     const apPool = (() => {
       const decided = s.approvals || {};
@@ -1683,7 +1840,7 @@ class Component extends DCLogic {
           comment: decided[d.id] ? decided[d.id].comment : (d.preset ? d.comment : ''),
           by: decided[d.id] ? decided[d.id].by : (d.preset ? 'Helen · Marketing Lead' : ''),
           title: d.title, meta: d.meta, typeBg: sty[0], typeFg: sty[1],
-          viewLabel: d.view, goState: { page: d.page },
+          viewLabel: d.view, goState: { page: d.page }, viewGo: d.viewGo,
           notifName: d.type + ' · ' + d.title
         };
       });
@@ -1779,7 +1936,7 @@ class Component extends DCLogic {
       const order = { '待审批': 0, '已驳回': 1, '已通过': 2 };
       return tagItems.concat(coopDealItems).concat(campItems).concat(strItems).concat(others).concat(payItems).concat(briefItems).sort((a, b) => (order[a.status] - order[b.status]));
     })();
-    const AP_APPROVAL_TYPE_CHIPS = ['全部类型', 'Campaign', 'Strategy', 'Brief', '红人合作'];
+    const AP_APPROVAL_TYPE_CHIPS = ['全部类型', 'Campaign', 'Strategy', 'Brief', '红人合作', '合同审核'];
     const apTypeFilter = (() => {
       const raw = s.apType === '选品' ? '全部类型' : (s.apType || '全部类型');
       return AP_APPROVAL_TYPE_CHIPS.includes(raw) ? raw : '全部类型';
@@ -1793,7 +1950,7 @@ class Component extends DCLogic {
       ['brief', '04', 'Brief Studio', facts.pendingApprovals.length ? String(facts.pendingApprovals.length) : ''], ['creators', '05', 'Influencer CRM', ''], ['samples', '05', 'Sample Mgt', ''],
       ['assets', '07', 'Asset Library', ''],
       ['finance', '09', 'Budget Mgt', facts.invPending ? String(facts.invPending) : ''],
-      ['reports', '10', 'Reports', ''], ['contracts', '11', 'Contract Mgt', ''], ['settings', '12', 'Settings', '']
+      ['reports', '10', 'Reports', ''], ['contracts', '11', 'Contract Mgt', ''], ['prompts', '14', '提示词管理', ''], ['settings', '12', 'Settings', '']
     ];
     const rootOf = { productDetail: 'products', campaignDetail: 'campaigns', newCampaign: 'campaigns', creatorProfile: 'creators', contact: 'creators', assetDetail: 'assets', samples: 'samples', contracts: 'contracts', finance: 'finance' };
     const activeRoot = rootOf[page] || page;
@@ -1801,6 +1958,7 @@ class Component extends DCLogic {
     const navIdList = navDefs.map((d) => d[0]);
     const rawNavOrder = Array.isArray(s.settingsNavOrder) && s.settingsNavOrder.length ? s.settingsNavOrder : navIdList;
     const navOrder = rawNavOrder.filter((id) => navIdList.indexOf(id) >= 0).concat(navIdList.filter((id) => rawNavOrder.indexOf(id) < 0));
+    if (!rawNavOrder.includes('prompts')) { navOrder.splice(navOrder.indexOf('prompts'), 1); navOrder.splice(Math.max(0, navOrder.indexOf('settings')), 0, 'prompts'); }
     const navHidden = new Set(s.settingsNavHidden || []);
     const navLabels = s.settingsNavLabels || {};
     const nav = navOrder.filter((id) => id === 'settings' || id === activeRoot || !navHidden.has(id)).map((id) => {
@@ -2247,7 +2405,7 @@ class Component extends DCLogic {
       const rV = inRange.reduce((t2, a) => t2 + num(a.views), 0);
       const rG = inRange.reduce((t2, a) => t2 + a.gmv, 0);
       const rS = inRange.reduce((t2, a) => t2 + a.spend, 0);
-      const rQ = inRange.filter(a => parseFloat(a.er) >= 5).length;
+      const rQ = inRange.filter(this.isQualifiedAsset).length;
       const rA = inRange.filter(a => a.rights === 'ad').length;
       const rC = rV ? rS / rV : 0;
       const scale = total / 92;
@@ -4043,6 +4201,7 @@ class Component extends DCLogic {
     const freqOf = (h) => CR_FREQ[h] || '2.5 条 / 周';
 
     const creatorAvatarMap = {
+      '@demo.dr.emma': '../avatars/demo-medical-emma.svg', '@demo.dr.james': '../avatars/demo-medical-james.svg', '@demo.dr.sophie': '../avatars/demo-medical-sophie.svg',
       '@mia.selfcare': '../avatars/mia.jpg', '@kaylascalp': '../avatars/kayla.jpg', '@hairbyandre': '../avatars/andre.jpg',
       '@dailywithlin': '../avatars/lin.jpg', '@sofia.homelab': '../avatars/sofia.jpg', '@thegroomguide': '../avatars/groom.jpg',
       '@june.rests': '../avatars/june.jpg', '@leo.calmnight': '../avatars/leo.jpg', '@nora.pm': '../avatars/nora.jpg',
@@ -4058,6 +4217,9 @@ class Component extends DCLogic {
       '@thecalmedit': ['TikTok'], '@hairdays.co': ['YouTube', 'TikTok'], '@homewithtess': ['Instagram', 'TikTok']
     };
     const creatorDefs = [
+      { handle: '@demo.dr.emma', medical: true, isDemo: true, nation: '美国', market: 'US', tier: '10万-50万', gender: '女', age: '35-44', job: '皮肤科医生', avgViews: '76K', er30: '7.2%', initial: 'E', platform: 'TIKTOK', niche: '皮肤与头皮健康科普 · 示例', country: '美国', fit: 90, followers: '156K', er: '7.2%', quote: '$1,500', status: '待联系', reason: '虚构示例：以皮肤结构、头皮清洁和日常护理为内容方向，适合展示医疗类型红人卡片。', risk: '' },
+      { handle: '@demo.dr.james', medical: true, isDemo: true, nation: '英国', market: 'UK', tier: '1万-10万', gender: '男', age: '35-44', job: '全科医生', avgViews: '42K', er30: '5.8%', initial: 'J', platform: 'YOUTUBE', niche: '睡眠与生活方式科普 · 示例', country: '英国', fit: 84, followers: '92K', er: '5.8%', quote: '$1,100', status: '待联系', reason: '虚构示例：以睡眠习惯、日常健康和生活方式讲解为内容方向，采用长视频与问答形式。', risk: '' },
+      { handle: '@demo.dr.sophie', medical: true, isDemo: true, nation: '加拿大', market: 'US', tier: '1万-10万', gender: '女', age: '25-34', job: '康复科医生', avgViews: '31K', er30: '8.1%', initial: 'S', platform: 'INSTAGRAM', niche: '运动康复与放松科普 · 示例', country: '加拿大', fit: 86, followers: '64K', er: '8.1%', quote: '$850', status: '待联系', reason: '虚构示例：以日常姿势、运动恢复和放松习惯为内容方向，适合短视频及图文展示。', risk: '' },
       { handle: '@mia.selfcare', nation: '美国', market: 'US', tier: '10万-50万', gender: '女', age: '25-34', job: '全职创作者', avgViews: '128K', er30: '6.4%', initial: 'M', platform: 'TIKTOK', niche: '自我照护 / 夜间 routine', country: '美国', fit: 92, followers: '182K', er: '6.2%', quote: '$1,200', status: '长期合作', reason: '她的「夜间 routine」系列与我们的核心叙事完全同构，Q2 单条带来 4.1x ROAS。', risk: '' },
       { handle: '@kaylascalp', nation: '美国', market: 'US', tier: '1万-10万', gender: '女', age: '25-34', job: '美发从业者', avgViews: '34K', er30: '12.1%', initial: 'K', platform: 'TIKTOK', niche: '头皮护理 KOC', country: '美国', fit: 89, followers: '21K', er: '12.4%', quote: '寄样', status: '已合作', reason: '粉丝少但极垂，评论区常主动问链接；完播 58%，是本轮的性价比标杆。', risk: '' },
       { handle: '@hairbyandre', nation: '加拿大', market: 'US', tier: '1万-10万', gender: '男', age: '35-44', job: '执业发型师', avgViews: '19K', er30: '4.3%', initial: 'A', platform: 'INSTAGRAM', niche: '执业发型师', country: '加拿大', fit: 85, followers: '54K', er: '4.1%', quote: '$900', status: '沟通中', reason: '提供专业背书，能安全地解释头皮清洁而不触碰功效 claim。', risk: '' },
@@ -4374,7 +4536,7 @@ class Component extends DCLogic {
         hasQualityReason: !!qReason,
         niche: c.niche, fit: qFit, fitColor: this.scoreColor(qFit),
         status: c.status, statusBg: qsBg, statusFg: qsFg,
-        links: crLinksOf(c),
+        links: c.isDemo ? [] : crLinksOf(c),
         chips: [
           { label: '国籍', value: c.nation }, { label: '市场', value: c.market },
           { label: '粉丝', value: c.followers }, { label: '层级', value: this.tierOfFollowers(c.followers) }, { label: '性别', value: c.gender },
@@ -4882,6 +5044,7 @@ class Component extends DCLogic {
       const stageDefs = ['待揽收', '已揽收', '运输中', '已签收'];
       const statusOfStage = (n) => ['待揽收', '已揽收', '运输中', '已签收'][Math.max(0, Math.min(3, n))];
       const fromOrders = (s.shipOrders || []).map(o => ({
+        shipmentId: o.shipmentId, trackingBoundAt: o.trackingBoundAt,
         handle: o.handle, product: o.product.replace(/ × \d+$/, ''), qty: o.qty || 1, date: o.date, tracking: o.tracking, carrier: o.carrier, sku: o.sku || '',
         stage: this._orderStage(o),
         trackingBound: !!o.trackingBound,
@@ -4903,14 +5066,15 @@ class Component extends DCLogic {
         const addressOnlyLines = [[a.line1, a.line2].filter(Boolean).join(', '), [a.city, a.state, a.zip].filter(Boolean).join(' '), a.country, a.phone].filter(Boolean);
         const dparts = String(o.date || '').split('/');
         const created = dparts.length >= 2 ? new Date(2026, Number(dparts[0]) - 1, Number(dparts[1])) : null;
-        const daysOut = created ? Math.round((new Date(2026, 7, 20) - created) / 86400000) : 0;
+        const transitStart = o.trackingBoundAt ? new Date(o.trackingBoundAt) : created;
+        const daysOut = transitStart ? Math.max(0, Math.round(((o.trackingBoundAt ? new Date() : new Date(2026, 7, 20)) - transitStart) / 86400000)) : 0;
         const pending = this._isPendingShip(o);
         const skuRec = skuAll.find(p => p.sku === o.sku) || skuAll.find(p => p.name === o.product) || {};
         const email = this._shipEmail(o.handle);
         const bucket = pending ? '待寄样' : (status === '已签收' ? '已签收' : (daysOut > 7 ? '异常' : '在途'));
         return {
           idx: i + 1, handle: o.handle, product: o.product, qty: o.qty, status: pending ? '待寄样' : status,
-          pending, key,
+          pending, key, shipmentId: o.shipmentId,
           email,
           country: a.country || '—',
           region: a.state || '—',
@@ -5047,6 +5211,10 @@ class Component extends DCLogic {
       }).sort((a, b) => (a.replied === b.replied ? b.hours - a.hours : (a.replied ? 1 : -1)));
     })();
     const creatorInQualityPool = (h) => !(s.qualityRemoved || []).includes(h) && !!(crQualityDefs[h] || (s.qualityAdded || []).includes(h));
+    const creatorBadges = h => ({
+      isMedical: !(s.medicalCreatorsRemoved || []).includes(h) && ((s.medicalCreators || []).includes(h) || !!creatorDefs.find(c => c.handle === h && c.medical)),
+      isQualityCreator: crQuality.some(q => q.handle === h) && !crBlacklist.some(b => b.handle === h)
+    });
     const coopHandlesForList = (s.coopList || []).filter(h => !(s.blackAdded || []).includes(h));
     const crTab = s.crTab || 'lib';
     const crTabs = [
@@ -5139,7 +5307,7 @@ class Component extends DCLogic {
         crScores: { ...(st.crScores || {}), [c.handle]: { ...((st.crScores || {})[c.handle] || {}), [k]: Math.max(0, Math.min(100, v)) } }
       }));
       return {
-        ...c, avatar: creatorAvatarMap[c.handle] || '../avatars/mia.jpg', color: this.scoreColor(aiScore), bd: on ? '#C8D4E8' : '#E2E8F2', statusBg, statusFg,
+        ...c, ...creatorBadges(c.handle), avatar: creatorAvatarMap[c.handle] || '../avatars/mia.jpg', color: this.scoreColor(aiScore), bd: on ? '#C8D4E8' : '#E2E8F2', statusBg, statusFg,
         ai: aiScore, z: scoreOpen || s.crAiOpen === c.handle ? 80 : 1,
         coopLabel: (s.coopList || []).includes(c.handle) ? '✓ 已联系' : '未联系',
         coopBg: (s.coopList || []).includes(c.handle) ? '#E4EFE4' : '#FFFFFF',
@@ -5285,7 +5453,7 @@ class Component extends DCLogic {
     };
     const cur = creatorDefs.find(c => c.handle === s.creatorHandle) || creatorDefs[0];
     const ex = profileExtras[cur.handle] || {
-      bio: cur.niche + ' 方向的创作者，主阵地在 ' + cur.platform + '。资料由 CSV 导入，尚未人工补全。',
+      bio: (cur.isDemo ? '虚构医疗红人示例，仅用于页面展示。' : '') + cur.niche + ' 方向的创作者，主阵地在 ' + cur.platform + '。资料尚未人工补全。',
       audience: [['女性', '68%'], ['25–34 岁', '48%'], [cur.country, '59%'], ['兴趣 · 生活方式', '41%']],
       style: ['风格待补充', '需人工确认'],
       history: [],
@@ -5311,7 +5479,7 @@ class Component extends DCLogic {
     const addrDeleteRow = addrList.find(a => a.id === s.cpAddrDelete) || null;
     const patchAddr = (part) => this.setState(st => ({ cpAddrDraft: { ...(st.cpAddrDraft || {}), ...part }, cpAddrError: '' }));
     const cp = {
-      ...cur, color: this.scoreColor(cur.fit), bio: ex.bio, notes: notesText, statusBg, statusFg,
+      ...cur, ...creatorBadges(cur.handle), color: this.scoreColor(cur.fit), bio: ex.bio, notes: notesText, statusBg, statusFg,
       avatar: cpAvatar, hasAvatar: !!cpAvatar, noAvatar: !cpAvatar,
       links: cpLinks, hasLinks: cpLinks.length > 0,
       audience: ex.audience.map(([label, value]) => ({ label, value })),
@@ -6196,11 +6364,13 @@ class Component extends DCLogic {
     const coopContractFiles = s.coopContractFiles || {};
     const coopBriefFiles = s.coopBriefFiles || {};
     const coopPostLinks = s.coopPostLinks || {};
+    const coopPaymentReceipts = s.coopPaymentReceipts || {};
     const coopActionHandle = s.coopActionHandle || '';
     const coopActionType = s.coopActionType || '';
+    const paymentReceiptKey = (handle) => JSON.stringify([cd.name, handle]);
     const openCoopAction = (handle, type) => (e) => {
       if (e && e.stopPropagation) e.stopPropagation();
-      const patch = { coopActionHandle: handle, coopActionType: type, coopPostChannel: 'TikTok', coopPostUrl: '', coopActionNotice: '' };
+      const patch = { coopActionHandle: handle, coopActionType: type, coopPostChannel: 'TikTok', coopPostUrl: '', coopActionNotice: '', coopPaymentDraft: null };
       if (type === 'posts') {
         const creator = creatorDefs.find(c => c.handle === handle) || {};
         const channel = /instagram/i.test(creator.platform || '') ? 'Instagram' : (/youtube/i.test(creator.platform || '') ? 'YouTube' : 'TikTok');
@@ -6208,6 +6378,85 @@ class Component extends DCLogic {
       }
       this.setState(patch);
     };
+    const cooperationBriefMails = (handle, briefOnly = true) => [
+      ...(s.contactLog || []).filter(m => m.sku === cd.sku && m.handle === handle && /已发送/.test(m.status || '')).map(m => ({
+        sender: m.from || m.sender || '我方', recipient: m.to || m.recipient || handle,
+        direction: '我方发送', when: m.when || '', subject: m.subject || '合作邮件',
+        body: m.body || '', excerpt: '', attachments: (m.attNames || []).join('、'),
+        text: [m.subject, m.body, (m.attNames || []).join(' '), m.briefKey ? 'Brief' : ''].filter(Boolean).join(' · ')
+      })),
+      ...this.INBOX_REPLIES.filter(m => m.handle === handle).map(m => ({
+        sender: m.from || m.sender || handle, recipient: m.to || m.recipient || '我方',
+        direction: '红人回复', when: m.when || '', subject: m.subject || '邮件回复',
+        body: m.body || '', excerpt: m.gist || '', attachments: (m.attNames || []).join('、'),
+        text: [m.subject, m.body, m.gist].filter(Boolean).join(' · ')
+      }))
+    ].filter(m => !briefOnly || /brief|内容|素材|交付|初稿|脚本|字幕|镜头|拍摄|本周内拍|reels|shorts|横版|#ad|ftc|发布|延期|延后/i.test(m.text || ''))
+      .sort((a, b) => String(b.when || '').localeCompare(String(a.when || '')));
+    const cooperationMailKeywords = (text) => {
+      const topics = [
+        ['Brief 确认', /brief|需求确认/i], ['内容形式', /reels|shorts|视频|静帧|横版|竖版/i],
+        ['报价沟通', /报价|询价|\$|费用|rate|pricing|budget/i], ['寄样安排', /寄样|收样|样品|地址|sample|shipping/i],
+        ['拍摄计划', /拍摄|本周内拍|镜头|filming|shoot/i], ['交付要求', /交付|初稿|脚本|deliverable|draft|script/i],
+        ['内容修改', /字幕|重剪|修改|revision|subtitle|edit/i], ['发布排期', /发布|延期|延后|排期|档期|schedule|deadline/i],
+        ['授权范围', /授权|白名单|usage rights|whitelist|licens/i], ['合作意向', /愿意|合作|collaborat|partnership/i],
+        ['广告披露', /#ad|ftc|披露|disclosure/i], ['合同签署', /合同|签约|contract|agreement/i]
+      ];
+      const labels = topics.filter(([, pattern]) => pattern.test(text)).map(([label]) => label);
+      return (labels.length ? labels.slice(0, 5) : ['日常沟通']).map(label => ({ label }));
+    };
+    const cooperationBriefMailItems = cooperationBriefMails(s.coopBriefMailHandle || '', false).map((m, i) => ({
+      ...m,
+      directionLabel: m.direction === '我方发送' ? '我方邮件' : '对方邮件',
+      directionColor: m.direction === '我方发送' ? '#2457F5' : '#4E7156',
+      directionBg: m.direction === '我方发送' ? '#EAF0FF' : '#E4EFE4',
+      newest: i === 0,
+      displayTime: m.when || '时间未记录',
+      keywords: cooperationMailKeywords(m.text),
+      content: m.excerpt || (m.body ? (m.body.length > 160 ? m.body.slice(0, 160) + '…' : m.body) : '暂无邮件预览'),
+      contentLabel: m.excerpt ? '邮件摘要' : '邮件预览',
+      originalBody: m.body,
+      hasOriginalBody: !!m.body,
+      originalBodyMissing: !m.body,
+      hasAttachments: !!m.attachments
+    }));
+    // Feishu UI prototype only: no remote request or approval submission.
+    const paymentApprovalFor = (handle) => {
+      const invoice = (s.invoices || []).find(x => x.sku === cd.sku && x.handle === handle);
+      const receipt = coopPaymentReceipts[paymentReceiptKey(handle)];
+      const defaults = { '@nora.pm': 'manager', '@sofia.homelab': 'rejected', '@hairbyandre': 'approved', '@mia.selfcare': 'finance', '@leo.calmnight': 'withdrawn' };
+      const demo = (s.coopApprovalDemo || {})[paymentReceiptKey(handle)];
+      const paid = !!receipt || !!(invoice && /已付款|已结算|已支付/.test(invoice.status || ''));
+      const phase = paid ? 'paid' : (demo ? demo.phase : (defaults[handle] || 'none'));
+      const labels = { none: '未发起', manager: '审批中', finance: '审批中', approved: '待付款', rejected: '已驳回', withdrawn: '已撤回', paid: '已完成' };
+      const nodes = { none: '尚未发起付款审批', manager: '部门负责人 · 王经理', finance: '财务审核 · 李会计', approved: '审批已通过 · 等待财务付款', rejected: '财务审核驳回 · 待补充资料', withdrawn: '申请人已撤回 · 可重新发起', paid: '已付款 · 查看付款凭证' };
+      return { phase, paid, label: labels[phase], current: phase === 'rejected' && demo?.rejectedAt === 'manager' ? '部门负责人驳回 · 待补充资料' : nodes[phase], invoice, receipt,
+        state: paid ? 'done' : phase === 'none' ? 'pending' : phase === 'rejected' ? 'risk' : 'current',
+        amount: invoice ? '$' + Number(invoice.amount || 0).toLocaleString('en-US') : ({'@dailywithlin':'$650','@nora.pm':'$520','@sofia.homelab':'$850','@hairbyandre':'$900'}[handle] || '$1,200'),
+        item: invoice ? (invoice.item || invoice.payType || '合作费用') : '红人内容合作费（示例）',
+        number: phase === 'none' ? '尚未生成' : 'DEMO-PAY-' + String(handle).replace(/[^a-z0-9]/gi, '').toUpperCase(),
+        rejectedAt: demo?.rejectedAt || 'finance',
+        updated: demo ? demo.at : '2026-08-20 11:30（示例）'
+      };
+    };
+    const paymentApproval = paymentApprovalFor(coopActionHandle);
+    const approvalTimeline = [
+      ['提交申请', '陈曦 · 申请人', '付款申请及合作合同已提交', '2026-08-20 09:00'],
+      ['部门负责人', '王经理', '合作预算与交付内容已确认，同意付款', '2026-08-20 10:10'],
+      ['财务审核', '李会计', '收款信息与合同金额核对完成，同意付款', '2026-08-20 11:30']
+    ].map(([title, actor, opinion, time], i) => {
+      const phase = paymentApproval.phase;
+      let state = 'pending';
+      if (phase !== 'none') state = i === 0 ? 'done' : phase === 'manager' ? (i === 1 ? 'current' : 'pending') : phase === 'finance' ? (i === 1 ? 'done' : 'current') : ['approved','paid'].includes(phase) ? 'done' : phase === 'rejected' ? (paymentApproval.rejectedAt === 'manager' ? (i === 1 ? 'rejected' : 'pending') : (i === 1 ? 'done' : 'rejected')) : 'cancelled';
+      const names = { pending:'待处理', current:'审批中', done:'已通过', rejected:'已驳回', cancelled:'已终止' };
+      return { title, actor, status: i === 0 && state === 'done' ? '已提交' : names[state],
+        color: state === 'done' ? '#4E7156' : state === 'current' ? '#2457F5' : state === 'rejected' ? '#C4636D' : '#8792A5',
+        bg: state === 'done' ? '#E4EFE4' : state === 'current' ? '#EAF0FF' : state === 'rejected' ? '#FBE3E3' : '#EEF2F8',
+        mark: state === 'done' ? '✓' : state === 'rejected' ? '!' : String(i + 1),
+        time: state === 'done' || state === 'rejected' ? time + '（示例）' : '—',
+        opinion: state === 'done' ? opinion : state === 'current' ? '等待该审批人处理' : state === 'rejected' ? '请补充收款账户信息，并核对合同金额后重新提交。' : state === 'cancelled' ? '申请已撤回，本次流程终止。' : '等待前序节点完成'
+      };
+    });
     const cooperationRows = cooperationPeople.map((person, personIndex) => {
       const handle = person.handle;
       const pipelineIndex = person.pipelineIndex;
@@ -6215,26 +6464,16 @@ class Component extends DCLogic {
       const sentMail = (s.contactLog || []).find(m => m.sku === cd.sku && m.handle === handle && /已发送/.test(m.status || ''));
       const shipment = (s.shipOrders || []).filter(o => o.handle === handle).sort((a, b) => String(a.date || '').localeCompare(String(b.date || ''))).slice(-1)[0];
       const payment = (s.invoices || []).find(inv => inv.sku === cd.sku && inv.handle === handle);
+      const paymentReceipt = coopPaymentReceipts[paymentReceiptKey(handle)];
       const asset = facts.assets.find(a => a.handle === handle && a.sku === cd.sku);
       const uploadedContracts = coopContractFiles[handle] || [];
       const uploadedBriefs = coopBriefFiles[handle] || [];
       const submittedPosts = coopPostLinks[handle] || [];
-      const briefMailRecords = [
-        ...(s.contactLog || []).filter(m => m.sku === cd.sku && m.handle === handle).map(m => ({
-          direction: '我方发送', when: m.when || '', subject: m.subject || '合作邮件',
-          text: [m.subject, m.body, (m.attNames || []).join(' '), m.briefKey ? 'Brief' : ''].filter(Boolean).join(' · ')
-        })),
-        ...facts.replies.filter(r => r.handle === handle).map(r => ({
-          direction: '红人回复', when: r.when || '', subject: r.subject || '邮件回复',
-          text: [r.subject, r.gist].filter(Boolean).join(' · ')
-        }))
-      ].filter(m => /brief|内容|素材|交付|初稿|脚本|字幕|镜头|拍摄|本周内拍|reels|shorts|横版|#ad|ftc|发布|延期|延后/i.test(m.text || ''))
-        .sort((a, b) => String(b.when || '').localeCompare(String(a.when || '')));
+      const briefMailRecords = cooperationBriefMails(handle);
       const briefMailLatest = briefMailRecords[0] || null;
       const contractState = uploadedContracts.length ? 'done' : (pipelineIndex === 0 ? 'pending' : (pipelineIndex === 1 ? 'current' : 'done'));
-      const paymentState = payment
-        ? (/已付款|已结算|已支付/.test(payment.status || '') ? 'done' : (/驳回/.test(payment.status || '') ? 'risk' : 'current'))
-        : (pipelineIndex >= 3 ? 'current' : 'pending');
+      const approval = paymentApprovalFor(handle);
+      const paymentState = approval.state;
       const shipmentState = shipment
         ? ((shipment.stage || 0) >= 3 ? 'done' : 'current')
         : (pipelineIndex >= 3 ? 'current' : 'pending');
@@ -6253,8 +6492,8 @@ class Component extends DCLogic {
         },
         {
           state: paymentState,
-          note: payment ? ((payment.item || payment.payType || '合作款项') + ' · ' + (payment.amount ? '$' + payment.amount : '')) : (paymentState === 'current' ? '待创建付款计划并确认节点' : '签约后进入付款流程'),
-          meta: payment ? ((payment.date || '') + ' · ' + payment.status) : (paymentState === 'current' ? '待财务处理' : '尚未发生')
+          note: approval.amount + ' · ' + approval.current,
+          meta: approval.paid ? (paymentReceipt ? '已上传付款截图 · 点击查看' : '历史付款记录 · 点击查看') : '飞书审批 · 演示数据'
         },
         {
           state: shipmentState,
@@ -6264,7 +6503,7 @@ class Component extends DCLogic {
         {
           state: briefState,
           note: briefMailLatest ? 'AI 已识别 Brief 沟通' : 'AI 未识别到 Brief 沟通',
-          meta: briefMailLatest ? (briefMailLatest.direction + ' · ' + String(briefMailLatest.when || '').slice(0, 10) + ' · 点击查看依据') : '持续扫描当前 Campaign 往来邮件'
+          meta: briefMailLatest ? (briefMailLatest.direction + ' · ' + String(briefMailLatest.when || '').slice(0, 10) + ' · 点击查看邮件') : '点击查看 Brief 沟通邮件'
         },
         {
           state: assetState,
@@ -6275,15 +6514,22 @@ class Component extends DCLogic {
       const stages = stageDefs.map((stage, stageIndex) => {
         const palette = cooperationPalette[stage.state];
         const directActionType = stageIndex === 5 ? 'posts' : '';
+        const goToPayment = stageIndex === 2;
         const goToContractMgt = stageIndex === 1;
         const goToAssetEntry = stageIndex === 5 && !submittedPosts.length && !asset;
         const goToSampleMgt = stageIndex === 3;
         const briefAiAction = stageIndex === 4;
-        const actionable = goToContractMgt || goToSampleMgt || briefAiAction || !!directActionType || stage.state === 'current' || stage.state === 'risk';
+        const actionable = goToContractMgt || goToPayment || goToSampleMgt || briefAiAction || !!directActionType || stage.state === 'current' || stage.state === 'risk';
         return {
           ...stage, ...palette,
+          status: stageIndex === 2 ? approval.label : palette.status,
+          actionable: actionable && stageIndex !== 0,
+          actionClass: actionable && stageIndex !== 0 ? 'coop-stage-action' : '',
+          actionTitle: briefAiAction ? '查看 Brief 沟通邮件' : (actionable && stageIndex !== 0 ? '点击查看或处理' + cooperationStageHeaders[stageIndex].label : ''),
           cursor: actionable ? 'pointer' : 'default',
-          action: goToContractMgt
+          action: goToPayment
+            ? openCoopAction(handle, 'payment')
+            : goToContractMgt
             ? (e) => {
                 if (e && e.stopPropagation) e.stopPropagation();
                 const params = new URLSearchParams({ upload: '1', campaign: cd.name, product: cd.product, sku: cd.sku, handle });
@@ -6304,12 +6550,10 @@ class Component extends DCLogic {
                 window.location.href = './9-Asset-Library.html?' + params.toString();
               }
             : briefAiAction
-            ? this.ask(
-                '查看 ' + handle + ' 的 Brief 邮件识别依据',
-                briefMailLatest
-                  ? 'AI 已从当前 Campaign 的邮件记录中识别到 Brief 沟通。\n\n最近依据：' + briefMailLatest.subject + '\n方向：' + briefMailLatest.direction + '\n时间：' + briefMailLatest.when + '\n\n共识别到 ' + briefMailRecords.length + ' 封相关邮件。'
-                  : 'AI 尚未在当前 Campaign 与 ' + handle + ' 的往来邮件中识别到 Brief、脚本、交付要求、拍摄或内容修改等沟通信号。\n\n系统会在新邮件进入后继续自动扫描。'
-              )
+            ? (e) => {
+                if (e && e.stopPropagation) e.stopPropagation();
+                this.setState({ coopBriefMailHandle: handle, coopBriefMailIndex: 0 });
+              }
             : directActionType
             ? openCoopAction(handle, directActionType)
             : actionable
@@ -6344,6 +6588,9 @@ class Component extends DCLogic {
     ];
     const coopActionIsUpload = coopActionType === 'contract' || coopActionType === 'brief';
     const coopActionIsPosts = coopActionType === 'posts';
+    const coopActionIsPayment = coopActionType === 'payment';
+    const coopPaymentSaved = coopPaymentReceipts[paymentReceiptKey(coopActionHandle)] || null;
+    const coopPaymentShown = coopPaymentSaved;
     const coopActionFiles = (coopActionType === 'contract' ? coopContractFiles[coopActionHandle] : coopBriefFiles[coopActionHandle]) || [];
     const coopActionPosts = (coopPostLinks[coopActionHandle] || []).map((post, index) => ({
       ...post,
@@ -6381,8 +6628,10 @@ class Component extends DCLogic {
       channelBg: entry.channel === 'Instagram' ? '#F7EDEE' : (entry.channel === 'YouTube' ? '#FBE3E3' : (entry.channel === 'TikTok' ? '#EAF0FF' : '#F5F8FE')),
       channelFg: entry.channel === 'Instagram' ? '#A24D68' : (entry.channel === 'YouTube' ? '#C4636D' : (entry.channel === 'TikTok' ? '#1D48D8' : '#647187'))
     }));
-    const coopActionTitle = coopActionType === 'contract' ? '上传签约合同' : (coopActionType === 'brief' ? '上传 Brief 沟通记录' : '录入回收素材');
-    const coopActionHint = coopActionType === 'contract'
+    const coopActionTitle = coopActionIsPayment ? '确认付款' : (coopActionType === 'contract' ? '上传签约合同' : (coopActionType === 'brief' ? '上传 Brief 沟通记录' : '录入回收素材'));
+    const coopActionHint = coopActionIsPayment
+      ? '上传该红人的付款截图，核对无误后点击“确认付款”；确认后付款环节变为已完成。'
+      : coopActionType === 'contract'
       ? '上传双方已签署的合同文件，文件会归档到该红人的合作记录。'
       : (coopActionType === 'brief'
           ? '上传邮件导出、聊天截图、会议纪要或修改记录，保留完整沟通依据。'
@@ -7427,128 +7676,8 @@ class Component extends DCLogic {
       : { bg: '#FFFAF1', bd: '#F1D8A9', fg: '#A5762C', dot: '#D7A44B' };
 
     const ar = (() => {
-      const rf = s.arFilter || {};
-      const TYPES = {
-        ad: ['广告投放授权', '#4E7156', '#E4EFE4'],
-        social: ['仅社媒授权', '#1D48D8', '#E4EEF7'],
-        pending: ['待补授权', '#C4636D', '#F7EDEE']
-      };
-      const meta = {
-        '夜间 routine ep.12': { type: 'ad', start: '2026-08-12', months: 9, scope: '社媒 · 白名单投放 · 详情页', fee: '含固定费', contract: 'CT-2026-0812-MIA' },
-        '头皮特写实测': { type: 'ad', start: '2026-08-09', months: 6, scope: '社媒 · 白名单投放', fee: '寄样置换', contract: 'CT-2026-0809-KAY' },
-        '一周实测 Shorts': { type: 'pending', start: '2026-08-14', months: 0, scope: '仅原帖保留', fee: '待议 $400', contract: '' },
-        '前后头皮对比': { type: 'ad', start: '2026-08-16', months: 6, scope: '社媒 · 白名单投放', fee: '寄样置换', contract: 'CT-2026-0816-JUN' },
-        '浴室静帧组': { type: 'social', start: '2026-08-05', months: 6, scope: '仅品牌社媒与 EDM', fee: '含固定费', contract: 'CT-2026-0805-AND' }
-      };
-      const addMonths = (iso, m) => {
-        const d = new Date(iso + 'T00:00:00');
-        d.setMonth(d.getMonth() + m);
-        return d.toISOString().slice(0, 10);
-      };
-      const today = new Date('2026-08-31T00:00:00');
-      const manual = {};
-      (s.alEntries || []).forEach(e => {
-        if (!e.isRights) return;
-        const resolved = this.entryToAsset(e);
-        manual[e.title || '未命名素材'] = {
-          type: resolved.rights,
-          start: e.post || '2026-08-31',
-          months: resolved.rights === 'pending' ? 0 : (Number(e.rightsMonths) || 6),
-          scope: e.rightsScope || '仅品牌社媒',
-          fee: e.spend ? '$' + e.spend : '寄样置换',
-          contract: e.contract || ''
-        };
-      });
-      const rightsTitles = {};
-      (s.alEntries || []).forEach(e => { if (e.isRights) rightsTitles[e.title || '未命名素材'] = 1; });
-      const all = facts.assets.filter(a => {
-        const isManual = (s.alEntries || []).some(e => (e.title || '未命名素材') === a.title);
-        return !isManual || rightsTitles[a.title];
-      }).map((a, i) => {
-        const mt = manual[a.title] || meta[a.title] || { type: a.rights === 'ad' ? 'ad' : (a.rights === 'pending' ? 'pending' : 'social'), start: a.post, months: 6, scope: '仅品牌社媒', fee: '—', contract: '' };
-        const t = TYPES[mt.type];
-        const end = mt.months ? addMonths(mt.start, mt.months) : '';
-        const days = end ? Math.round((new Date(end + 'T00:00:00') - today) / 86400000) : 0;
-        return {
-          idx: i + 1, handle: a.handle, initial: a.handle.slice(1, 2).toUpperCase(), title: a.title,
-          channel: a.channel, channelLogo: this.channelLogoOf(a.channel), product: a.product, sku: a.sku, post: a.post, url: a.url,
-          typeKey: mt.type, typeText: t[0], typeFg: t[1], typeBg: t[2],
-          term: mt.months ? mt.months + ' 个月' : '未授权',
-          termLeft: mt.months ? (days > 0 ? '剩余 ' + days + ' 天' : '已过期 ' + Math.abs(days) + ' 天') : '需先补签',
-          termEnd: mt.months ? '至 ' + end : '—',
-          termColor: !mt.months ? RUST : (days <= 0 ? RUST : (days <= 45 ? AMBER : SAGE)),
-          scope: mt.scope, fee: mt.fee,
-          contract: mt.contract || '未签署',
-          hasContract: !!mt.contract, noContract: !mt.contract,
-          ...(() => { const d = creatorDefs.find(x => x.handle === a.handle) || {}; return this.dealMetaOf(a.spend > 0 ? '$' + a.spend : d.quote, d.quote); })(),
-          tierText: (() => { const d = creatorDefs.find(x => x.handle === a.handle); return d ? this.tierOfFollowers(d.followers) : '—'; })(),
-          cpvText: (() => { const v = this.toNumU(a.views); return a.spend > 0 && v ? '$' + (a.spend / v).toFixed(3) : '寄样'; })(),
-          cpvColor: (() => { const v = this.toNumU(a.views); if (a.spend === 0) return '#4E7156'; return (a.spend / Math.max(1, v)) <= 0.012 ? '#1D2638' : '#C4636D'; })(),
-          links: (() => {
-            const nm = { TikTok: 'Ti', Instagram: 'In', YouTube: 'Yo' };
-            const bare = a.handle.slice(1);
-            const main = a.channel === 'YouTube' ? 'https://www.youtube.com/' + a.handle : (a.channel === 'Instagram' ? 'https://www.instagram.com/' + bare : 'https://www.tiktok.com/' + a.handle);
-            const alt = a.channel === 'Instagram' ? 'https://www.tiktok.com/' + a.handle : 'https://www.instagram.com/' + bare;
-            return [
-              { short: nm[a.channel] || 'Ti', url: main, title: (a.channel || 'TikTok') + ' 主页' },
-              { short: a.channel === 'Instagram' ? 'Ti' : 'In', url: alt, title: '其他渠道主页' }
-            ];
-          })(),
-          coverTint: this.coverOf(a.url, a.channel).tint,
-          coverBg: this.coverOf(a.url, a.channel).bg,
-          coverMark: this.coverOf(a.url, a.channel).mark,
-          coverShade: this.coverOf(a.url, a.channel).shade,
-          coverFg: this.coverOf(a.url, a.channel).fg,
-          openContract: () => this.setState({ page: 'contracts' })
-        };
-      });
-      const rows = all.filter(r => {
-        if (rf.type && r.typeKey !== rf.type) return false;
-        if (rf.channel && r.channel !== rf.channel) return false;
-        if (rf.product && r.product !== rf.product) return false;
-        if (rf.status === '有效' && !/剩余/.test(r.termLeft)) return false;
-        if (rf.status === '临期（≤45天）' && r.termColor !== AMBER) return false;
-        if (rf.status === '待补 / 过期' && r.termColor !== RUST) return false;
-        return true;
-      }).map((r, i) => ({ ...r, idx: i + 1, rowBg: i % 2 === 1 ? '#FFFFFF' : '#FFFFFF' }));
-      const adN = all.filter(x => x.typeKey === 'ad').length;
-      const socN = all.filter(x => x.typeKey === 'social').length;
-      const pendN = all.filter(x => x.typeKey === 'pending').length;
-      const soonN = all.filter(x => x.termColor === AMBER).length;
-      const kpis = [
-        { label: '已授权素材', value: String(adN + socN), note: '共 ' + all.length + ' 条素材', color: '#1D2638' },
-        { label: '广告投放授权', value: String(adN), note: '可进白名单投放', color: '#4E7156' },
-        { label: '仅社媒授权', value: String(socN), note: '不可用于付费投放', color: '#1D48D8' },
-        { label: '待补 / 临期', value: String(pendN + soonN), note: pendN + ' 条待补 · ' + soonN + ' 条 45 天内到期', color: pendN + soonN ? '#C4636D' : '#4E7156' }
-      ];
-      const filters = [
-        ['type', '授权类型', ['广告投放授权', '仅社媒授权', '待补授权']],
-        ['channel', '渠道', ['TikTok', 'Instagram', 'YouTube']],
-        ['product', '产品', ['Ryze 头皮按摩仪', 'Lumo 便携香氛机']],
-        ['status', '期限状态', ['有效', '临期（≤45天）', '待补 / 过期']]
-      ].map(([k, label, opts]) => {
-        const cur = rf[k] || '';
-        const isOpen = s.arFilterOpen === k;
-        const toVal = (o) => k === 'type' ? (o === '广告投放授权' ? 'ad' : o === '仅社媒授权' ? 'social' : 'pending') : o;
-        const label2 = cur ? (k === 'type' ? { ad: '广告投放授权', social: '仅社媒授权', pending: '待补授权' }[cur] : cur) : '全部';
-        return {
-          label, current: label2, open: isOpen,
-          bg: cur ? '#EAF0FF' : '#F8FAFE', bd: isOpen ? '#2457F5' : (cur ? '#F0C9B8' : '#E2E8F2'),
-          fg: cur ? '#2457F5' : '#1D2638',
-          toggle: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState(st => ({ arFilterOpen: st.arFilterOpen === k ? null : k })); },
-          options: [{ v: '', l: '全部' }, ...opts.map(o => ({ v: toVal(o), l: o }))].map(o => {
-            const on = cur === o.v;
-            return {
-              label: o.l, bg: on ? '#EAF0FF' : 'transparent', fg: on ? '#2457F5' : '#647187',
-              pick: () => this.setState(st => ({ arFilter: { ...(st.arFilter || {}), [k]: o.v }, arFilterOpen: null }))
-            };
-          })
-        };
-      });
-      const note = adN + ' 条素材拿到广告投放授权（占 ' + Math.round(adN / Math.max(1, all.length) * 100) + '%），'
-        + (pendN ? pendN + ' 条仍未授权——其中表现最好的一条会直接影响投放放大，建议优先补签；' : '授权覆盖良好；')
-        + (soonN ? soonN + ' 条将在 45 天内到期，需提前谈续期。' : '近期无到期风险。');
-      return { rows, kpis, filters, note, countNote: '命中 ' + rows.length + ' 条' };
+      const rows = facts.assets.filter(a=>window.AIOSAssetContracts.authorization(a).valid);
+      return { rows, kpis:[], filters:[], note:'仅统计已关联且有效的已签署授权合同', countNote:'已授权 ' + rows.length + ' 条' };
     })();
 
     const aq = (() => {
@@ -7567,7 +7696,7 @@ class Component extends DCLogic {
         if (qf.time && String(r.post).slice(0, 7) !== qf.time) return false;
         return true;
       });
-      const isPass = (r) => parseFloat(r.er) >= 5;
+      const isPass = this.isQualifiedAsset;
       const passRows = rows.filter(isPass);
       const views = rows.reduce((t, r) => t + num(r.views), 0);
       const passViews = passRows.reduce((t, r) => t + num(r.views), 0);
@@ -7597,10 +7726,10 @@ class Component extends DCLogic {
       const activeF = ['brand', 'channel', 'product', 'owner', 'time'].filter(k => qf[k]).map(k => qf[k]);
       const scopeText = activeF.length ? '筛选：' + activeF.join(' · ') : '全部素材';
       const summary = rows.length
-        ? '当前口径下共 ' + rows.length + ' 条素材，其中 ' + passRows.length + ' 条合格（ER ≥ 5%），合格率 ' + rate + '%；'
+        ? '当前口径下共 ' + rows.length + ' 条素材，其中 ' + passRows.length + ' 条合格（按手动标记统计），合格率 ' + rate + '%；'
           + '累计曝光 ' + fmtV(views) + '，合格素材贡献 ' + fmtV(passViews) + '（占 ' + Math.round(passViews / Math.max(1, views) * 100) + '%）。'
           + (top ? '按' + groupLabel + '看，' + top.name + '曝光最高（' + top.views + '，合格率 ' + top.rate + '%）；' : '')
-          + (rate >= 70 ? '整体质量稳定，可以直接把合格素材推进白名单投放。'
+          + (rate >= 70 ? '投放前请检查关联合同是否包含广告投放授权。'
             : rate >= 40 ? '合格率中等，建议先复盘不合格素材的开头 3 秒与卖点表达，再决定加量。'
             : '合格率偏低，说明选人或叙事角度需要先修正，不宜继续铺量。')
         : '当前筛选下没有素材，清空筛选或换一个口径查看。';
@@ -7645,7 +7774,7 @@ class Component extends DCLogic {
         if (!d || d.status !== '已通过' || (sub.tag !== '合格素材' && sub.tag !== '授权素材')) return null;
         return { tag: sub.tag, by: d.by || 'Helen · Marketing Lead', when: d.when || '2026-08-20' };
       };
-      const assetRows = rows.filter(r => !!approvedInfo(r)).slice().sort((a, b) => num(b.views) - num(a.views)).map((r, i) => {
+      const assetRows = rows.filter(this.isQualifiedAsset).slice().sort((a, b) => num(b.views) - num(a.views)).map((r, i) => {
         const ap = approvedInfo(r) || {};
         const pass = isPass(r);
         const v = num(r.views);
@@ -7676,26 +7805,25 @@ class Component extends DCLogic {
             return {
               assetTagOpen: s.assetTagOpen === key,
               toggleAssetTag: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState(st => ({ assetTagOpen: st.assetTagOpen === key ? null : key, alTagOpen: null, alAiOpen: null })); },
-              assetTagOptions: [['合格素材', '提交审核 · 通过后计入合格', '#A5762C'], ['授权素材', '提交审核 · 通过后计入授权', '#1D48D8'], ['淘汰素材', '提交审核 · 不进入复用池', '#C4636D']].map(([t, sub, dot]) => {
+              assetTagOptions: [['合格素材', '手动标记后进入合格素材', '#4E7156'], ['不合格素材', '标记后进入不合格素材', '#C4636D'], ['未打标', '清除质量标记', '#8792A5']].map(([t, sub, dot]) => {
                 const on = stt.tag === t;
                 return {
                   label: on ? '✓ ' + t : t, sub, dot,
                   bg: on ? '#EAF0FF' : 'transparent', fg: on ? '#2457F5' : '#1D2638',
-                  pick: () => this.stageTag('asset', r.handle, t, r.title)
+                  pick: () => this.markAssetQuality(r, t)
                 };
               })
             };
           })(),
           ...this.submitMeta(r.handle, r.title),
           ...(() => {
-            const dft = this.tagDraftOf('asset', r.handle, r.title);
-            if (dft) return { assetTag: dft + ' · 待提交', assetTagBg: '#EAF0FF', assetTagFg: '#2457F5', assetTagNote: '已选择，点「提交申请」送审' };
+
             const t = this.assetTagOf(r, pass); return { assetTag: t.tag, assetTagBg: t.bg, assetTagFg: t.fg, assetTagNote: t.note };
           })(),
           ...(() => { const d = creatorDefs.find(x => x.handle === r.handle) || {}; return this.dealMetaOf(r.spend > 0 ? '$' + r.spend : d.quote, d.quote); })(),
           tierText: (() => { const d = creatorDefs.find(x => x.handle === r.handle); return d ? this.tierOfFollowers(d.followers) : '—'; })(),
           aiDot: pass ? SAGE : RUST, aiFg: pass ? '#4E7156' : '#C4636D',
-          qualNote: pass
+          qualNote: Array.isArray(r.types) ? (pass ? '已标记合格素材' : (r.types.includes('不合格素材') ? '已标记不合格素材' : '未标记为合格素材')) + ' · 曝光 ' + r.views : pass
             ? 'ER ' + r.er + ' ≥ 5% · 曝光 ' + r.views + '，计入合格素材与曝光累计'
             : 'ER ' + r.er + ' 低于 5% 合格线 · 曝光 ' + r.views + '，不计入合格数',
           ownerText: r.brand + ' · ' + r.owner,
@@ -7756,35 +7884,29 @@ class Component extends DCLogic {
       const headline = rows.length
         ? '合格 ' + passRows.length + ' / ' + rows.length + ' 条 · 合格率 ' + rate + '% · 曝光 ' + fmtV(views)
         : '当前筛选下没有素材';
-      const countNote = '命中 ' + rows.length + ' 条 · ER 达标 ' + passRows.length + ' 条 · 已审核收录 ' + rows.filter(r => !!approvedInfo(r)).length + ' 条';
+      const countNote = '命中 ' + rows.length + ' 条 · 手动标记合格 ' + passRows.length + ' 条';
       return { rows: grouped, kpis, summary, scopeText, groupLabel, filters, assetRows, headline, countNote };
     })();
 
     const alRows = (() => {
       const seeded = this.ASSET_SEED.map(x => ({ ...x })).length ? this.ASSET_SEED.map(x => ({ ...x })) : [
       ].map(x => ({ ...x, sku: x.product === 'Lumo 便携香氛机' ? 'LUM-AR-02' : 'RYZ-SC-01', campaign: x.product === 'Lumo 便携香氛机' ? 'Q1 家居氛围' : 'Q3 北美种草', sub: x.product + ' · ' + x.channel }));
-      const toNum = (v) => { const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); return isNaN(n) ? 0 : n * (/K/i.test(String(v)) ? 1000 : 1); };
+      const toNum = this.toNumU;
       const entries = (s.alEntries || []).map(e => ({ ...this.entryToAsset(e), fresh: true }));
       const af = s.alFilter || {};
-      const cpvNum = (r) => { const v2 = toNum(r.views); return r.spend > 0 && v2 > 0 ? r.spend / v2 : 0; };
+      const cpvNum = r => r.reportedCpv != null && String(r.reportedCpv).trim() !== '' ? Number(r.reportedCpv) : (toNum(r.views) ? r.spend / toNum(r.views) : 0);
       const rows = entries.concat(seeded).filter(r => {
-        const v2 = toNum(r.views), erN = parseFloat(r.er) || 0, cv = cpvNum(r);
-        if (af.time && String(r.post).slice(0, 7) !== af.time) return false;
+        const v2 = toNum(r.views), cv = cpvNum(r);
+        const query = String(s.alSearch || s.assetQuery || '').trim().toLowerCase();
+        if (query && ![r.handle,r.title,r.campaign,r.sku].join(' ').toLowerCase().includes(query)) return false;
+        if (af.campaign && r.campaign !== af.campaign) return false;
         if (af.product && r.product !== af.product) return false;
         if (af.channel && r.channel !== af.channel) return false;
-        if (af.deal) {
-          const d0 = creatorDefs.find(x => x.handle === r.handle) || {};
-          const dm = this.dealMetaOf(r.spend > 0 ? '$' + r.spend : d0.quote, d0.quote);
-          if ((dm.deal || '') !== af.deal) return false;
-        }
         if (af.views === '≥ 200K' && v2 < 200000) return false;
         if (af.views === '100K–200K' && (v2 < 100000 || v2 >= 200000)) return false;
         if (af.views === '< 100K' && v2 >= 100000) return false;
-        if (af.er === '≥ 10%' && erN < 10) return false;
-        if (af.er === '5%–10%' && (erN < 5 || erN >= 10)) return false;
-        if (af.er === '< 5%' && erN >= 5) return false;
         if (af.cpv === '寄样（无成本）' && r.spend !== 0) return false;
-        if (af.cpv === '≤ $0.010' && !(cv > 0 && cv <= 0.01)) return false;
+        if (af.cpv === '≤ $0.010' && !(cv >= 0 && cv <= 0.01)) return false;
         if (af.cpv === '> $0.010' && !(cv > 0.01)) return false;
         return true;
       });
@@ -7792,7 +7914,7 @@ class Component extends DCLogic {
       const tagPalette = { '继续合作': ['#EAF0FF', '#2457F5', '#F0C9B8'], '合格/优质红人': ['#E4EFE4', '#4E7156', '#CFE3D3'], '淘汰/拉黑': ['#FBE3E3', '#C4636D', '#F0C9C9'], '拉黑': ['#FBE3E3', '#C4636D', '#F0C9C9'] };
       return rows.map((r, i) => {
         const v = toNum(r.views);
-        const cpv = r.spend > 0 && v > 0 ? '$' + (r.spend / v).toFixed(3) : (r.spend === 0 ? '寄样' : '—');
+        const cpv = r.reportedCpv != null && String(r.reportedCpv).trim() !== '' ? '$' + Number(r.reportedCpv).toFixed(3) : (r.spend > 0 && v > 0 ? '$' + (r.spend / v).toFixed(3) : (r.spend === 0 ? '寄样' : '—'));
         const def = creatorDefs.find(x => x.handle === r.handle);
         const avg = def ? toNum(def.avgViews) : 0;
         const ratio = avg ? v / avg : 0;
@@ -7826,21 +7948,20 @@ class Component extends DCLogic {
             return {
               assetTagOpen: s.assetTagOpen === key,
               toggleAssetTag: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState(st => ({ assetTagOpen: st.assetTagOpen === key ? null : key, alTagOpen: null, alAiOpen: null })); },
-              assetTagOptions: [['合格素材', '提交审核 · 通过后计入合格', '#A5762C'], ['授权素材', '提交审核 · 通过后计入授权', '#1D48D8'], ['淘汰素材', '提交审核 · 不进入复用池', '#C4636D']].map(([t, sub, dot]) => {
+              assetTagOptions: [['合格素材', '手动标记后进入合格素材', '#4E7156'], ['不合格素材', '标记后进入不合格素材', '#C4636D'], ['未打标', '清除质量标记', '#8792A5']].map(([t, sub, dot]) => {
                 const on = stt.tag === t;
                 return {
                   label: on ? '✓ ' + t : t, sub, dot,
                   bg: on ? '#EAF0FF' : 'transparent', fg: on ? '#2457F5' : '#1D2638',
-                  pick: () => this.stageTag('asset', r.handle, t, r.title)
+                  pick: () => this.markAssetQuality(r, t)
                 };
               })
             };
           })(),
           ...this.submitMeta(r.handle, r.title),
           ...(() => {
-            const dft = this.tagDraftOf('asset', r.handle, r.title);
-            if (dft) return { assetTag: dft + ' · 待提交', assetTagBg: '#EAF0FF', assetTagFg: '#2457F5', assetTagNote: '已选择，点「提交申请」送审' };
-            const t = this.assetTagOf(r, (parseFloat(r.er) || 0) >= 5); return { assetTag: t.tag, assetTagBg: t.bg, assetTagFg: t.fg, assetTagNote: t.note };
+
+            const t = this.assetTagOf(r, this.isQualifiedAsset(r)); return { assetTag: t.tag, assetTagBg: t.bg, assetTagFg: t.fg, assetTagNote: t.note };
           })(),
           ...(() => { const d = creatorDefs.find(x => x.handle === r.handle) || {}; return this.dealMetaOf(r.spend > 0 ? '$' + r.spend : d.quote, d.quote); })(),
           tierText: (() => { const d = creatorDefs.find(x => x.handle === r.handle); return d ? this.tierOfFollowers(d.followers) : '—'; })(),
@@ -7885,6 +8006,25 @@ class Component extends DCLogic {
         };
       });
     })();
+    const alLibraryRows = alRows.filter(row => {
+      if (s.alTab === 'qual') return this.isQualifiedAsset(row);
+      if (s.alTab === 'unqual') return this.isUnqualifiedAsset(row);
+      if (s.alTab === 'rights') return window.AIOSAssetContracts.authorization(row).valid;
+      return true;
+    }).map((row,index) => {
+      const auth = window.AIOSAssetContracts.authorization(row);
+      return { ...row, idx: index+1, qualityValue: this.assetQuality(row), qualityAria: row.title + '的质量标记', setQuality: e=>this.markAssetQuality(row,e.target.value), authLabel: auth.label, authColor: auth.valid ? '#4E7156' : '#8792A5',
+        authDetail: auth.contract ? auth.contract.id + ' · ' + (auth.contract.rightsType === 'ad' ? '广告投放' : auth.contract.rightsType === 'social' ? '仅社媒' : '条款待确认') : '签署匹配的授权合同后收录',
+        authEnd: auth.contract?.expiryDate ? '有效期至 ' + auth.contract.expiryDate : '',
+        contractAction: auth.contract ? '管理合同' : '关联合同',
+        openContract: () => this.setState({assetContractAsset: row, assetContractSelected: auth.contract?.id || '', assetContractError: ''})
+      };
+    });
+    const assetContractStore = window.AIOSAssetContracts;
+    const contractAsset = s.assetContractAsset;
+    const contractCandidates = contractAsset ? assetContractStore.records().filter(c=>assetContractStore.matches(c,contractAsset)) : [];
+    const assetContractUploadUrl = contractAsset ? './12-Contract-Mgt.html?' + new URLSearchParams({upload:'1', campaign:contractAsset.campaign,sku:contractAsset.sku,product:contractAsset.product,handle:contractAsset.handle,asset:assetContractStore.key(contractAsset),assetTitle:contractAsset.title}) : '';
+
     const campaignAssetRows = alRows.filter(row => row.sku === cd.sku).map((row, index) => ({ ...row, idx: index + 1 }));
 
     // ── Asset Detail ──
@@ -7912,8 +8052,12 @@ class Component extends DCLogic {
       ...assets[aIdx],
       perf: aEx.perf.map(([label, value]) => ({ label, value })),
       highlights: aEx.highlights.map(([t, note]) => ({ t, note })),
-      why: aEx.why, reuseList: aEx.reuseList,
-      rightsDetail: aEx.rightsDetail.map(([label, value]) => ({ label, value }))
+      why: aEx.why, reuseList: ['使用前请在素材库核对关联的授权合同及用途范围。'],
+      rightsDetail: (() => {
+        const source = facts.assets.find(a=>a.url === assets[aIdx]?.url || a.title === assets[aIdx]?.title);
+        const auth = source ? window.AIOSAssetContracts.authorization(source) : {label:'未关联合同'};
+        return [['授权状态',auth.label],['合同编号',auth.contract?.id || '—'],['授权范围',auth.contract?.rightsScope || '待确认'],['有效期',auth.contract?.expiryDate || '—']].map(([label,value])=>({label,value}));
+      })()
     };
 
     // ── Strategy version history ──
@@ -9353,7 +9497,7 @@ class Component extends DCLogic {
             viewLabel: detailOpen ? '收起详情' : b.viewLabel,
             view: detailOpen
               ? () => this.setState({ apCampaignExpandedKey: '' })
-              : ((b.isCampaign || b.isStrategy || b.isBrief || b.isCoopDeal) && b.viewGo ? b.viewGo : (() => this.setState(b.goState))),
+              : (b.viewGo || (() => this.setState(b.goState))),
             campDetailOpen,
             strDetailOpen,
             briefDetailOpen,
@@ -10548,6 +10692,12 @@ class Component extends DCLogic {
       briefWords, suggestionCount: suggestions.length, noSuggestions: suggestions.length === 0,
       creators, campaignKpis, kanban, assets,
       cooperationStageHeaders, cooperationRows, cooperationSummary, cooperationLegend,
+      cooperationBriefMailOpen: !!s.coopBriefMailHandle,
+      cooperationBriefMailHandle: s.coopBriefMailHandle || '',
+      cooperationBriefMailItems,
+      cooperationBriefMailCount: cooperationBriefMailItems.length,
+      cooperationBriefMailEmpty: !cooperationBriefMailItems.length,
+      cooperationBriefMailClose: () => this.setState({ coopBriefMailHandle: null, coopBriefMailIndex: 0 }),
       cooperationEmpty: cooperationRows.length === 0,
       cooperationEmptyText: String(s.coopQuery || '').trim() ? '没有匹配该账号的合作红人，请尝试其他关键词。' : '暂无合作红人。在「邮件」模块提交合作申请并通过 My Tasks 审批后，红人会出现在这里。',
       coopQuery: s.coopQuery || '',
@@ -10555,9 +10705,19 @@ class Component extends DCLogic {
       coopQuerySet: (e) => this.setState({ coopQuery: e.target.value }),
       coopQueryClear: () => this.setState({ coopQuery: '' }),
       coopFilterCount: cooperationRows.length + ' 位红人',
-      coopActionOpen: !!coopActionType,
-      coopActionIsUpload, coopActionIsPosts, coopActionHandle, coopActionTitle, coopActionHint,
+      coopActionOpen: !!coopActionType && !coopActionIsPayment,
+      coopPaymentApprovalOpen: coopActionIsPayment,
+      paymentApproval, approvalTimeline,
+      approvalStatusColor: cooperationPalette[paymentApproval.state].fg,
+      approvalStatusBg: cooperationPalette[paymentApproval.state].dotBg,
+      approvalResult: paymentApproval.phase === 'approved' ? '审批已通过，等待实际付款。暂无付款凭证。' : paymentApproval.paid ? (paymentApproval.receipt ? '付款已确认，以下为已保存的付款凭证。' : '历史记录显示已付款，暂无付款凭证。') : '当前尚未完成付款，暂无付款凭证。',
+      coopActionIsUpload, coopActionIsPosts, coopActionIsPayment, coopActionHandle, coopActionTitle, coopActionHint,
       coopActionModalWidth: coopActionIsPosts ? 'min(900px,100%)' : 'min(560px,100%)',
+      coopPaymentShownName: coopPaymentShown ? coopPaymentShown.name : '',
+      coopPaymentShownImage: coopPaymentShown ? coopPaymentShown.image : '',
+      coopPaymentHasImage: !!coopPaymentShown,
+      coopPaymentHasSaved: !!coopPaymentSaved,
+      coopPaymentSavedAt: coopPaymentSaved ? coopPaymentSaved.confirmedAt : '',
       coopActionFileRows, coopActionPosts, coopPostChannelOptions, coopAssetChannelOptions,
       coopSavedAssetRows, coopSavedAssetHasRows: coopActionIsPosts && coopSavedAssetRows.length > 0,
       coopSavedAssetCount: coopSavedAssetRows.length + ' 条',
@@ -10565,7 +10725,7 @@ class Component extends DCLogic {
       coopActionNotice: s.coopActionNotice || '',
       coopActionHasNotice: !!s.coopActionNotice,
       coopActionNoticeColor: /请|有效|已存在/.test(s.coopActionNotice || '') ? '#C4636D' : '#4E7156',
-      coopActionClose: () => this.setState({ coopActionType: '', coopActionHandle: '', coopPostUrl: '', coopActionNotice: '' }),
+      coopActionClose: () => this.setState({ coopActionType: '', coopActionHandle: '', coopPostUrl: '', coopActionNotice: '', coopPaymentDraft: null }),
       coopActionKeep: (e) => { if (e && e.stopPropagation) e.stopPropagation(); },
       coopUploadPick: (e) => {
         const picked = Array.from(e.target.files || []).map(file => ({
@@ -10601,6 +10761,8 @@ class Component extends DCLogic {
         const url = String(fm.url || '').trim();
         if (!String(fm.title || '').trim()) return { coopActionNotice: '请填写素材主题' };
         if (!/^https?:\/\/[^\s]+$/i.test(url)) return { coopActionNotice: '请输入以 http:// 或 https:// 开头的有效素材链接' };
+        const metricsError = this.assetMetricsError(fm);
+        if (metricsError) return { coopActionNotice: metricsError };
         const entry = {
           ...fm,
           handle: coopActionHandle || fm.handle,
@@ -10609,7 +10771,7 @@ class Component extends DCLogic {
           sku: cd.sku,
           campaign: cd.name,
           brand: cd.brand || cd.product,
-          types: fm.isRights ? ['合格素材', '授权素材'] : ['合格素材']
+          types: this.assetTypesOf(fm)
         };
         const exists = (st.alEntries || []).some(x => String(x.url || '').trim() === url);
         if (exists) return { coopActionNotice: '该素材链接已存在' };
@@ -11033,10 +11195,12 @@ class Component extends DCLogic {
         if (!String(fm.title || '').trim()) return { assetEntryNotice: '请填写素材主题' };
         if (!/^https?:\/\/[^\s]+$/i.test(url)) return { assetEntryNotice: '请输入以 http:// 或 https:// 开头的有效素材链接' };
         if ((st.alEntries || []).some(x => String(x.url || '').trim() === url)) return { assetEntryNotice: '该素材链接已存在' };
+        const metricsError = this.assetMetricsError(fm);
+        if (metricsError) return { assetEntryNotice: metricsError };
         const entry = {
           ...fm, campaign: selected.name, product: selected.product, sku: selected.sku,
           brand: String(selected.product || '').split(' ')[0], channel: fm.channel || 'TikTok',
-          types: fm.isRights ? ['合格素材', '授权素材'] : ['合格素材']
+          types: this.assetTypesOf(fm)
         };
         return {
           alEntries: [entry, ...(st.alEntries || [])], alRightsOpen: false,
@@ -11046,17 +11210,54 @@ class Component extends DCLogic {
       }),
       alTabs: [
         { id: 'lib', label: 'Asset Library', note: alRows.length + ' 条素材 · 含手工录入' },
-        { id: 'qual', label: '合格素材', note: 'AI 总结 · 合格数与曝光拆分' },
-        { id: 'rights', label: '授权素材', note: '授权类型 · 期限 · 合同' }
+        { id: 'qual', label: '合格素材', note: '仅收录手动标记合格的素材' },
+        { id: 'rights', label: '授权素材', note: '授权类型 · 期限 · 合同' },
+        { id: 'unqual', label: '不合格素材', note: '仅收录手动标记不合格的素材' }
       ].map(t => {
-        const on = (['lib', 'qual', 'rights'].includes(s.alTab) ? s.alTab : 'lib') === t.id;
+        const on = (['lib', 'qual', 'rights', 'unqual'].includes(s.alTab) ? s.alTab : 'lib') === t.id;
         return {
-          label: t.label, note: t.note, pick: () => this.setState({ alTab: t.id }),
+          label: t.label, note: t.note, pick: () => this.setState({ alTab: t.id, alFilter: {}, alSearch: '', assetQuery: '', alFilterOpen: null, assetTagOpen: null, assetRuleNotice: '' }),
           bg: on ? '#2457F5' : 'transparent', bd: on ? '#2457F5' : 'transparent',
           fg: on ? '#FFFFFF' : '#647187', noteFg: on ? '#FFFFFF' : '#8792A5'
         };
       }),
-      alTabLib: !['qual', 'rights'].includes(s.alTab), alTabQual: s.alTab === 'qual', alTabRights: s.alTab === 'rights',
+      alTabUnqual: s.alTab === 'unqual',
+      alLibraryTitle: ({qual:'合格素材',rights:'授权素材',unqual:'不合格素材'})[s.alTab] || 'Asset Library',
+      alLibraryDescription: ({qual:'仅收录手动标记为合格的素材；投放前仍需检查合同授权。',rights:'仅收录已关联、已签署且在有效期内的授权合同所覆盖的素材。',unqual:'仅收录手动标记为不合格的素材，可随复核结果重新打标。'})[s.alTab] || '统一管理素材质量标记与合同授权，两项状态独立记录。',
+      alLibraryRows,
+      alLibraryEmpty: alLibraryRows.length === 0,
+      alLibraryEmptyText: '当前分类下没有符合条件的素材。可清空筛选，或回到 Asset Library 完成打标与关联合同。',
+      alTabLib: true, alTabQual: false, alTabRights: false,
+      assetRuleNotice: s.assetRuleNotice || '', assetRuleHasNotice: !!s.assetRuleNotice,
+      alSearch: s.alSearch || '', setAlSearch: e=>this.setState({alSearch:e.target.value,assetQuery:''}),
+      assetContractOpen: !!contractAsset,
+      assetContractTitle: contractAsset ? contractAsset.title + ' · ' + contractAsset.handle : '',
+      assetContractContext: contractAsset ? contractAsset.campaign + ' · ' + contractAsset.sku : '',
+      assetContractClose: ()=>this.setState({assetContractAsset:null}),
+      assetContractKeep: e=>e.stopPropagation(),
+      assetContractUploadUrl,
+      assetContractError: s.assetContractError || '',
+      assetContractEmpty: contractCandidates.length === 0,
+      assetContractOptions: contractCandidates.map(c=>({
+        id:c.id, label:c.id + ' · ' + (c.rightsType === 'ad' ? '广告投放授权' : c.rightsType === 'social' ? '仅社媒授权' : '授权条款待确认'),
+        status:assetContractStore.status(c), scope:c.rightsScope || '尚未记录合同授权范围，请上传含授权条款的已签合同。',
+        dates:(c.signedDate || '签署日期待确认') + ' → ' + (c.expiryDate || '有效期待确认'),
+        bg:s.assetContractSelected === c.id ? '#EAF0FF':'#FFFFFF',
+        bd:s.assetContractSelected === c.id ? '#2457F5':'#E2E8F2',
+        check:s.assetContractSelected === c.id ? '●':'○',
+        url:'./12-Contract-Mgt.html?record='+encodeURIComponent(c.id),
+        pick:()=>this.setState(assetContractStore.status(c)==='已授权' ? {assetContractSelected:c.id,assetContractError:''} : {assetContractError:'该合同'+assetContractStore.status(c)+'，暂不能计入授权素材。'})
+      })),
+      assetContractConfirm:()=>{
+        try { if(!s.assetContractSelected) throw new Error('请选择已签署生效的授权合同');
+          assetContractStore.link(contractAsset,s.assetContractSelected);
+          this.setState({assetContractAsset:null,assetRuleNotice:'合同已关联，素材已进入授权素材。'});
+        } catch(error) {this.setState({assetContractError:error.message});}
+      },
+      assetContractUnlink:()=>{
+        try { assetContractStore.link(contractAsset,''); this.setState({assetContractAsset:null,assetRuleNotice:'已解除合同关联，素材已移出授权素材，质量标记保留。'}); }
+        catch (_) { this.setState({assetContractError:'解除关联失败，请重试。'}); }
+      },
       arKpis: ar.kpis, arRows: ar.rows, arNote: ar.note, arCountNote: ar.countNote,
       arFilters: ar.filters, clearArFilter: () => this.setState({ arFilter: {}, arFilterOpen: null }),
       aqScope: aq.scopeText,
@@ -11073,17 +11274,15 @@ class Component extends DCLogic {
       aqEmpty: aq.assetRows.length === 0, aqNoneApproved: aq.assetRows.length === 0,
       clearAqFilter: () => this.setState({ aqFilter: {}, aqFilterOpen: null }),
       aqFilters: aq.filters,
-      alFilterNote: '命中 ' + alRows.length + ' 条',
-      clearAlFilter: () => this.setState({ alFilter: {}, alFilterOpen: null }),
+      alFilterNote: '命中 ' + alLibraryRows.length + ' 条',
+      clearAlFilter: () => this.setState({ alFilter: {}, alFilterOpen: null, alSearch: '', assetQuery: '' }),
       alFilters: (() => {
         const af = s.alFilter || {};
         const defs = [
-          ['time', '时间', ['2026-08', '2026-07', '2026-06']],
-          ['product', '产品', ['Ryze 头皮按摩仪', 'Lumo 便携香氛机', '手工录入']],
+          ['campaign','Campaign',[...new Set(facts.assets.map(a=>a.campaign))]],
+          ['product', '产品', [...new Set(facts.assets.map(a=>a.product))]],
           ['channel', '渠道', ['TikTok', 'Instagram', 'YouTube']],
-          ['deal', '合作类型', ['付费合作', '产品置换', '佣金合作', '免费合作', '待确认']],
           ['views', 'Views', ['≥ 200K', '100K–200K', '< 100K']],
-          ['er', 'ER', ['≥ 10%', '5%–10%', '< 5%']],
           ['cpv', 'CPV', ['≤ $0.010', '> $0.010', '寄样（无成本）']]
         ];
         return defs.map(([k, label, opts]) => {
@@ -11119,59 +11318,93 @@ class Component extends DCLogic {
           txt('url', '素材链接', 'https://www.tiktok.com/@… /video/…'),
           txt('spend', '本条成本（USD）', '1200')
         ];
-        if (!fm.isRights) return base;
-        const cur = fm.rightsType || '';
-        return base.concat([
-          {
-            label: '授权类型', isSelect: true, value: cur || '选择授权类型',
-            fg: cur ? '#1D2638' : '#A2ABBA', bd: s.alRightsOpen ? '#2457F5' : '#E2E8F2', open: !!s.alRightsOpen,
-            toggle: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState(st => ({ alRightsOpen: !st.alRightsOpen })); },
-            options: ['广告投放授权', '仅社媒授权'].map(o => {
-              const on = cur === o;
-              return {
-                label: o, bg: on ? '#EAF0FF' : 'transparent', fg: on ? '#2457F5' : '#647187',
-                pick: () => this.setState(st => ({ alForm: { ...(st.alForm || {}), rightsType: o }, alRightsOpen: false }))
-              };
-            })
-          },
-          txt('rightsMonths', '授权期限（月）', '6'),
-          txt('rightsScope', '授权范围', '社媒 · 白名单投放'),
-          txt('contract', '合同编号', 'CT-2026-0831-XXX')
-        ]);
+        return base;
       })(),
       alTypeChips: (() => {
         const fm = s.alForm || {};
-        const rights = !!fm.isRights;
         const defs = [
-          { id: 'qualified', label: '合格素材', note: 'ER ≥ 5% 计入合格数', on: true, locked: true },
-          { id: 'rights', label: '授权素材', note: '需填授权类型与期限', on: rights, locked: false }
+          { id: 'isQualified', label: '合格素材', note: '计入合格数', on: !!fm.isQualified },
+          { id: 'isUnqualified', label: '不合格素材', note: '不计入合格数', on: !!fm.isUnqualified }
         ];
         return defs.map(d => ({
-          label: d.label, note: d.note,
+          label: d.label, note: d.note, on: d.on,
           check: d.on ? '✓' : '',
           boxBg: d.on ? '#2457F5' : 'transparent', boxBd: d.on ? '#2457F5' : '#C8D4E8',
           bg: d.on ? '#F8FAFE' : '#FFFFFF', bd: d.on ? '#F0C9B8' : '#E2E8F2',
           fg: d.on ? '#1D2638' : '#647187',
-          pick: () => { if (d.locked) return; this.setState(st => ({ alForm: { ...(st.alForm || {}), isRights: !(st.alForm || {}).isRights } })); }
+          pick: () => this.setState(st => {
+            const form = { ...(st.alForm || {}), [d.id]: !(st.alForm || {})[d.id] };
+            if (form[d.id] && d.id === 'isQualified') form.isUnqualified = false;
+            if (form[d.id] && d.id === 'isUnqualified') form.isQualified = false;
+            return { alForm: form, alRightsOpen: d.id === 'isRights' ? false : st.alRightsOpen };
+          })
         }));
       })(),
-      alTypeHint: (s.alForm || {}).isRights ? '已标为授权素材 · 授权素材默认同时进入合格素材清单' : '',
-      alFormMetrics: [['m_views', 'Views', '例：412K'], ['m_er', 'ER %', '例：7.1'], ['cpv', 'CPV', '留空自动计算'], ['gmv', '红人 GMV（非必填）', '例：4300']].map(([k, label, ph]) => ({
-        label, ph, value: (s.alForm || {})[k] || '',
-        set: (e) => { const v = e.target.value; this.setState(st => ({ alForm: { ...(st.alForm || {}), [k]: v } })); }
+      alTypeHint: '质量可暂不标记，合格与不合格互斥；授权需保存后在列表中关联已签署生效的授权合同。',
+      alMarketingGoalCards: (() => {
+        const fm = s.alForm || {};
+        const name = s.assetEntryOpen ? s.assetEntryCampaign : fm.campaign;
+        const selected = campaignList.find(c => c.name === name) || (name && cd.name === name ? cd : null);
+        const submitted = selected && (s.newCampaigns || []).find(c => c.name + ' · ' + c.goal === selected.name);
+        const campaignMetrics = selected ? (selected.goals || []).map(g => ({ label: g.label, value: g.target || '未设置' })) : [];
+        if (selected && !campaignMetrics.length) {
+          campaignMetrics.push(
+            { label: '内容数量', value: submitted && submitted.contentTarget != null ? submitted.contentTarget + ' 条内容' : '未设置' },
+            { label: '播放量', value: submitted && submitted.viewsTarget ? submitted.viewsTarget + ' 播放' : '未设置' },
+            { label: '预算目标', value: selected.budget || '未设置' },
+            { label: '时间目标', value: selected.window || '未设置' }
+          );
+        }
+        const rawHandle = String(fm.handle || '').trim();
+        const handle = rawHandle ? '@' + rawHandle.replace(/^@/, '').toLowerCase() : '';
+        const goalDef = selected && handle
+          ? ((s.campaignCreatorGoals || {})[selected.sku + '|' + handle] || (this.CREATOR_CAMPAIGN_GOALS[selected.sku] || {})[handle]) : null;
+        const hasValue = value => value != null && String(value).trim() !== '';
+        return [
+          {
+            title: 'Campaign 营销目标', badge: selected ? '已关联' : '待选择 Campaign',
+            context: selected ? selected.name + ' · ' + (selected.goalType || selected.objective || '营销目标') : '选择所属 Campaign 后，自动展示该项目的营销目标。',
+            empty: !selected, emptyText: '尚未选择 Campaign',
+            metrics: campaignMetrics
+          },
+          {
+            title: '红人营销目标', badge: goalDef ? '已关联' : '待关联目标',
+            context: !selected ? '请先选择 Campaign，再填写红人账号。' : !handle ? '填写红人账号后，自动展示该产品下的红人营销目标。' : handle + ' · ' + selected.product,
+            empty: !goalDef,
+            emptyText: !selected ? '尚未选择 Campaign' : !handle ? '尚未填写红人账号' : '该红人在当前产品下尚未设置营销目标',
+            metrics: goalDef ? [
+              { label: '内容数量', value: hasValue(goalDef.content) ? goalDef.content + ' 条内容' : '未设置' },
+              { label: '播放量', value: hasValue(goalDef.views) ? String(goalDef.views) + ' 播放' : '未设置' },
+              { label: '红人 GMV 目标', value: hasValue(goalDef.gmv) ? '$' + Number(goalDef.gmv).toLocaleString('en-US') : '未设置' }
+            ] : []
+          }
+        ];
+      })(),
+      alMetricGroups: this.assetMetricPeriods.map(period => ({
+        label: period.label,
+        fields: [['views', 'Views', '例：412K'], ['cpv', 'CPV', '例：0.003'], ['gmv', '红人 GMV（非必填）', '例：4300'], ['er', 'ER %（非必填）', '例：7.1']].map(([key, label, ph]) => ({
+          label, ph, ariaLabel: period.label + ' · ' + label, required: key === 'views' || key === 'cpv',
+          value: (s.alForm || {})[period.id + '_' + key] ?? '',
+          set: (e) => {
+            const value = e.target.value;
+            this.setState(st => ({ alForm: { ...(st.alForm || {}), [period.id + '_' + key]: value }, assetEntryNotice: '', coopActionNotice: '', alMetricsNotice: '' }));
+          }
+        }))
       })),
-      alFormNote: s.alSaved
+      alFormNote: s.alMetricsNotice || (s.alSaved
         ? '已保存并加入 Asset Library，可切到左侧卡片查看'
         : ((s.alForm || {}).isRights
-            ? 'CPV 自动计算 · 保存后同时进入合格素材与授权素材两张清单'
-            : 'CPV 会按「本条成本 ÷ 最新 Views」自动计算 · 勾选「授权素材」可补授权信息'),
-      alReset: () => this.setState({ alForm: {}, alSaved: false }),
+            ? 'Views、CPV 必填，红人 GMV 和 ER % 可留空 · 按所选类型保存'
+            : 'Views、CPV 必填，红人 GMV 和 ER % 可留空 · 勾选「授权素材」可补授权信息')),
+      alReset: () => this.setState({ alForm: {}, alSaved: false, alMetricsNotice: '' }),
       alSubmit: () => this.setState(st => {
         const fm = st.alForm || {};
         if (!fm.title && !fm.handle) return { alSaved: false };
+        const metricsError = this.assetMetricsError(fm);
+        if (metricsError) return { alSaved: false, alMetricsNotice: metricsError };
         return {
-          alSaved: true, alTab: 'lib', alForm: {},
-          alEntries: [{ ...fm, types: fm.isRights ? ['合格素材', '授权素材'] : ['合格素材'] }, ...(st.alEntries || [])]
+          alMetricsNotice: '', alSaved: true, alTab: 'lib', alForm: {},
+          alEntries: [{ ...fm, types: this.assetTypesOf(fm) }, ...(st.alEntries || [])]
         };
       }),
       isContact: page === 'contact', contactSent: !!s.contactSent, contactForm: !s.contactSent,
@@ -11942,52 +12175,49 @@ class Component extends DCLogic {
       smpPieceCount: String(smpShown.reduce((t, x) => t + x.qty, 0)),
       smpDownload: () => {
         const rows = smpShown.filter(x => x.pending);
-        const cols = ['姓名', '收货国家', '收货地区', '收货城市', '邮编', '电话', '收货地址1', '收货地址2', 'ASIN', 'MSKU', '发货数量'];
+        const cols = ['寄样单编号', '姓名', '收货国家', '收货地区', '收货城市', '邮编', '电话', '收货地址1', '收货地址2', 'ASIN', 'MSKU', '发货数量', '外部运单号'];
         const blank = (v) => (v === '—' ? '' : v);
-        const body = rows.map(r => [r.recipient, r.country, r.region, r.city, blank(r.zip), blank(r.phone), blank(r.line1), blank(r.line2), r.asin, r.msku, Number(r.qty) || 0]);
+        const body = rows.map(r => [r.shipmentId, r.recipient, r.country, r.region, r.city, blank(r.zip), blank(r.phone), blank(r.line1), blank(r.line2), r.asin, r.msku, Number(r.qty) || 0, '']);
         this._downloadXlsx('待寄样清单.xlsx', '待寄样清单', cols, body);
       },
       smpBindOpen: !!s.smpBindOpen,
-      openSmpBind: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ smpBindOpen: true, smpBindError: '', smpBindText: s.smpBindText || '' }); },
-      closeSmpBind: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ smpBindOpen: false, smpBindError: '' }); },
-      smpBindText: s.smpBindText || '',
-      setSmpBindText: (e) => this.setState({ smpBindText: e.target.value, smpBindError: '' }),
-      smpBindNote: s.smpBindError || '每行填写：姓名, 电话, MSKU, 运单号。可用逗号或从 Excel 粘贴。',
-      smpBindNoteFg: s.smpBindError ? '#C4636D' : '#A2ABBA',
+      openSmpBind: (e) => { e?.stopPropagation(); this._waybillReadToken = (this._waybillReadToken || 0) + 1; this.setState({ smpBindOpen: true, smpBindError: '', smpImportRows: [], smpImportPreview: [], smpImportFile: '', smpImportBusy: false, smpImportNotice: '' }); },
+      closeSmpBind: (e) => { e?.stopPropagation(); this._waybillReadToken = (this._waybillReadToken || 0) + 1; this.setState({ smpBindOpen: false, smpBindError: '', smpImportBusy: false }); },
+      smpImportFile: s.smpImportFile || '尚未选择文件',
+      smpImportBusy: !!s.smpImportBusy,
+      smpImportRows: s.smpImportPreview || [],
+      smpImportHasRows: !!(s.smpImportPreview || []).length,
+      smpImportDisabled: !!s.smpImportBusy || !(s.smpImportPreview || []).some(r => r.kind === 'ready'),
+      smpImportSummary: (() => { const rows = s.smpImportPreview || []; return '共 ' + rows.length + ' 行 · 可回填 ' + rows.filter(r => r.kind === 'ready').length + ' · 跳过 ' + rows.filter(r => r.kind === 'skip').length + ' · 需核对 ' + rows.filter(r => r.kind === 'error').length; })(),
+      smpBindNote: s.smpBindError || (s.smpImportBusy ? '正在读取清单…' : '仅回填匹配成功的行；空值跳过，已有运单号不会被覆盖。'),
+      smpBindNoteFg: s.smpBindError ? '#C4636D' : '#8792A5',
+      smpImportNotice: s.smpImportNotice || '',
+      smpImportNoticeVisible: !!s.smpImportNotice,
+      smpImportPick: async (e) => {
+        const file = e.target.files && e.target.files[0]; if (!file) return;
+        e.target.value = '';
+        const token = this._waybillReadToken = (this._waybillReadToken || 0) + 1;
+        this.setState({ smpImportBusy: true, smpBindError: '', smpImportFile: file.name, smpImportRows: [], smpImportPreview: [] });
+        try {
+          const rows = await window.AIOSWaybillImport.read(file);
+          if (token !== this._waybillReadToken) return;
+          this.setState({ smpImportBusy: false, smpImportRows: rows, smpImportPreview: window.AIOSWaybillImport.preview(rows, this.state.shipOrders || []), smpBindError: rows.length ? '' : '清单中没有数据行' });
+        } catch (error) {
+          if (token !== this._waybillReadToken) return;
+          this.setState({ smpImportBusy: false, smpBindError: '读取失败：' + (error.message || '请检查文件格式') });
+        }
+      },
       smpBindSubmit: () => {
-        const fold = (v) => String(v || '').trim().toLowerCase();
-        const digits = (v) => String(v || '').replace(/\D/g, '');
-        const sameName = (a, b) => {
-          const x = fold(a), y = fold(b);
-          return !!(x && y && (x === y || x.indexOf(y) >= 0 || y.indexOf(x) >= 0));
-        };
-        const samePhone = (a, b) => {
-          const x = digits(a), y = digits(b);
-          if (!x || !y) return false;
-          return x === y || (x.length >= 7 && y.length >= 7 && (x.endsWith(y) || y.endsWith(x)));
-        };
-        const lines = String(this.state.smpBindText || '').split(/\n+/).map(x => x.trim()).filter(Boolean);
-        const parsed = lines.map(line => {
-          const parts = line.split(/[,，\t]/).map(x => x.trim()).filter(Boolean);
-          if (parts.length < 4) return null;
-          return { name: parts[0], phone: parts[1], msku: parts[2], tracking: parts[parts.length - 1] };
-        }).filter(Boolean);
-        if (!parsed.length) return this.setState({ smpBindError: '没有识别到有效行，每行需要「姓名, 电话, MSKU, 运单号」' });
-        let hit = 0;
-        this.setState(st => {
-          const next = (st.shipOrders || []).map(o => {
-            if (!this._isPendingShip(o)) return o;
-            const a = o.addr || {};
-            const skuRec = skuAll.find(p => p.sku === o.sku) || skuAll.find(p => p.name === o.product) || {};
-            const msku = String(skuRec.sku || o.sku || '');
-            const row = parsed.find(p => sameName(a.name, p.name) && samePhone(a.phone, p.phone) && fold(msku) === fold(p.msku));
-            if (!row) return o;
-            hit += 1;
-            return { ...o, tracking: row.tracking, trackingBound: true, stage: Math.max(this._orderStage(o), 1) };
-          });
-          if (!hit) return { smpBindError: '没有匹配到待寄样行，请核对姓名、电话、MSKU' };
-          return { shipOrders: next, smpBindOpen: false, smpBindText: '', smpBindError: '', smpFilter: '在途' };
-        });
+        if (this.state.smpImportBusy) return;
+        const preview = window.AIOSWaybillImport.preview(this.state.smpImportRows || [], this.state.shipOrders || []);
+        if (JSON.stringify(preview) !== JSON.stringify(this.state.smpImportPreview || [])) return this.setState({ smpImportPreview: preview, smpBindError: '寄样单已变化，请核对更新后的预览，再次确认。' });
+        const ready = preview.filter(r => r.kind === 'ready'); if (!ready.length) return;
+        const byId = new Map(ready.map(r => [r.id, r.tracking]));
+        this.setState(st => ({
+          shipOrders: (st.shipOrders || []).map(o => byId.has(o.shipmentId) ? { ...o, tracking: byId.get(o.shipmentId), trackingBound: true, trackingBoundAt: new Date().toISOString(), stage: Math.max(this._orderStage(o), 1) } : o),
+          smpBindOpen: false, smpFilter: '在途', smpQuery: '', smpRangeMode: 'year', smpBindError: '', smpImportRows: [], smpImportPreview: [],
+          smpImportNotice: '成功回填 ' + ready.length + ' 条运单，已转入在途。跳过 ' + preview.filter(r => r.kind === 'skip').length + ' 行，需核对 ' + preview.filter(r => r.kind === 'error').length + ' 行。'
+        }));
       },
       crTabs, crTabLib: crTab === 'lib', crTabQuality: crTab === 'quality', crTabBlack: crTab === 'black',
       crTabCoop: crTab === 'coop', crTabLook: crTab === 'lookalike',
@@ -12024,10 +12254,18 @@ class Component extends DCLogic {
           notifLog: [{ kind: 'ship', title: '批量寄样单已创建 · ' + picked.length + ' 单', note: picked.join('、') + ' · 待补收件地址', when: '刚刚' }, ...(st.notifLog || [])]
         }));
       },
-      bkTagOptions: [['继续合作', '加入合作红人 List', '#2457F5'], ['合格/优质红人', '加入合格/优质红人', '#4E7156'], ['淘汰/拉黑', '加入淘汰 / 黑名单', '#C4636D']].map(([t, sub, dot]) => ({
+      bkTagOptions: [['继续合作', '加入合作红人 List', '#2457F5'], ['合格/优质红人', '加入合格/优质红人', '#4E7156'], ['淘汰/拉黑', '加入淘汰 / 黑名单', '#C4636D'], ['医疗类型', '添加「医」字标识', '#16877E'], ['取消医疗标记', '移除「医」字标识', '#8792A5']].map(([t, sub, dot]) => ({
         label: t, sub, dot,
         pick: () => {
           const picked = s.bkPicked || [];
+          if (!picked.length) return;
+          if (t === '医疗类型' || t === '取消医疗标记') {
+            return this.setState(st => ({
+              medicalCreatorsRemoved: t === '医疗类型' ? (st.medicalCreatorsRemoved || []).filter(h => !picked.includes(h)) : [...new Set([...(st.medicalCreatorsRemoved || []), ...picked])],
+              medicalCreators: t === '医疗类型' ? [...new Set([...(st.medicalCreators || []), ...picked])] : (st.medicalCreators || []).filter(h => !picked.includes(h)),
+              bkTagOpen: false, bkPicked: []
+            }));
+          }
           this.setState(st => {
             const tags = { ...(st.alTags || {}) };
             picked.forEach(h => { tags[h] = t; });
@@ -12036,6 +12274,7 @@ class Component extends DCLogic {
               next.coopList = [...new Set([...(st.coopList || []), ...picked])];
               next.blackAdded = (st.blackAdded || []).filter(x => picked.indexOf(x) < 0);
             } else if (t === '合格/优质红人') {
+              next.qualityRemoved = (st.qualityRemoved || []).filter(h => !picked.includes(h));
               next.qualityAdded = [...new Set([...(st.qualityAdded || []), ...picked])];
               next.blackAdded = (st.blackAdded || []).filter(x => picked.indexOf(x) < 0);
             } else {
@@ -12091,7 +12330,7 @@ class Component extends DCLogic {
         const urlOf = { TikTok: 'https://www.tiktok.com/' + c.handle, Instagram: 'https://www.instagram.com/' + bare, YouTube: 'https://www.youtube.com/' + c.handle };
         const second = c.platform === 'Instagram' ? 'TikTok' : 'Instagram';
         return {
-          handle: c.handle, initial: c.handle.slice(1, 2).toUpperCase(), avatar: creatorAvatarMap[c.handle] || '../avatars/mia.jpg',
+          ...creatorBadges(c.handle), handle: c.handle, initial: c.handle.slice(1, 2).toUpperCase(), avatar: creatorAvatarMap[c.handle] || '../avatars/mia.jpg',
           platform: (c.platform || '').toUpperCase(), niche: c.niche,
           url: urlOf[c.platform] || urlOf.TikTok,
           links: [
@@ -12648,7 +12887,7 @@ class Component extends DCLogic {
       crLibNote: '筛选后 ' + creators.length + ' / ' + creatorDefs.length + ' 位红人 · 均播与 ER 取近 30 天',
       crHeadNote: creatorDefs.length + ' 位红人 · ' + s.shortlist.length + ' 位在 shortlist · 按 FIT 打分降序',
       crLibEmpty: creators.length === 0,
-      crQuality, crBlacklist,
+      crQuality: crQuality.map(q => ({ ...q, ...creatorBadges(q.handle) })), crBlacklist: crBlacklist.map(b => ({ ...b, ...creatorBadges(b.handle) })),
       rp: reportShell,
       reportHeadline: 'Q2 最大的发现不是哪个红人好，而是「叙事角度」比「粉丝量级」更决定结果：同一层级红人，睡前 routine 角度的 ROAS 比开箱高 41%。下一轮应该先定角度，再选人。',
       winning, weak, nextRound, settings,

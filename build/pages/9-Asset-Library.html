@@ -15,6 +15,32 @@
 <meta name="twitter:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
 <title>Asset Library · Influencer Marketing AIOS</title>
 <link rel="stylesheet" href="../design-system.css">
+<style>
+.asset-cards{container-type:inline-size;container-name:asset-list;min-width:0}
+.asset-card{background:#FFF;border:1px solid #E2E8F2;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 3px 12px rgba(29,38,56,.025)}
+.asset-card-main{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,.95fr);gap:22px;padding:20px}
+.asset-card-main>div{min-width:0}
+.asset-card-label{font-size:10.5px;color:#8792A5;margin-bottom:10px;letter-spacing:.02em}
+.asset-card-media{display:flex;gap:12px;align-items:flex-start}
+.asset-card-cover{width:68px;height:76px;flex:0 0 68px;border:1px solid #E2E8F2;border-radius:10px;background-size:cover;background-position:center}
+.asset-card-name{font-size:13px;font-weight:600;line-height:1.6;color:#2457F5;overflow-wrap:anywhere}
+.asset-card-meta{font-size:11.5px;color:#647187;line-height:1.8;overflow-wrap:anywhere}
+.asset-card-pair{display:flex;gap:9px;align-items:baseline;font-size:11.5px;line-height:1.85;margin-top:3px}
+.asset-card-pair>span:first-child{color:#8792A5;flex:0 0 54px;font-size:10.5px}
+.asset-card-pair>span:last-child{min-width:0;overflow-wrap:anywhere;color:#1D2638}
+.asset-card-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0;background:#F8FAFE;border:1px solid #EDF1F7;border-radius:11px;padding:12px 9px}
+.asset-card-metrics>div{min-width:0;text-align:center}
+.asset-card-metrics dt{font-size:10.5px;color:#8792A5;margin-bottom:7px}
+.asset-card-metrics dd{margin:0;font-size:15px;font-weight:600;color:#1D2638;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.02em}
+.asset-card-footer{display:flex;align-items:center;gap:20px;padding:13px 20px;border-top:1px solid #EEF2F8;background:#FCFDFF;flex-wrap:wrap}
+.asset-card-quality{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.asset-card-select{font:inherit;font-size:11.5px;border:1px solid #D9E1EF;border-radius:8px;padding:7px 9px;width:118px;cursor:pointer}
+.asset-card-auth{display:flex;align-items:center;gap:12px;flex:1 1 280px;min-width:0;padding-left:20px;border-left:1px solid #E2E8F2}
+.asset-card-contract-btn{flex:none;font:inherit;font-size:11.5px;background:#FFF;border:1px solid #CBD8F2;border-radius:999px;color:#2457F5;padding:8px 13px;cursor:pointer}
+.asset-card-contract-btn:hover{background:#EAF0FF;border-color:#A8BDF5}
+@container asset-list (max-width:780px){.asset-card-main{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}.asset-card-performance{grid-column:1/-1}.asset-card-metrics{padding:10px}.asset-card-auth{padding-left:0;border-left:0}}
+@container asset-list (max-width:480px){.asset-card-main{grid-template-columns:minmax(0,1fr);padding:16px}.asset-card-footer{padding:13px 16px}.asset-card-auth{flex-basis:100%}}
+</style>
 <script>window.AIOS_PAGE = "assets";</script>
 <script src="../support.js"></script>
 <script src="../mail-nav.js" defer></script>
@@ -212,203 +238,11 @@
             </sc-for>
           </div>
 
-          <sc-if value="{{ alTabQual }}" hint-placeholder-val="{{ false }}">
-            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#EDF1F7;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden;margin-bottom:12px">
-              <sc-for list="{{ aqKpis }}" as="k" hint-placeholder-count="4">
-                <div style="background:#FFFFFF;padding:14px 16px;min-width:0">
-                  <div style="font-size:11.5px;color:#A2ABBA;line-height:1.4;text-wrap:pretty">{{ k.label }}</div>
-                  <div style="font-size:22px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;color:{{ k.color }}">{{ k.value }}</div>
-                  <div style="font-size:11.5px;color:#8792A5;line-height:1.45;text-wrap:pretty">{{ k.note }}</div>
-                </div>
-              </sc-for>
-            </div>
-
-            <div style="background:#F1F5FF;border:1px solid #D9E4FF;border-radius:14px;padding:12px 14px;margin-bottom:12px">
-              <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
-                <span style="flex:0 0 auto;font-size:11px;font-weight:600;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:2px 9px">AI 总结</span>
-                <span style="flex:0 0 auto;font-size:13px;font-weight:600;color:#1D2638">合格素材与曝光概况</span>
-                <span style="flex:1 1 200px;min-width:0;font-size:11.5px;color:#647187;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ aqHeadline }}</span>
-                <span style="flex:0 0 auto;font-size:11.5px;color:#1D48D8;white-space:nowrap">{{ aqScope }}</span>
-                <div onClick="{{ toggleAqSummary }}" style="flex:0 0 auto;font-size:11.5px;border:1px solid #D9E4FF;background:#FFFFFF;color:#1D48D8;border-radius:999px;padding:3px 11px;cursor:pointer;white-space:nowrap" style-hover="border-color:#B8CBFF">{{ aqToggleLabel }}</div>
-              </div>
-              <sc-if value="{{ aqSummaryOpen }}" hint-placeholder-val="{{ false }}">
-                <div style="margin-top:10px;font-size:13.5px;line-height:1.8;text-wrap:pretty;animation:fadeUp .16s ease both">{{ aqSummary }}</div>
-              </sc-if>
-            </div>
-
-            <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 12px;margin-bottom:12px;position:relative;z-index:60">
-              <sc-for list="{{ aqFilters }}" as="qf" hint-placeholder-count="5">
-                <div style="flex:0 0 auto;position:relative">
-                  <div onClick="{{ qf.toggle }}" title="{{ qf.label }}" style="display:flex;flex-direction:column;gap:1px;border:1px solid {{ qf.bd }};background:{{ qf.bg }};border-radius:11px;padding:5px 11px;cursor:pointer;white-space:nowrap;min-width:78px" style-hover="border-color:#C8D4E8">
-                    <span style="font-size:10.5px;color:#A2ABBA;letter-spacing:.02em">{{ qf.label }}</span>
-                    <span style="display:flex;align-items:center;gap:5px">
-                      <span style="font-size:12.5px;font-weight:500;color:{{ qf.fg }};font-variant-numeric:tabular-nums;max-width:112px;overflow:hidden;text-overflow:ellipsis">{{ qf.current }}</span>
-                      <span style="font-size:8px;color:#A2ABBA">▾</span>
-                    </span>
-                  </div>
-                  <sc-if value="{{ qf.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:calc(100% + 5px);left:0;z-index:90;min-width:158px;max-height:250px;overflow-y:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 10px 26px rgba(29,38,56,.12);padding:5px">
-                      <sc-for list="{{ qf.options }}" as="o" hint-placeholder-count="3">
-                        <div onClick="{{ o.pick }}" style="font-size:12.5px;color:{{ o.fg }};background:{{ o.bg }};border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums" style-hover="background:#F8FAFE">{{ o.label }}</div>
-                      </sc-for>
-                    </div>
-                  </sc-if>
-                </div>
-              </sc-for>
-              <div onClick="{{ clearAqFilter }}" style="flex:0 0 auto;font-size:12px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:5px 11px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">清空</div>
-              <span style="flex:1 1 120px;min-width:0;font-size:11.5px;color:#A2ABBA;text-align:right;white-space:nowrap">{{ aqCountNote }}</span>
-            </div>
-
-              <sc-if value="{{ aqNoneApproved }}" hint-placeholder-val="{{ true }}">
-                <div style="border:1px dashed #E2E8F2;border-radius:14px;padding:22px;text-align:center;font-size:13px;color:#8792A5;text-wrap:pretty">还没有审核收录的素材。在 Asset Library 给素材打「合格素材 / 授权素材」标签并提交申请，审核通过后会自动收录到这里。</div>
-              </sc-if>
-            <div style="border:1px solid #E2E8F2;border-radius:16px;background:#FFFFFF;box-shadow:0 8px 24px rgba(29,38,56,.04);overflow-x:auto">
-              <div style="min-width:1460px">
-                <div style="display:grid;grid-template-columns:28px 176px 96px minmax(200px,1.45fr) 54px 84px minmax(150px,1fr) 100px 92px 72px 58px 74px 130px;column-gap:14px;padding:13px 18px;background:#F8FAFE;border-bottom:1px solid #E2E8F2;font-size:11.5px;color:#8792A5;letter-spacing:.03em">
-                  <div>#</div><div>红人</div><div>Post Day</div><div>素材主题</div><div>渠道</div><div>封面</div><div>合作产品</div><div>SKU</div><div>合作类型</div><div style="text-align:right">Views</div><div style="text-align:right">ER</div><div style="text-align:right">CPV</div><div>收录状态</div>
-                </div>
-                <sc-for list="{{ aqAssets }}" as="r" hint-placeholder-count="4">
-                  <div style="border-bottom:1px solid #F5F8FE;background:{{ r.rowBg }}">
-                    <div style="display:grid;grid-template-columns:28px 176px 96px minmax(200px,1.45fr) 54px 84px minmax(150px,1fr) 100px 92px 72px 58px 74px 130px;column-gap:14px;padding:14px 18px;align-items:center" style-hover="background:#F8FAFE">
-                      <div style="font-size:12px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ r.idx }}</div>
-                      <div style="display:flex;align-items:center;gap:8px;min-width:0">
-                        <div style="width:26px;height:26px;flex:0 0 26px;border-radius:999px;background:#F5F8FE;border:1px solid #E2E8F2;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#647187">{{ r.initial }}</div>
-                        <div style="min-width:0">
-                          <div style="font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.handle }}</div>
-                          <div style="display:flex;align-items:center;gap:6px;margin-top:1px">
-                            <span style="flex:0 0 auto;font-size:10px;color:#8792A5;white-space:nowrap">{{ r.tierText }}</span>
-                            <sc-for list="{{ r.links }}" as="l" hint-placeholder-count="2">
-                              <a href="{{ l.url }}" target="_blank" rel="noopener" title="{{ l.title }}" style="flex:0 0 auto;font-size:10px;white-space:nowrap">{{ l.short }}↗</a>
-                            </sc-for>
-                          </div>
-                        </div>
-                      </div>
-                      <div style="font-size:12px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.postDate }}</div>
-                      <a href="{{ r.url }}" target="_blank" rel="noopener" title="{{ r.title }}" style="display:block;min-width:0;font-size:13.5px;font-weight:600;letter-spacing:-.01em;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none">{{ r.title }}</a>
-                      <div title="{{ r.channel }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #E2E8F2;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><img src="{{ r.channelLogo }}" alt="{{ r.channel }}" style="width:18px;height:18px;display:block;object-fit:contain" /></div>
-                      <a href="{{ r.url }}" target="_blank" rel="noopener" title="打开原素材" style="display:block;width:72px;height:52px;border-radius:10px;border:1px solid #DCE4F0;box-shadow:0 2px 6px rgba(29,38,56,.08);background-color:{{ r.coverTint }};background-image:{{ r.coverBg }};background-size:cover;background-position:center;position:relative;overflow:hidden;text-decoration:none">
-                        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9.5px;background:{{ r.coverShade }};color:{{ r.coverFg }}">{{ r.coverMark }}</span>
-                      </a>
-                      <div style="min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.product }}</div>
-                      <div style="min-width:0;font-size:11.5px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.sku }}</div>
-                      <div style="min-width:0"><span style="display:inline-block;max-width:100%;font-size:11px;font-weight:500;border-radius:7px;padding:2px 8px;background:{{ r.dealBg }};color:{{ r.dealFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.deal }}</span></div>
-                      <div style="font-size:13px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.views }}</div>
-                      <div style="font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.er }}</div>
-                      <div style="font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;color:{{ r.cpvColor }};white-space:nowrap">{{ r.cpv }}</div>
-                      <div style="min-width:0">
-                        <span style="display:inline-block;max-width:100%;font-size:10.5px;font-weight:500;border-radius:6px;padding:2px 7px;background:#E4EFE4;color:#4E7156;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">✓ {{ r.approvedTag }}</span>
-                        <div title="审核人 {{ r.approvedBy }}" style="font-size:10px;color:#A2ABBA;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">{{ r.approvedWhen }} 收录</div>
-                      </div>
-                    </div>
-                  </div>
-                </sc-for>
-              </div>
-            </div>
-          </sc-if>
-
-          <sc-if value="{{ alTabRights }}" hint-placeholder-val="{{ false }}">
-            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#EDF1F7;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden;margin-bottom:12px">
-              <sc-for list="{{ arKpis }}" as="k" hint-placeholder-count="4">
-                <div style="background:#FFFFFF;padding:14px 16px;min-width:0">
-                  <div style="font-size:11.5px;color:#A2ABBA;line-height:1.4;text-wrap:pretty">{{ k.label }}</div>
-                  <div style="font-size:22px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;color:{{ k.color }}">{{ k.value }}</div>
-                  <div style="font-size:11.5px;color:#8792A5;line-height:1.45;text-wrap:pretty">{{ k.note }}</div>
-                </div>
-              </sc-for>
-            </div>
-
-            <div style="background:#F1F5FF;border:1px solid #D9E4FF;border-radius:14px;padding:12px 14px;margin-bottom:12px">
-              <div style="display:flex;align-items:flex-start;gap:9px;flex-wrap:wrap">
-                <span style="flex:0 0 auto;font-size:11px;font-weight:600;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:2px 9px;margin-top:1px">AI 总结</span>
-                <span style="flex:1 1 240px;min-width:0;font-size:13px;line-height:1.7;text-wrap:pretty">{{ arNote }}</span>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 12px;margin-bottom:12px;position:relative;z-index:60">
-              <sc-for list="{{ arFilters }}" as="rf" hint-placeholder-count="4">
-                <div style="flex:0 0 auto;position:relative">
-                  <div onClick="{{ rf.toggle }}" title="{{ rf.label }}" style="display:flex;flex-direction:column;gap:1px;border:1px solid {{ rf.bd }};background:{{ rf.bg }};border-radius:11px;padding:5px 11px;cursor:pointer;white-space:nowrap;min-width:82px" style-hover="border-color:#C8D4E8">
-                    <span style="font-size:10.5px;color:#A2ABBA;letter-spacing:.02em">{{ rf.label }}</span>
-                    <span style="display:flex;align-items:center;gap:5px">
-                      <span style="font-size:12.5px;font-weight:500;color:{{ rf.fg }};max-width:118px;overflow:hidden;text-overflow:ellipsis">{{ rf.current }}</span>
-                      <span style="font-size:8px;color:#A2ABBA">▾</span>
-                    </span>
-                  </div>
-                  <sc-if value="{{ rf.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:calc(100% + 5px);left:0;z-index:90;min-width:168px;max-height:250px;overflow-y:auto;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 10px 26px rgba(29,38,56,.12);padding:5px">
-                      <sc-for list="{{ rf.options }}" as="o" hint-placeholder-count="3">
-                        <div onClick="{{ o.pick }}" style="font-size:12.5px;color:{{ o.fg }};background:{{ o.bg }};border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap" style-hover="background:#F8FAFE">{{ o.label }}</div>
-                      </sc-for>
-                    </div>
-                  </sc-if>
-                </div>
-              </sc-for>
-              <div onClick="{{ clearArFilter }}" style="flex:0 0 auto;font-size:12px;border:1px solid #E2E8F2;background:#FFFFFF;color:#8792A5;border-radius:999px;padding:5px 11px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#1D2638">清空</div>
-              <span style="flex:1 1 120px;min-width:0;font-size:11.5px;color:#A2ABBA;text-align:right;white-space:nowrap">{{ arCountNote }}</span>
-            </div>
-
-            <div style="border:1px solid #E2E8F2;border-radius:16px;background:#FFFFFF;box-shadow:0 8px 24px rgba(29,38,56,.04);overflow-x:auto">
-              <div style="min-width:1500px">
-                <div style="display:grid;grid-template-columns:28px 176px minmax(200px,1.4fr) 84px 54px minmax(150px,1fr) 92px 74px 116px 96px minmax(170px,1.2fr) 130px;column-gap:14px;padding:13px 18px;background:#F8FAFE;border-bottom:1px solid #E2E8F2;font-size:11.5px;color:#8792A5;letter-spacing:.03em">
-                  <div>#</div><div>红人</div><div>素材主题</div><div>封面</div><div>渠道</div><div>合作产品</div><div>合作类型</div><div style="text-align:right">CPV</div><div>授权类型</div><div style="text-align:right">授权期限</div><div>授权范围</div><div style="text-align:right">合同</div>
-                </div>
-                <sc-for list="{{ arRows }}" as="r" hint-placeholder-count="5">
-                  <div style="display:grid;grid-template-columns:28px 176px minmax(200px,1.4fr) 84px 54px minmax(150px,1fr) 92px 74px 116px 96px minmax(170px,1.2fr) 130px;column-gap:14px;padding:14px 18px;border-bottom:1px solid #F1F4F8;align-items:center;background:{{ r.rowBg }}" style-hover="background:#F8FAFE">
-                    <div style="font-size:12px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ r.idx }}</div>
-                    <div style="display:flex;align-items:center;gap:8px;min-width:0">
-                      <div style="width:26px;height:26px;flex:0 0 26px;border-radius:999px;background:#F5F8FE;border:1px solid #E2E8F2;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#647187">{{ r.initial }}</div>
-                      <div style="min-width:0">
-                        <div style="font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.handle }}</div>
-                        <div style="display:flex;align-items:center;gap:6px;margin-top:1px">
-                          <span style="flex:0 0 auto;font-size:10px;color:#8792A5;white-space:nowrap">{{ r.tierText }}</span>
-                          <sc-for list="{{ r.links }}" as="l" hint-placeholder-count="2">
-                            <a href="{{ l.url }}" target="_blank" rel="noopener" title="{{ l.title }}" style="flex:0 0 auto;font-size:10px;white-space:nowrap">{{ l.short }}↗</a>
-                          </sc-for>
-                        </div>
-                      </div>
-                    </div>
-                    <a href="{{ r.url }}" target="_blank" rel="noopener" title="{{ r.title }}" style="display:block;min-width:0;font-size:13.5px;font-weight:600;letter-spacing:-.01em;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none">{{ r.title }}</a>
-                    <a href="{{ r.url }}" target="_blank" rel="noopener" title="打开原素材" style="display:block;width:72px;height:52px;border-radius:10px;border:1px solid #DCE4F0;box-shadow:0 2px 6px rgba(29,38,56,.08);background-color:{{ r.coverTint }};background-image:{{ r.coverBg }};background-size:cover;background-position:center;position:relative;overflow:hidden;text-decoration:none">
-                      <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9.5px;background:{{ r.coverShade }};color:{{ r.coverFg }}">{{ r.coverMark }}</span>
-                    </a>
-                    <div title="{{ r.channel }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #E2E8F2;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><img src="{{ r.channelLogo }}" alt="{{ r.channel }}" style="width:18px;height:18px;display:block;object-fit:contain" /></div>
-                    <div style="min-width:0">
-                      <div style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.product }}</div>
-                      <div style="font-size:11px;color:#A2ABBA;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.sku }}</div>
-                    </div>
-                    <div style="min-width:0"><span style="display:inline-block;max-width:100%;font-size:11px;font-weight:500;border-radius:7px;padding:2px 8px;background:{{ r.dealBg }};color:{{ r.dealFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.deal }}</span></div>
-                    <div style="text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:{{ r.cpvColor }};white-space:nowrap">{{ r.cpvText }}</div>
-                    <div style="min-width:0"><span style="display:inline-block;max-width:100%;font-size:11.5px;font-weight:500;border-radius:8px;padding:3px 9px;background:{{ r.typeBg }};color:{{ r.typeFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.typeText }}</span></div>
-                    <div style="min-width:0;text-align:right">
-                      <div style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.term }}</div>
-                      <div style="font-size:10.5px;color:{{ r.termColor }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.termLeft }}</div>
-                    </div>
-                    <div style="min-width:0">
-                      <div title="{{ r.scope }}" style="font-size:12px;color:#465268;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.scope }}</div>
-                      <div style="font-size:10.5px;color:#A2ABBA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.termEnd }} · {{ r.fee }}</div>
-                    </div>
-                    <div style="min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px">
-                      <sc-if value="{{ r.hasContract }}" hint-placeholder-val="{{ true }}">
-                        <div onClick="{{ r.openContract }}" title="{{ r.contract }}" style="max-width:100%;font-size:11.5px;border:1px solid #E2E8F2;background:#F8FAFE;color:#335CC5;border-radius:8px;padding:3px 10px;cursor:pointer;white-space:nowrap" style-hover="border-color:#C8D4E8;color:#284A9E">查看合同</div>
-                      </sc-if>
-                      <sc-if value="{{ r.hasContract }}" hint-placeholder-val="{{ true }}">
-                        <div title="{{ r.contract }}" style="max-width:100%;font-size:10.5px;color:#A2ABBA;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.contract }}</div>
-                      </sc-if>
-                      <sc-if value="{{ r.noContract }}" hint-placeholder-val="{{ false }}">
-                        <span style="font-size:11.5px;color:#C4636D;background:#F7EDEE;border-radius:8px;padding:3px 10px;white-space:nowrap">未签署</span>
-                      </sc-if>
-                    </div>
-                  </div>
-                </sc-for>
-              </div>
-            </div>
-          </sc-if>
-
           <sc-if value="{{ alTabLib }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:0 2px;flex-wrap:wrap">
               <div style="flex:1;min-width:240px">
-                <div style="font-size:16px;font-weight:600;color:#1D2638">Asset Library</div>
-                <div style="font-size:11.5px;color:#8792A5;margin-top:2px">统一查看并管理所有 Campaign 回收的合作素材</div>
+                <div style="font-size:16px;font-weight:600;color:#1D2638">{{ alLibraryTitle }}</div>
+                <div style="font-size:11.5px;color:#8792A5;margin-top:2px">{{ alLibraryDescription }}</div>
               </div>
               <div onClick="{{ assetEntryOpenForm }}" style="display:flex;align-items:center;gap:7px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 15px;cursor:pointer;font-size:12.5px;font-weight:600;white-space:nowrap;box-shadow:0 5px 14px rgba(36,87,245,.2)" style-hover="background:#1D48D8;border-color:#1D48D8">
                 <span style="font-size:16px;line-height:1">＋</span><span>录入回收素材</span>
@@ -422,6 +256,12 @@
               </div>
             </sc-if>
 
+            <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+              <div style="flex:1 1 300px;padding:13px 16px;border-radius:13px;background:#EDF5EF;border:1px solid #DDEADF"><div style="font-size:12.5px;font-weight:600;color:#4E7156">① 手动打标 → 合格 / 不合格素材</div><div style="font-size:11.5px;line-height:1.7;color:#647187;margin-top:3px">在列表中选择质量标记后立即归类，ER、Views 不会自动触发归类。可随时调整或清除。</div></div>
+              <div style="flex:1 1 300px;padding:13px 16px;border-radius:13px;background:#F1F5FF;border:1px solid #DDE6FF"><div style="font-size:12.5px;font-weight:600;color:#2457F5">② 关联已签授权合同 → 授权素材</div><div style="font-size:11.5px;line-height:1.7;color:#647187;margin-top:3px">合同须匹配素材且处于有效期。质量合格不代表已授权；合同过期后自动移出授权素材。</div></div>
+            </div>
+            <sc-if value="{{ assetRuleHasNotice }}"><div role="status" style="font-size:12px;color:#2457F5;padding:10px 14px;background:#EAF0FF;border-radius:10px;margin-bottom:12px">{{ assetRuleNotice }}</div></sc-if>
+            <input type="search" value="{{ alSearch }}" onChange="{{ setAlSearch }}" placeholder="搜索素材主题、红人、Campaign 或 SKU" aria-label="搜索素材" style="font:inherit;font-size:12px;width:min(440px,100%);box-sizing:border-box;border:1px solid #D9E1EF;background:#FFFFFF;border-radius:11px;padding:11px 13px;margin-bottom:12px" />
             <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:10px 12px;margin-bottom:12px;position:relative;z-index:60">
               <sc-for list="{{ alFilters }}" as="af" hint-placeholder-count="6">
                 <div style="flex:0 0 auto;position:relative">
@@ -445,155 +285,157 @@
               <span style="flex:1 1 120px;min-width:0;font-size:11.5px;color:#A2ABBA;text-align:right;white-space:nowrap">{{ alFilterNote }}</span>
             </div>
 
-            <div style="border:1px solid #E2E8F2;border-radius:16px;background:#FFFFFF;box-shadow:0 8px 24px rgba(29,38,56,.04);overflow-x:auto">
-              <div style="min-width:1680px">
-                <div style="display:grid;grid-template-columns:28px 176px 96px minmax(200px,1.45fr) 54px 84px minmax(150px,1fr) 100px 92px 72px 58px 74px 110px 112px 100px;column-gap:14px;padding:13px 18px;background:#F8FAFE;border-bottom:1px solid #E2E8F2;font-size:11.5px;color:#8792A5;letter-spacing:.03em">
-                  <div>#</div><div>红人</div><div>Post Day</div><div>素材主题</div><div>渠道</div><div>封面</div><div>合作产品</div><div>SKU</div><div>合作类型</div><div style="text-align:right">Views</div><div style="text-align:right">ER</div><div style="text-align:right">CPV</div><div>素材标签</div><div>红人标签</div><div>提交申请</div>
-                </div>
-                <sc-for list="{{ alRows }}" as="r" hint-placeholder-count="6">
-                  <div style="border-bottom:1px solid #F5F8FE;background:{{ r.rowBg }}">
-                    <div style="display:grid;grid-template-columns:28px 176px 96px minmax(200px,1.45fr) 54px 84px minmax(150px,1fr) 100px 92px 72px 58px 74px 110px 112px 100px;column-gap:14px;padding:14px 18px;align-items:center" style-hover="background:#F8FAFE">
-                      <div style="font-size:12px;color:#A2ABBA;font-variant-numeric:tabular-nums">{{ r.idx }}</div>
-                      <div style="display:flex;align-items:center;gap:8px;min-width:0">
-                        <div style="width:26px;height:26px;flex:0 0 26px;border-radius:999px;background:#F5F8FE;border:1px solid #E2E8F2;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#647187">{{ r.initial }}</div>
+            <sc-if value="{{ alLibraryEmpty }}"><div style="padding:28px 18px;text-align:center;color:#8792A5;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;margin-bottom:12px;font-size:13px">{{ alLibraryEmptyText }}</div></sc-if>
+
+            <div class="asset-cards" role="list" aria-label="素材列表">
+              <sc-for list="{{ alLibraryRows }}" as="r" hint-placeholder-count="4">
+                <article class="asset-card" role="listitem" aria-label="{{ r.title }}">
+                  <div class="asset-card-main">
+                    <div>
+                      <div class="asset-card-label">素材与红人</div>
+                      <div class="asset-card-media">
+                        <a class="asset-card-cover" href="{{ r.url }}" target="_blank" rel="noopener" style="background-image:{{ r.coverBg }}" aria-label="打开原素材"></a>
                         <div style="min-width:0">
-                          <div style="font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.handle }}</div>
-                          <div style="display:flex;align-items:center;gap:6px;margin-top:1px">
-                            <span style="flex:0 0 auto;font-size:10px;color:#8792A5;white-space:nowrap">{{ r.tierText }}</span>
-                            <sc-for list="{{ r.links }}" as="l" hint-placeholder-count="2">
-                              <a href="{{ l.url }}" target="_blank" rel="noopener" title="{{ l.title }}" style="flex:0 0 auto;font-size:10px;white-space:nowrap">{{ l.short }}↗</a>
-                            </sc-for>
-                          </div>
+                          <a class="asset-card-name" href="{{ r.url }}" target="_blank" rel="noopener">{{ r.title }} ↗</a>
+                          <div class="asset-card-meta" style="margin-top:4px">{{ r.handle }}</div>
+                          <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#647187;margin-top:5px"><img src="{{ r.channelLogo }}" alt="" style="width:13px;height:13px;object-fit:contain">{{ r.channel }}</div>
+                          <div style="font-size:10.5px;color:#8792A5;margin-top:5px">发布于 {{ r.postDate }}</div>
                         </div>
                       </div>
-                      <div style="font-size:12px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.postDate }}</div>
-                      <a href="{{ r.url }}" target="_blank" rel="noopener" title="{{ r.title }}" style="display:block;min-width:0;font-size:13.5px;font-weight:600;letter-spacing:-.01em;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none">{{ r.title }}</a>
-                      <div title="{{ r.channel }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #E2E8F2;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><img src="{{ r.channelLogo }}" alt="{{ r.channel }}" style="width:18px;height:18px;display:block;object-fit:contain" /></div>
-                      <a href="{{ r.url }}" target="_blank" rel="noopener" title="打开原素材" style="display:block;width:72px;height:52px;border-radius:10px;border:1px solid #DCE4F0;box-shadow:0 2px 6px rgba(29,38,56,.08);background-color:{{ r.coverTint }};background-image:{{ r.coverBg }};background-size:cover;background-position:center;position:relative;overflow:hidden;text-decoration:none">
-                        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9.5px;background:{{ r.coverShade }};color:{{ r.coverFg }}">{{ r.coverMark }}</span>
-                      </a>
-                      <div style="min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.product }}</div>
-                      <div style="min-width:0;font-size:11.5px;color:#647187;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.sku }}</div>
-                      <div style="min-width:0"><span style="display:inline-block;max-width:100%;font-size:11px;font-weight:500;border-radius:7px;padding:2px 8px;background:{{ r.dealBg }};color:{{ r.dealFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.deal }}</span></div>
-                      <div style="font-size:13px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.views }}</div>
-                      <div style="font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.er }}</div>
-                      <div style="font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;color:{{ r.cpvColor }};white-space:nowrap">{{ r.cpv }}</div>
-                      <div style="min-width:0;position:relative">
-                        <div onClick="{{ r.toggleAssetTag }}" title="{{ r.assetTagNote }}" style="display:flex;align-items:center;gap:4px;min-width:0;font-size:10.5px;font-weight:500;border-radius:6px;padding:3px 7px;background:{{ r.assetTagBg }};color:{{ r.assetTagFg }};cursor:pointer;white-space:nowrap">
-                          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">{{ r.assetTag }}</span>
-                          <span style="flex:0 0 auto;font-size:8px;opacity:.6">▾</span>
-                        </div>
-                        <sc-if value="{{ r.assetTagOpen }}" hint-placeholder-val="{{ false }}">
-                          <div style="position:absolute;top:calc(100% + 5px);left:0;z-index:70;min-width:200px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 12px 28px rgba(29,38,56,.14);padding:5px">
-                            <sc-for list="{{ r.assetTagOptions }}" as="o" hint-placeholder-count="3">
-                              <div onClick="{{ o.pick }}" style="display:flex;align-items:flex-start;gap:8px;background:{{ o.bg }};border-radius:9px;padding:7px 9px;cursor:pointer" style-hover="background:#F8FAFE">
-                                <span style="width:6px;height:6px;border-radius:999px;background:{{ o.dot }};flex:0 0 6px;margin-top:5px"></span>
-                                <div style="min-width:0">
-                                  <div style="font-size:12px;color:{{ o.fg }};white-space:nowrap">{{ o.label }}</div>
-                                  <div style="font-size:10.5px;color:#A2ABBA;white-space:nowrap">{{ o.sub }}</div>
-                                </div>
-                              </div>
-                            </sc-for>
-                          </div>
-                        </sc-if>
-                      </div>
-                      <div style="min-width:0;position:relative">
-                        <div onClick="{{ r.toggleTag }}" title="红人标签" style="display:flex;align-items:center;gap:4px;min-width:0;font-size:10.5px;font-weight:500;border-radius:6px;padding:3px 7px;background:{{ r.tagBg }};color:{{ r.tagFg }};border:1px solid {{ r.tagBd }};cursor:pointer;white-space:nowrap">
-                          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">{{ r.tagLabel }}</span>
-                          <span style="flex:0 0 auto;font-size:8px;opacity:.6">▾</span>
-                        </div>
-                        <sc-if value="{{ r.tagOpen }}" hint-placeholder-val="{{ false }}">
-                          <div style="position:absolute;top:calc(100% + 5px);right:0;z-index:70;min-width:200px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 12px 28px rgba(29,38,56,.14);padding:5px">
-                            <sc-for list="{{ r.tagOptions }}" as="o" hint-placeholder-count="3">
-                              <div onClick="{{ o.pick }}" style="display:flex;align-items:flex-start;gap:8px;background:{{ o.bg }};border-radius:9px;padding:7px 9px;cursor:pointer" style-hover="background:#F8FAFE">
-                                <span style="width:6px;height:6px;border-radius:999px;background:{{ o.dot }};flex:0 0 6px;margin-top:5px"></span>
-                                <div style="min-width:0">
-                                  <div style="font-size:12px;color:{{ o.fg }};white-space:nowrap">{{ o.label }}</div>
-                                  <div style="font-size:10.5px;color:#A2ABBA;white-space:nowrap">{{ o.sub }}</div>
-                                </div>
-                              </div>
-                            </sc-for>
-                          </div>
-                        </sc-if>
-                      </div>
-                      <div onClick="{{ r.submitTags }}" style="min-width:0;font-size:10.5px;text-align:center;border-radius:999px;padding:3px 6px;cursor:{{ r.submitCursor }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:{{ r.submitBg }};color:{{ r.submitFg }};border:1px solid {{ r.submitBd }}">{{ r.submitLabel }}</div>
+                    </div>
+                    <div>
+                      <div class="asset-card-label">Campaign 与产品</div>
+                      <div class="asset-card-pair"><span>Campaign</span><span>{{ r.campaign }}</span></div>
+                      <div class="asset-card-pair"><span>合作产品</span><span>{{ r.product }}</span></div>
+                      <div class="asset-card-pair"><span>SKU</span><span style="font-variant-numeric:tabular-nums;color:#647187">{{ r.sku }}</span></div>
+                    </div>
+                    <div class="asset-card-performance">
+                      <div class="asset-card-label">表现数据</div>
+                      <dl class="asset-card-metrics">
+                        <div><dt>Views</dt><dd>{{ r.views }}</dd></div>
+                        <div><dt>CPV</dt><dd style="color:{{ r.cpvColor }}">{{ r.cpv }}</dd></div>
+                        <div><dt>ER</dt><dd>{{ r.er }}</dd></div>
+                      </dl>
+                      <div style="font-size:10px;color:#A2ABBA;margin-top:8px">数据仅供质量评估参考</div>
                     </div>
                   </div>
-                </sc-for>
-              </div>
+                  <div class="asset-card-footer">
+                    <div class="asset-card-quality"><span style="font-size:11px;color:#647187">质量标记</span><select class="asset-card-select" aria-label="{{ r.qualityAria }}" title="{{ r.assetTagNote }}" value="{{ r.qualityValue }}" onChange="{{ r.setQuality }}" style="color:{{ r.assetTagFg }};background:{{ r.assetTagBg }}"><option value="未打标">未打标</option><option value="合格素材">合格素材</option><option value="不合格素材">不合格素材</option></select></div>
+                    <div class="asset-card-auth">
+                      <span style="font-size:11px;color:#647187;flex:none">合同授权</span>
+                      <div style="flex:1;min-width:0;overflow-wrap:anywhere"><div style="font-size:11.5px;font-weight:600;color:{{ r.authColor }}">{{ r.authLabel }}</div><div style="font-size:10px;color:#8792A5;line-height:1.6;margin-top:2px">{{ r.authDetail }} <span>{{ r.authEnd }}</span></div></div>
+                      <button type="button" class="asset-card-contract-btn" onClick="{{ r.openContract }}">{{ r.contractAction }}</button>
+                    </div>
+                  </div>
+                </article>
+              </sc-for>
             </div>
           </sc-if>
 
-          <sc-if value="{{ assetEntryOpen }}" hint-placeholder-val="{{ false }}">
-            <div onClick="{{ assetEntryClose }}" style="position:fixed;inset:0;z-index:138;background:rgba(29,38,56,.32);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
-              <div onClick="{{ assetEntryKeep }}" style="width:min(1120px,100%);max-height:calc(100vh - 40px);overflow:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:20px;box-shadow:0 26px 72px rgba(29,38,56,.24);animation:fadeUp .18s ease both">
-                <div style="display:flex;align-items:flex-start;gap:14px;padding:20px 22px 17px;border-bottom:1px solid #EEF2F8">
-                  <div style="width:38px;height:38px;border-radius:12px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:19px;flex:0 0 38px">↑</div>
-                  <div style="flex:1;min-width:0">
-                    <div style="font-size:17px;font-weight:600;color:#1D2638">录入回收素材</div>
-                    <div style="font-size:11.5px;color:#8792A5;margin-top:3px">从 Asset Library 录入时，请先选择素材所属的具体 Campaign</div>
-                  </div>
-                  <div onClick="{{ assetEntryClose }}" aria-label="关闭" style="font-size:22px;line-height:1;color:#8792A5;cursor:pointer;padding:3px">×</div>
-                </div>
-                <div style="padding:18px 22px 21px">
-                  <div style="font-size:12.5px;line-height:1.65;color:#647187;margin-bottom:15px">补充素材信息、表现数据与授权信息；保存后会同时进入所选 Campaign 的「素材」页与 Asset Library。</div>
-
-                  <div style="margin-bottom:15px">
-                    <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:#A2ABBA;margin-bottom:6px"><span>所属 Campaign</span><span style="color:#C4636D">*</span></div>
-                    <div style="position:relative;max-width:520px">
-                      <div onClick="{{ assetEntryCampaignToggle }}" style="display:flex;align-items:center;gap:10px;background:#F8FAFE;border:1px solid {{ assetEntryCampaignBd }};border-radius:11px;padding:9px 12px;cursor:pointer">
-                        <div style="flex:1;min-width:0">
-                          <div style="font-size:13px;font-weight:500;color:{{ assetEntryCampaignFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ assetEntryCampaignLabel }}</div>
-                          <div style="font-size:10.5px;color:#A2ABBA;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ assetEntryCampaignMeta }}</div>
-                        </div>
-                        <span style="font-size:9px;color:#8792A5">▾</span>
-                      </div>
-                      <sc-if value="{{ assetEntryCampaignOpen }}" hint-placeholder-val="{{ false }}">
-                        <div style="position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:92;max-height:270px;overflow:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:13px;box-shadow:0 14px 34px rgba(29,38,56,.16);padding:6px">
-                          <sc-for list="{{ assetEntryCampaignOptions }}" as="c" hint-placeholder-count="5">
-                            <div onClick="{{ c.pick }}" style="display:flex;align-items:center;gap:9px;background:{{ c.bg }};border-radius:9px;padding:8px 10px;cursor:pointer;margin-bottom:2px" style-hover="background:#F8FAFE">
-                              <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;color:{{ c.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.meta }}</div></div>
-                              <span style="font-size:12px;color:#2457F5">{{ c.mark }}</span>
-                            </div>
-                          </sc-for>
-                        </div>
-                      </sc-if>
-                    </div>
-                  </div>
-
-                  <div style="margin-bottom:15px">
-                    <div style="font-size:11.5px;color:#A2ABBA;margin-bottom:7px">素材类型标签</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ alTypeChips }}" as="tc" hint-placeholder-count="2"><div onClick="{{ tc.pick }}" style="display:flex;align-items:center;gap:7px;border:1px solid {{ tc.bd }};background:{{ tc.bg }};border-radius:11px;padding:8px 12px;cursor:pointer;white-space:nowrap"><span style="width:14px;height:14px;border-radius:5px;border:1.5px solid {{ tc.boxBd }};background:{{ tc.boxBg }};color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;flex:0 0 14px">{{ tc.check }}</span><span style="font-size:12.5px;font-weight:500;color:{{ tc.fg }}">{{ tc.label }}</span><span style="font-size:11px;color:#A2ABBA">{{ tc.note }}</span></div></sc-for></div>
-                    <sc-if value="{{ alTypeHint }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#1D48D8;margin-top:7px">{{ alTypeHint }}</div></sc-if>
-                  </div>
-
-                  <div style="margin-bottom:14px">
-                    <div style="font-size:11.5px;color:#A2ABBA;margin-bottom:7px">发布渠道</div>
-                    <div style="display:flex;gap:7px;flex-wrap:wrap"><sc-for list="{{ coopAssetChannelOptions }}" as="ch" hint-placeholder-count="4"><div onClick="{{ ch.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border:1px solid {{ ch.bd }};background:{{ ch.bg }};color:{{ ch.fg }};border-radius:999px;padding:6px 12px;cursor:pointer"><span style="width:6px;height:6px;border-radius:999px;background:{{ ch.dot }}"></span>{{ ch.label }}</div></sc-for></div>
-                  </div>
-
-                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px"><sc-for list="{{ alFormBase }}" as="fd" hint-placeholder-count="5"><div style="min-width:0"><div style="font-size:11.5px;color:#A2ABBA;margin-bottom:4px">{{ fd.label }}</div><sc-if value="{{ fd.isText }}" hint-placeholder-val="{{ true }}"><input type="text" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:10px;padding:8px 11px;outline:none" /></sc-if><sc-if value="{{ fd.isSelect }}" hint-placeholder-val="{{ false }}"><div style="position:relative"><div onClick="{{ fd.toggle }}" style="display:flex;align-items:center;gap:6px;font-size:13px;background:#F8FAFE;border:1px solid {{ fd.bd }};border-radius:10px;padding:8px 11px;cursor:pointer;white-space:nowrap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:{{ fd.fg }}">{{ fd.value }}</span><span style="font-size:8px;color:#A2ABBA">▾</span></div><sc-if value="{{ fd.open }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:calc(100% + 5px);left:0;z-index:90;min-width:100%;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 10px 26px rgba(29,38,56,.12);padding:5px"><sc-for list="{{ fd.options }}" as="o" hint-placeholder-count="2"><div onClick="{{ o.pick }}" style="font-size:12.5px;color:{{ o.fg }};background:{{ o.bg }};border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap">{{ o.label }}</div></sc-for></div></sc-if></div></sc-if></div></sc-for></div>
-
-                  <div style="border:1px solid #EEF2F8;border-radius:14px;padding:13px;background:#F8FAFE;margin-top:15px">
-                    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600;color:#1D2638">表现数据</div><div style="font-size:11px;color:#A2ABBA">GMV 非必填 · CPV 留空时按成本 ÷ Views 自动计算</div></div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px"><sc-for list="{{ alFormMetrics }}" as="fd" hint-placeholder-count="4"><div style="min-width:0"><div style="font-size:11px;color:#A2ABBA;margin-bottom:3px">{{ fd.label }}</div><input type="text" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:9px;padding:7px 10px;outline:none;font-variant-numeric:tabular-nums" /></div></sc-for></div>
-                  </div>
-
-                  <div style="display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap">
-                    <span style="flex:1 1 300px;font-size:11.5px;color:{{ assetEntryNoticeColor }}">{{ assetEntryNotice }}</span>
-                    <div onClick="{{ assetEntryReset }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 15px;cursor:pointer">重置</div>
-                    <div onClick="{{ assetEntrySubmit }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 17px;cursor:pointer;font-weight:600">保存并入库</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </sc-if>
         </div>
       </sc-if>
 
       
     </div>
   </main>
+
+  <!-- Keep fixed dialogs outside animated and scrolling content. -->
+  <sc-if value="{{ assetEntryOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ assetEntryClose }}" style="position:fixed;inset:0;z-index:200;box-sizing:border-box;background:rgba(29,38,56,.32);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div onClick="{{ assetEntryKeep }}" role="dialog" aria-modal="true" aria-label="录入回收素材" style="width:min(1120px,100%);max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);box-sizing:border-box;overflow:auto;overscroll-behavior:contain;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:20px;box-shadow:0 26px 72px rgba(29,38,56,.24);animation:fadeUp .18s ease both">
+        <div style="position:sticky;top:0;z-index:3;background:#FFFFFF;display:flex;align-items:flex-start;gap:14px;padding:20px 22px 17px;border-bottom:1px solid #EEF2F8">
+          <div style="width:38px;height:38px;border-radius:12px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:19px;flex:0 0 38px">↑</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:17px;font-weight:600;color:#1D2638">录入回收素材</div>
+            <div style="font-size:11.5px;color:#8792A5;margin-top:3px">从 Asset Library 录入时，请先选择素材所属的具体 Campaign</div>
+          </div>
+          <div onClick="{{ assetEntryClose }}" aria-label="关闭" style="font-size:22px;line-height:1;color:#8792A5;cursor:pointer;padding:3px">×</div>
+        </div>
+        <div style="padding:18px 22px 21px">
+          <div style="font-size:12.5px;line-height:1.65;color:#647187;margin-bottom:15px">补充素材信息、表现数据与授权信息；保存后会同时进入所选 Campaign 的「素材」页与 Asset Library。</div>
+
+          <div style="margin-bottom:15px">
+            <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:#A2ABBA;margin-bottom:6px"><span>所属 Campaign</span><span style="color:#C4636D">*</span></div>
+            <div style="position:relative;max-width:520px">
+              <div onClick="{{ assetEntryCampaignToggle }}" style="display:flex;align-items:center;gap:10px;background:#F8FAFE;border:1px solid {{ assetEntryCampaignBd }};border-radius:11px;padding:9px 12px;cursor:pointer">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:500;color:{{ assetEntryCampaignFg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ assetEntryCampaignLabel }}</div>
+                  <div style="font-size:10.5px;color:#A2ABBA;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ assetEntryCampaignMeta }}</div>
+                </div>
+                <span style="font-size:9px;color:#8792A5">▾</span>
+              </div>
+              <sc-if value="{{ assetEntryCampaignOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:92;max-height:270px;overflow:auto;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:13px;box-shadow:0 14px 34px rgba(29,38,56,.16);padding:6px">
+                  <sc-for list="{{ assetEntryCampaignOptions }}" as="c" hint-placeholder-count="5">
+                    <div onClick="{{ c.pick }}" style="display:flex;align-items:center;gap:9px;background:{{ c.bg }};border-radius:9px;padding:8px 10px;cursor:pointer;margin-bottom:2px" style-hover="background:#F8FAFE">
+                      <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;color:{{ c.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.meta }}</div></div>
+                      <span style="font-size:12px;color:#2457F5">{{ c.mark }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="margin-bottom:15px">
+            <div style="font-size:11.5px;color:#A2ABBA;margin-bottom:7px">素材类型标签</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ alTypeChips }}" as="tc" hint-placeholder-count="3"><div role="checkbox" aria-checked="{{ tc.on }}" aria-label="{{ tc.label }}" onClick="{{ tc.pick }}" style="display:flex;align-items:center;gap:7px;border:1px solid {{ tc.bd }};background:{{ tc.bg }};border-radius:11px;padding:8px 12px;cursor:pointer;white-space:nowrap"><span style="width:14px;height:14px;border-radius:5px;border:1.5px solid {{ tc.boxBd }};background:{{ tc.boxBg }};color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;flex:0 0 14px">{{ tc.check }}</span><span style="font-size:12.5px;font-weight:500;color:{{ tc.fg }}">{{ tc.label }}</span><span style="font-size:11px;color:#A2ABBA">{{ tc.note }}</span></div></sc-for></div>
+            <sc-if value="{{ alTypeHint }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#1D48D8;margin-top:7px">{{ alTypeHint }}</div></sc-if>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <div style="font-size:11.5px;color:#A2ABBA;margin-bottom:7px">发布渠道</div>
+            <div style="display:flex;gap:7px;flex-wrap:wrap"><sc-for list="{{ coopAssetChannelOptions }}" as="ch" hint-placeholder-count="4"><div onClick="{{ ch.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border:1px solid {{ ch.bd }};background:{{ ch.bg }};color:{{ ch.fg }};border-radius:999px;padding:6px 12px;cursor:pointer"><span style="width:6px;height:6px;border-radius:999px;background:{{ ch.dot }}"></span>{{ ch.label }}</div></sc-for></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px"><sc-for list="{{ alFormBase }}" as="fd" hint-placeholder-count="5"><div style="min-width:0"><div style="font-size:11.5px;color:#A2ABBA;margin-bottom:4px">{{ fd.label }}</div><sc-if value="{{ fd.isText }}" hint-placeholder-val="{{ true }}"><input type="text" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:10px;padding:8px 11px;outline:none" /></sc-if><sc-if value="{{ fd.isSelect }}" hint-placeholder-val="{{ false }}"><div style="position:relative"><div onClick="{{ fd.toggle }}" style="display:flex;align-items:center;gap:6px;font-size:13px;background:#F8FAFE;border:1px solid {{ fd.bd }};border-radius:10px;padding:8px 11px;cursor:pointer;white-space:nowrap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:{{ fd.fg }}">{{ fd.value }}</span><span style="font-size:8px;color:#A2ABBA">▾</span></div><sc-if value="{{ fd.open }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:calc(100% + 5px);left:0;z-index:90;min-width:100%;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 10px 26px rgba(29,38,56,.12);padding:5px"><sc-for list="{{ fd.options }}" as="o" hint-placeholder-count="2"><div onClick="{{ o.pick }}" style="font-size:12.5px;color:{{ o.fg }};background:{{ o.bg }};border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap">{{ o.label }}</div></sc-for></div></sc-if></div></sc-if></div></sc-for></div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:15px">
+            <sc-for list="{{ alMarketingGoalCards }}" as="gc" hint-placeholder-count="2">
+              <section style="min-width:0;border:1px solid #E2E8F2;border-radius:14px;padding:14px;background:#F8FAFE">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600;color:#1D2638">{{ gc.title }}</div><span style="font-size:10.5px;color:#2457F5;background:#EAF0FF;border-radius:999px;padding:3px 8px">{{ gc.badge }}</span></div>
+                <div style="font-size:11px;color:#8792A5;line-height:1.6;margin-top:7px;overflow-wrap:anywhere">{{ gc.context }}</div>
+                <sc-if value="{{ gc.empty }}"><div style="font-size:12px;color:#8792A5;border:1px dashed #D5DFEF;border-radius:9px;padding:14px;margin-top:10px;background:#FFFFFF">{{ gc.emptyText }}</div></sc-if>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-top:10px"><sc-for list="{{ gc.metrics }}" as="metric" hint-placeholder-count="4"><div style="min-width:0;background:#FFFFFF;border:1px solid #EEF2F8;border-radius:9px;padding:10px"><div style="font-size:11px;color:#8792A5">{{ metric.label }}</div><div style="font-size:14px;font-weight:600;color:#1D2638;margin-top:6px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums">{{ metric.value }}</div></div></sc-for></div>
+              </section>
+            </sc-for>
+          </div>
+
+          <div style="border:1px solid #EEF2F8;border-radius:14px;padding:13px;background:#F8FAFE;margin-top:15px">
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600;color:#1D2638">表现数据</div><div style="font-size:11px;color:#A2ABBA">至少填写一个时间段；每组 Views、CPV 必填，红人 GMV 和 ER % 非必填。未到的时间段可留空。</div></div>
+            <sc-for list="{{ alMetricGroups }}" as="mg" hint-placeholder-count="3"><div style="border:1px solid #E2E8F2;border-radius:11px;background:#FFFFFF;padding:12px;margin-top:10px"><div style="font-size:12.5px;font-weight:600;color:#1D2638;margin-bottom:10px">{{ mg.label }}</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px"><sc-for list="{{ mg.fields }}" as="fd" hint-placeholder-count="4"><div style="min-width:0"><div style="font-size:11px;color:#A2ABBA;margin-bottom:3px">{{ fd.label }}<sc-if value="{{ fd.required }}"><span style="color:#C4636D;margin-left:3px">*</span></sc-if></div><input type="text" aria-label="{{ fd.ariaLabel }}" aria-required="{{ fd.required }}" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:9px;padding:7px 10px;outline:none;font-variant-numeric:tabular-nums" /></div></sc-for></div></div></sc-for>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap">
+            <span style="flex:1 1 300px;font-size:11.5px;color:{{ assetEntryNoticeColor }}">{{ assetEntryNotice }}</span>
+            <div onClick="{{ assetEntryReset }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 15px;cursor:pointer">重置</div>
+            <div onClick="{{ assetEntrySubmit }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 17px;cursor:pointer;font-weight:600">保存并入库</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ assetContractOpen }}">
+    <div onClick="{{ assetContractClose }}" style="position:fixed;inset:0;z-index:200;box-sizing:border-box;background:rgba(29,38,56,.35);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div onClick="{{ assetContractKeep }}" role="dialog" aria-modal="true" aria-label="关联合同" style="background:#FFFFFF;border-radius:20px;width:min(640px,100%);max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);box-sizing:border-box;overflow:auto;overscroll-behavior:contain;padding:24px;box-shadow:0 24px 70px rgba(29,38,56,.2)">
+        <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:19px;margin:0">关联合同</h2><button onClick="{{ assetContractClose }}" aria-label="关闭合同关联" style="border:0;background:none;font-size:23px;cursor:pointer;color:#8792A5">×</button></div>
+        <div style="font-size:13px;margin:12px 0 4px">{{ assetContractTitle }}</div><div style="font-size:11px;color:#8792A5">{{ assetContractContext }}</div>
+        <div style="font-size:12px;line-height:1.7;background:#F4F7FF;border:1px solid #DCE5FF;border-radius:12px;padding:12px;margin:16px 0">仅可关联同一 Campaign、SKU、红人及覆盖当前素材的合同。合同需确认双方签署，具备授权范围、有效期及已上传文件。过期或待审核合同不计入授权素材。</div>
+        <sc-if value="{{ assetContractEmpty }}"><div style="font-size:13px;color:#8792A5;padding:20px 0;text-align:center">尚无匹配的合同，请先上传已签署的授权合同。</div></sc-if>
+        <sc-for list="{{ assetContractOptions }}" as="c" hint-placeholder-count="1">
+          <div style="border:1px solid {{ c.bd }};background:{{ c.bg }};border-radius:12px;padding:14px;margin-bottom:10px">
+            <button type="button" onClick="{{ c.pick }}" style="font:inherit;text-align:left;display:block;width:100%;cursor:pointer;background:none;border:0;padding:0;color:#1D2638"><strong style="font-size:13px">{{ c.check }} {{ c.label }}</strong><div style="font-size:11.5px;color:#647187;margin-top:7px">{{ c.status }} · {{ c.dates }}</div><div style="font-size:11px;color:#8792A5;line-height:1.6;margin-top:6px">{{ c.scope }}</div></button>
+            <a href="{{ c.url }}" target="_blank" rel="noopener" style="display:inline-block;font-size:11px;margin-top:8px">查看合同 ↗</a>
+          </div>
+        </sc-for>
+        <div role="alert" style="color:#C4636D;font-size:12px;margin:12px 0">{{ assetContractError }}</div>
+        <a href="{{ assetContractUploadUrl }}" style="font-size:12px;color:#2457F5">＋ 上传已签署授权合同</a>
+        <div style="display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:22px;border-top:1px solid #EEF2F8;padding-top:16px"><button onClick="{{ assetContractUnlink }}" style="font:inherit;font-size:12px;border:1px solid #E2E8F2;border-radius:999px;background:#FFFFFF;padding:9px 14px;cursor:pointer;color:#647187">解除关联</button><button onClick="{{ assetContractConfirm }}" style="font:inherit;font-size:12px;border:0;border-radius:999px;background:#2457F5;padding:9px 18px;cursor:pointer;color:white">确认关联</button></div>
+      </div>
+    </div>
+  </sc-if>
+
 
   <sc-if value="{{ copilotClosed }}" hint-placeholder-val="{{ true }}">
     <div onClick="{{ toggleCopilot }}" style="position:fixed;right:24px;bottom:24px;z-index:120;display:flex;align-items:center;gap:9px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:11px 18px;cursor:pointer;font-size:14px;font-weight:500;white-space:nowrap;box-shadow:0 10px 26px rgba(36,87,245,.34)" style-hover="background:#1D48D8">
@@ -638,6 +480,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js"></script>
+<script src="../app-logic.js?v=asset-filter-trim-20261023-a"></script>
 </body>
 </html>

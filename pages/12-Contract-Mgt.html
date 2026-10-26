@@ -66,6 +66,7 @@
   .contract-status::before { content:"";width:5px;height:5px;border-radius:50%;background:currentColor; }
   .contract-status.active { background:#E4EFE4;color:#4E7156; }
   .contract-status.pending { background:#FBEEDA;color:#A5762C; }
+  .contract-status.rejected { background:#F7EDEE;color:#C4636D; }
   .contract-status.expiring { background:#F7EDEE;color:#B4525E; }
   .contract-status.ended { background:#F1F4F8;color:#8792A5; }
   .contract-file { display:flex;align-items:center;gap:8px;min-width:0; }
@@ -259,7 +260,7 @@
           <section id="contract-record-view" style="display:none" aria-label="合同记录">
             <div class="contract-record-toolbar">
               <input id="contract-search" class="contract-search" type="search" placeholder="搜索红人、合同编号、Campaign 或 SKU" aria-label="搜索合同记录">
-              <select id="contract-status-filter" class="contract-select" aria-label="按状态筛选"><option value="all">全部状态</option><option value="active">履约中</option><option value="pending">待审核</option><option value="expiring">即将到期</option><option value="ended">已结束</option></select>
+              <select id="contract-status-filter" class="contract-select" aria-label="按状态筛选"><option value="all">全部状态</option><option value="active">履约中</option><option value="pending">待审核</option><option value="rejected">已驳回</option><option value="expiring">即将到期</option><option value="ended">已结束</option></select>
               <select class="contract-select" aria-label="按签署时间筛选"><option>全部签署时间</option><option>本月签署</option><option>近 90 天</option><option>今年签署</option></select>
               <button id="contract-record-action" data-contract-action="open-upload" class="contract-btn primary">＋ 上传合同</button>
             </div>
@@ -389,6 +390,9 @@
               <div class="contract-field"><label for="contract-amount">合同金额 *</label><input id="contract-amount" placeholder="例如 USD 1,200 + 10% 佣金"></div>
               <div class="contract-field"><label for="contract-signed-date">签署日期 *</label><input id="contract-signed-date" type="date"></div>
               <div class="contract-field"><label for="contract-expiry-date">到期日期 *</label><input id="contract-expiry-date" type="date"></div>
+              <div class="contract-field full"><label for="contract-rights-type">素材授权类型</label><select id="contract-rights-type"><option value="">未约定素材授权</option><option value="social">仅品牌社媒授权</option><option value="ad">广告投放授权</option></select></div>
+              <div class="contract-field full"><label for="contract-rights-scope">合同约定的授权范围（含素材授权时必填）</label><input id="contract-rights-scope" placeholder="请按签署条款填写渠道、用途及限制"><div id="contract-asset-context" style="font-size:11px;color:#647187;line-height:1.7">有素材授权的合同将覆盖所选 Campaign 中该红人的素材；请确认合同确实包含此范围。</div></div>
+              <div class="contract-field full"><label style="display:flex;align-items:flex-start;gap:8px;color:#647187;font-size:12px"><input id="contract-signed-confirm" type="checkbox" style="width:16px;margin-top:3px;flex:none">我已核对上传文件包含双方签署，授权类型、素材范围与有效期均与合同条款一致。</label><div style="font-size:11px;color:#8792A5">上传未签草稿或仅填写合同编号，不会获得素材授权。</div></div>
             </div>
             <div id="contract-upload-error" style="display:none;margin-top:12px;color:#B4525E;font-size:12px">请完整填写合同信息。</div>
             <div class="contract-modal-actions"><button class="contract-btn" data-contract-action="close-upload">取消</button><button class="contract-btn primary" data-contract-action="save-upload">确认上传</button></div>
@@ -443,11 +447,13 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js"></script>
+<script src="../app-logic.js?v=asset-contract-rules-20261023-b"></script>
 <script>
 (() => {
   let selectedContractFile = null;
-  let nextContractNumber = 10;
+  let contractUploadBusy = false;
+  const contractStore = window.AIOSAssetContracts;
+  const sourceParams = new URLSearchParams(window.location.search);
   const selectedContractTypes = new Set();
 
   const get = (id) => document.getElementById(id);
@@ -633,7 +639,12 @@
   };
   const openDetail = (row) => {
     if (!row) return;
+    if (row.dataset.fileMissing) { alert('此合同的本地文件已不可用，请重新上传签署文件。'); return; }
     fillDetail(parseRecordRow(row));
+    const saved = contractStore.records().find(c=>c.id === row.dataset.uploadedContract);
+    if (saved) get('contract-detail-grid').insertAdjacentHTML('beforeend',
+      detailField('素材授权', clean(saved.rightsType === 'ad' ? '广告投放授权' : saved.rightsType === 'social' ? '仅品牌社媒授权' : '未约定')) +
+      detailField('授权范围',clean(saved.rightsScope || '未约定')) + detailField('覆盖素材',clean(saved.assetKey ? '上传时关联的单条素材' : '该 Campaign 下此红人的素材')));
     detailOpenedAt = Date.now();
     setTimeout(() => {
       get('contract-detail-modal')?.classList.add('is-open');
@@ -691,6 +702,42 @@
     if (count) count.textContent = '显示 ' + visible + ' 条合同记录';
   };
 
+  const syncContractReview = () => {
+    if (!get('contract-record-view') || get('contract-record-view').closest('x-dc')) return false;
+    let approvals = {};
+    try { approvals = JSON.parse(localStorage.getItem('aios.approvals') || '{}') || {}; } catch (_) {}
+    const row = Array.from(document.querySelectorAll('#contract-records-body [data-contract-row]'))
+      .find((item) => item.querySelector('td')?.textContent.includes('CTR-2026-009'));
+    if (!row) return false;
+    const status = approvals['contract-CTR-2026-009']?.status;
+    const kind = status === '已通过' ? 'active' : (status === '已驳回' ? 'rejected' : 'pending');
+    const badge = row.querySelector('.contract-status');
+    row.dataset.status = kind;
+    if (badge) {
+      badge.className = 'contract-status ' + kind;
+      badge.textContent = kind === 'active' ? '履约中' : (kind === 'rejected' ? '已驳回' : '待审核');
+    }
+    filterRecords();
+    return true;
+  };
+
+  const openReviewRecordFromTasks = (attempt = 0) => {
+    const id = new URLSearchParams(window.location.search).get('record');
+    if (!id) {
+      if (!syncContractReview() && attempt < 30) setTimeout(() => openReviewRecordFromTasks(attempt + 1), 50);
+      return;
+    }
+    const row = Array.from(document.querySelectorAll('#contract-records-body [data-contract-row]'))
+      .find((item) => item.querySelector('td')?.textContent.includes(id));
+    if (!row || !get('contract-detail-modal') || get('contract-detail-modal').closest('x-dc')) {
+      if (attempt < 30) setTimeout(() => openReviewRecordFromTasks(attempt + 1), 50);
+      return;
+    }
+    syncContractReview();
+    setContractTab('records');
+    openDetail(row);
+  };
+
   const syncCampaignSku = () => {
     const campaign = get('contract-campaign');
     const option = campaign?.selectedOptions?.[0];
@@ -713,78 +760,111 @@
     setContractTab('records');
     const campaignName = params.get('campaign') || '';
     const sku = params.get('sku') || '';
-    const campaignOption = Array.from(campaignSelect.options).find((option) => option.value === campaignName)
-      || Array.from(campaignSelect.options).find((option) => option.dataset.sku === sku);
+    let campaignOption = Array.from(campaignSelect.options).find(option => option.value === campaignName);
+    if (!campaignOption && campaignName && sku) {
+      campaignOption = document.createElement('option');
+      campaignOption.value = campaignName; campaignOption.textContent = campaignName;
+      campaignOption.dataset.sku = sku; campaignOption.dataset.product = params.get('product') || '';
+      campaignSelect.append(campaignOption);
+    }
     if (campaignOption) campaignSelect.value = campaignOption.value;
     const handle = params.get('handle') || '';
-    if (Array.from(creatorSelect.options).some((option) => option.value === handle)) creatorSelect.value = handle;
+    if (handle && !Array.from(creatorSelect.options).some(option => option.value === handle)) {
+      const option = document.createElement('option'); option.value = handle; option.textContent = handle; creatorSelect.append(option);
+    }
+    if (handle) creatorSelect.value = handle;
+    if (params.get('asset')) {
+      campaignSelect.disabled = true; creatorSelect.disabled = true;
+      get('contract-asset-context').textContent = '本合同仅关联当前素材：' + (params.get('assetTitle') || '当前素材') + '。请确认合同授权范围覆盖本素材。';
+      get('contract-upload-title').textContent = '上传已签署授权合同';
+      document.querySelector('[data-contract-action="save-upload"]').textContent = '保存并关联素材';
+    }
     syncCampaignSku();
     openUpload();
   };
 
-  const saveUpload = () => {
+  const renderUploadedRecord = (record, blob) => {
+    if (Array.from(document.querySelectorAll('[data-uploaded-contract]')).some(row=>row.dataset.uploadedContract === record.id)) return;
+    const expiry = record.expiryDate;
+    const days = Math.ceil((new Date(expiry + 'T00:00:00') - new Date(contractStore.today() + 'T00:00:00')) / 86400000);
+    const status = days < 0 ? 'ended' : days <= 30 ? 'expiring' : 'active';
+    const statusText = status === 'ended' ? '已结束' : status === 'expiring' ? '即将到期' : '履约中';
+    const row = document.createElement('tr');
+    row.setAttribute('data-contract-row', ''); row.dataset.columnsSplit = 'true'; row.dataset.uploadedContract = record.id;
+    row.dataset.status = status;
+    if (blob) row.dataset.fileUrl = URL.createObjectURL(blob);
+    else row.dataset.fileMissing = 'true';
+    row.dataset.search = [record.id,record.creator,record.campaign,record.sku,record.product,record.deal].join(' ').toLowerCase();
+    row.innerHTML = '<td><div style="font-weight:600">' + clean(record.id) + '</div><div>' + clean(record.creator) + ' · ' + clean(record.platform) + '</div></td>' +
+      '<td><div>' + clean(record.campaign) + '</div></td><td><div>' + clean(record.sku) + '</div><div style="color:#8792A5">' + clean(record.product) + '</div></td>' +
+      '<td><div>' + clean(record.deal) + '</div><div>' + clean(record.amount) + '</div></td>' +
+      '<td><div>' + clean(record.signedDate) + ' 签署</div><div>至 ' + clean(expiry) + '</div></td>' +
+      '<td><span class="contract-status ' + status + '">' + statusText + '</span></td>' +
+      '<td><div class="contract-file"><span class="contract-file-icon">' + clean(record.extension) + '</span><div><div>' + clean(record.fileName) + '</div><div>' + clean(record.sizeLabel) + '</div></div></div></td>' +
+      '<td><div>陈曦</div></td><td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td>';
+    get('contract-records-body').prepend(row);
+    const badge = document.querySelector('[data-contract-tab="records"] span');
+    if (badge) badge.textContent = String(document.querySelectorAll('[data-contract-row]').length);
+  };
+
+  const restoreUploadedRecords = async (attempt = 0) => {
+    const body = get('contract-records-body');
+    if (!body || body.closest('x-dc')) { if (attempt < 60) setTimeout(()=>restoreUploadedRecords(attempt+1),50); return; }
+    for (const record of contractStore.read('aios.signedAssetContracts', [])) {
+      let blob; try { blob = await contractStore.file(record.id); } catch (_) {}
+      renderUploadedRecord(record, blob);
+    }
+    filterRecords();
+    if (sourceParams.get('record')) openReviewRecordFromTasks();
+  };
+
+  const saveUpload = async () => {
+    if (contractUploadBusy) return;
     const creator = get('contract-creator')?.value.trim();
     const campaign = get('contract-campaign')?.value.trim();
     const sku = get('contract-sku')?.value.trim();
-    const campaignOption = get('contract-campaign')?.selectedOptions?.[0];
-    const creatorOption = get('contract-creator')?.selectedOptions?.[0];
-    const product = campaignOption?.dataset?.product || '';
+    const product = get('contract-campaign')?.selectedOptions?.[0]?.dataset?.product || '';
+    const platform = get('contract-creator')?.selectedOptions?.[0]?.dataset?.platform || '—';
     const deal = get('contract-deal')?.value.trim();
     const amount = get('contract-amount')?.value.trim();
     const signedDate = get('contract-signed-date')?.value;
     const expiryDate = get('contract-expiry-date')?.value;
+    const rightsType = get('contract-rights-type')?.value;
+    const rightsScope = get('contract-rights-scope')?.value.trim();
+    const signedConfirmed = !!get('contract-signed-confirm')?.checked;
     const error = get('contract-upload-error');
-    if (!selectedContractFile || !creator || !campaign || !sku || !deal || !amount || !signedDate || !expiryDate) {
-      error.textContent = '请选择合同文件，并完整填写 Campaign、红人、合作方式、合同金额及日期。';
-      error.style.display = '';
-      return;
-    }
-    if (expiryDate < signedDate) {
-      error.textContent = '到期日期不能早于签署日期。';
-      error.style.display = '';
-      return;
-    }
-
-    const platform = creatorOption?.dataset?.platform || '—';
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiry = new Date(expiryDate + 'T00:00:00');
-    const daysRemaining = Math.ceil((expiry - today) / 86400000);
-    const status = daysRemaining < 0 ? 'ended' : daysRemaining <= 30 ? 'expiring' : 'active';
-    const statusText = status === 'ended' ? '已结束' : status === 'expiring' ? '即将到期' : '履约中';
-    const expiryText = status === 'ended' ? clean(expiryDate) + ' 到期' : status === 'expiring' ? '至 ' + clean(expiryDate) + ' · 剩余 ' + daysRemaining + ' 天' : '至 ' + clean(expiryDate);
-    const expiryColor = status === 'expiring' ? '#B4525E' : '#8792A5';
-    const number = 'CTR-2026-' + String(nextContractNumber++).padStart(3, '0');
-    const fileUrl = URL.createObjectURL(selectedContractFile);
-    const size = selectedContractFile.size < 1024 * 1024 ? Math.max(1, Math.round(selectedContractFile.size / 1024)) + ' KB' : (selectedContractFile.size / 1024 / 1024).toFixed(1) + ' MB';
-    const extension = selectedContractFile.name.split('.').pop().toUpperCase();
-    const row = document.createElement('tr');
-    row.setAttribute('data-contract-row', '');
-    row.setAttribute('data-columns-split', 'true');
-    row.dataset.status = status;
-    row.dataset.fileUrl = fileUrl;
-    row.dataset.search = [number, creator, campaign, sku, product, platform, deal, amount].join(' ').toLowerCase();
-    row.innerHTML = '<td><div style="font-weight:600">' + clean(number) + '</div><div style="color:#647187">' + clean(creator) + ' · ' + clean(platform) + '</div></td>' +
-      '<td><div>' + clean(campaign) + '</div></td>' +
-      '<td><div style="font-weight:600;font-variant-numeric:tabular-nums">' + clean(sku) + '</div><div style="color:#8792A5">' + clean(product) + '</div></td>' +
-      '<td><div>' + clean(deal) + '</div><div style="color:#647187">' + clean(amount) + '</div></td>' +
-      '<td><div>' + clean(signedDate) + ' 签署</div><div style="color:' + expiryColor + '">' + expiryText + '</div></td>' +
-      '<td><span class="contract-status ' + clean(status) + '">' + clean(statusText) + '</span></td>' +
-      '<td><div class="contract-file"><span class="contract-file-icon">' + clean(extension) + '</span><div><div style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + clean(selectedContractFile.name) + '</div><div style="color:#A2ABBA;font-size:10.5px">' + clean(size) + '</div></div></div></td>' +
-      '<td><div>陈曦</div><div style="color:#A2ABBA;font-size:10.5px">刚刚上传</div></td>' +
-      '<td><button type="button" class="contract-link-btn" data-contract-action="view-record">查看</button></td>';
-    get('contract-records-body').prepend(row);
-
-    const rows = document.querySelectorAll('[data-contract-row]');
-    const countBadge = document.querySelector('[data-contract-tab="records"] span');
-    if (countBadge) countBadge.textContent = String(rows.length);
-    selectedContractFile = null;
-    get('contract-file-input').value = '';
-    get('contract-file-label').textContent = '选择文件或拖拽到这里';
-    ['contract-creator', 'contract-campaign', 'contract-sku', 'contract-deal', 'contract-amount', 'contract-signed-date', 'contract-expiry-date'].forEach((id) => { if (get(id)) get(id).value = ''; });
-    syncCampaignSku();
-    closeUpload();
-    filterRecords();
+    const fail = message => { error.textContent = message; error.style.display = ''; };
+    if (!selectedContractFile || !creator || !campaign || !sku || !deal || !amount || !signedDate || !expiryDate) return fail('请选择合同文件，并完整填写 Campaign、红人、合作方式、合同金额及日期。');
+    if (expiryDate < signedDate) return fail('到期日期不能早于签署日期。');
+    if (sourceParams.get('asset') && !rightsType) return fail('请选择本合同约定的素材授权类型。');
+    if (rightsType && (!rightsScope || !signedConfirmed)) return fail('请填写合同授权范围，并确认文件包含双方签署及相应授权条款。');
+    if (signedConfirmed && signedDate > contractStore.today()) return fail('已签署合同的签署日期不能晚于今天。');
+    if (sourceParams.get('asset') && expiryDate < contractStore.today()) return fail('合同已过期，不能关联为有效素材授权。请上传续签后的合同。');
+    const file = selectedContractFile;
+    const record = {
+      id: 'CTR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase(),
+      creator,campaign,sku,product,platform,deal,amount,signedDate,expiryDate,rightsType,rightsScope,signedConfirmed,
+      assetKey:sourceParams.get('asset') || '', status:'active',fileStored:true,
+      fileName:file.name,extension:file.name.split('.').pop().toUpperCase(),sizeLabel:(file.size/1024/1024).toFixed(2)+' MB'
+    };
+    contractUploadBusy = true;
+    const button = document.querySelector('[data-contract-action="save-upload"]');
+    button.disabled = true; button.textContent = '正在保存…';
+    try {
+      await contractStore.save(record,file);
+      if (record.assetKey) {
+        const [campaignKey,assetSku,creatorKey,url] = JSON.parse(record.assetKey);
+        contractStore.link({campaign:campaignKey,sku:assetSku,handle:creatorKey,url},record.id);
+        window.location.href = './9-Asset-Library.html';
+        return;
+      }
+      renderUploadedRecord(record,file);
+      selectedContractFile=null; get('contract-file-input').value=''; get('contract-file-label').textContent='选择文件或拖拽到这里';
+      ['contract-creator','contract-campaign','contract-sku','contract-deal','contract-amount','contract-signed-date','contract-expiry-date','contract-rights-type','contract-rights-scope'].forEach(id=>{get(id).value='';});
+      get('contract-signed-confirm').checked=false;
+      syncCampaignSku(); closeUpload(); filterRecords();
+    } catch (_) { fail('合同保存或关联失败，请检查浏览器存储空间后重试。'); }
+    finally { contractUploadBusy=false;button.disabled=false;button.textContent=sourceParams.get('asset') ? '保存并关联素材':'确认上传'; }
   };
 
   window.addEventListener('click', (event) => {
@@ -867,7 +947,10 @@
     zone.classList.remove('is-dragging');
     chooseFile(event.dataTransfer?.files?.[0]);
   });
+  setTimeout(restoreUploadedRecords, 0);
   setTimeout(openUploadFromCampaign, 0);
+  setTimeout(openReviewRecordFromTasks, 0);
+  window.addEventListener('storage', (event) => { if (event.key === 'aios.approvals') syncContractReview(); });
 })();
 </script>
 </body>

@@ -15,8 +15,10 @@
 <meta name="twitter:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
 <title>Sample Mgt · Influencer Marketing AIOS</title>
 <link rel="stylesheet" href="../design-system.css">
+<style>button:disabled { opacity:.45; cursor:not-allowed !important; }</style>
 <script>window.AIOS_PAGE = "samples";</script>
 <script src="../support.js"></script>
+<script src="../sample-waybill-import.js?v=20261023-a"></script>
 <script src="../mail-nav.js" defer></script>
 </head>
 <body data-page="samples">
@@ -334,6 +336,7 @@
             </div>
           </div>
 
+          <sc-if value="{{ smpImportNoticeVisible }}" hint-placeholder-val="{{ false }}"><div role="status" style="margin:12px 0;padding:14px 18px;border:1px solid #CFE3D3;border-radius:12px;background:#EAF4EC;color:#4E7156;font-size:13px">{{ smpImportNotice }}</div></sc-if>
           <sc-if value="{{ smpEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="border:1px dashed #E2E8F2;border-radius:16px;padding:22px;text-align:center;font-size:13.5px;color:#8792A5">{{ smpEmptyNote }}</div>
           </sc-if>
@@ -470,21 +473,19 @@
   </main>
 
   <sc-if value="{{ smpBindOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeSmpBind }}" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(29,38,56,.28);backdrop-filter:blur(2px);padding:28px">
-      <div onClick="{{ sampleModalKeep }}" style="width:min(560px,calc(100vw - 56px));background:#FFFFFF;border:1px solid #D9E1EF;border-radius:20px;box-shadow:0 22px 60px rgba(29,38,56,.22);padding:20px;animation:fadeUp .18s ease both">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:18px;font-weight:600;color:#1D2638">回填外部运单号</div>
-            <div style="font-size:12px;color:#8792A5;margin-top:2px">每行填写姓名、电话、MSKU、运单号，匹配待寄样后回写物流轨迹</div>
-          </div>
-          <div onClick="{{ closeSmpBind }}" aria-label="关闭回填" title="关闭" style="width:34px;height:34px;flex:0 0 34px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;cursor:pointer">×</div>
+    <div onClick="{{ closeSmpBind }}" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(29,38,56,.3);padding:20px;box-sizing:border-box">
+      <section onClick="{{ sampleModalKeep }}" role="dialog" aria-modal="true" aria-label="上传清单回填运单" style="width:min(1060px,100%);max-height:calc(100dvh - 40px);display:flex;flex-direction:column;overflow:hidden;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:20px;box-shadow:0 22px 60px rgba(29,38,56,.22)">
+        <header style="padding:20px 24px;border-bottom:1px solid #E2E8F2;display:flex;align-items:center;gap:16px"><div style="flex:1"><div style="font-size:18px;font-weight:600;color:#1D2638">上传清单回填运单</div><div style="font-size:12px;color:#8792A5;margin-top:6px">下载清单 → 填写外部运单号 → 上传预览 → 确认回填</div></div><button type="button" onClick="{{ closeSmpBind }}" aria-label="关闭回填" style="border:0;background:#F5F8FE;border-radius:50%;width:32px;height:32px;font-size:22px;color:#647187;cursor:pointer">×</button></header>
+        <div style="padding:20px 24px;overflow-y:auto;min-height:0">
+          <label style="display:flex;align-items:center;gap:14px;padding:22px;border:1px dashed #B8CBFF;border-radius:14px;background:#F8FAFF;cursor:pointer"><span style="font-size:24px;color:#2457F5">↑</span><div><div style="font-size:14px;font-weight:600;color:#2457F5">选择已填写运单号的清单</div><div style="font-size:12px;color:#8792A5;margin-top:5px">支持 .xlsx、UTF-8 CSV · 最大 10 MB · 最多 5000 行</div><input type="file" aria-label="上传运单清单" accept=".xlsx,.csv" onChange="{{ smpImportPick }}" disabled="{{ smpImportBusy }}" style="margin-top:12px;font-family:inherit;font-size:12px;max-width:100%" /></div></label>
+          <div style="font-size:12px;color:#647187;margin-top:12px;overflow-wrap:anywhere">{{ smpImportFile }}</div>
+          <sc-if value="{{ smpImportHasRows }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;font-weight:600;color:#334155;margin:20px 0 12px">{{ smpImportSummary }}</div>
+            <div style="overflow:auto;border:1px solid #E2E8F2;border-radius:12px;max-height:340px"><table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left"><thead style="background:#F5F8FE;position:sticky;top:0"><tr><th style="padding:12px">行号</th><th style="padding:12px">红人 / 产品</th><th style="padding:12px">寄样单编号</th><th style="padding:12px">运单号</th><th style="padding:12px">匹配结果</th></tr></thead><tbody><sc-for list="{{ smpImportRows }}" as="r" hint-placeholder-count="4"><tr style="border-top:1px solid #E2E8F2"><td style="padding:12px">{{ r.line }}</td><td style="padding:12px;min-width:150px;color:#334155">{{ r.handle }}<div style="font-size:11px;color:#8792A5;margin-top:4px">{{ r.product }}</div></td><td style="padding:12px;font-size:10px;overflow-wrap:anywhere;max-width:150px">{{ r.id }}</td><td style="padding:12px;overflow-wrap:anywhere;max-width:180px">{{ r.tracking }}</td><td style="padding:12px;min-width:150px;color:{{ r.color }}">{{ r.status }}</td></tr></sc-for></tbody></table></div>
+          </sc-if>
         </div>
-        <textarea value="{{ smpBindText }}" onInput="{{ setSmpBindText }}" onChange="{{ setSmpBindText }}" rows="8" placeholder="Andre Cole, +1 416 555 0108, RYZ-SC-01, 1Z999AA10123456784&#10;Sofia Bennett, +1 323 555 0166, LUM-AR-02, 1Z999AA10123456785" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;line-height:1.7;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:12px;padding:11px 13px;outline:none;resize:vertical"></textarea>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
-          <span style="flex:1;min-width:0;font-size:12px;color:{{ smpBindNoteFg }};text-wrap:pretty">{{ smpBindNote }}</span>
-          <div onClick="{{ smpBindSubmit }}" style="flex:0 0 auto;font-size:13px;background:#2457F5;color:#fff;border-radius:999px;padding:8px 16px;cursor:pointer;white-space:nowrap">匹配并回填</div>
-        </div>
-      </div>
+        <footer style="padding:16px 24px;border-top:1px solid #E2E8F2;display:flex;align-items:center;gap:14px"><span role="status" style="flex:1;font-size:12px;color:{{ smpBindNoteFg }}">{{ smpBindNote }}</span><button type="button" onClick="{{ closeSmpBind }}" style="padding:9px 16px;border:1px solid #E2E8F2;border-radius:999px;background:#FFFFFF;font-family:inherit;color:#647187;cursor:pointer">取消</button><button type="button" onClick="{{ smpBindSubmit }}" disabled="{{ smpImportDisabled }}" style="padding:10px 18px;border:0;border-radius:999px;background:#2457F5;color:#FFFFFF;font-family:inherit;white-space:nowrap;cursor:pointer">确认回填</button></footer>
+      </section>
     </div>
   </sc-if>
 
@@ -581,6 +582,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js?v=9"></script>
+<script src="../app-logic.js?v=waybill-import-20261023-a"></script>
 </body>
 </html>

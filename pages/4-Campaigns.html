@@ -15,6 +15,21 @@
 <meta name="twitter:image" content="https://influencer-marketing-aios.uangroup-cod-2304.chatgpt.site/og.png">
 <title>Campaigns · Influencer Marketing AIOS</title>
 <link rel="stylesheet" href="../design-system.css">
+<style>
+  .coop-stage-action { transition: background .15s ease; }
+  .coop-stage-action:hover { background: #F0F5FF; }
+  .coop-click-indicator { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; width: 16px; height: 18px; margin-left: auto; color: #8799BA; font-size: 19px; font-weight: 500; line-height: 1; }
+  .coop-stage-action:hover .coop-click-indicator,
+  .coop-creator-action:hover .coop-click-indicator { color: #2457F5; }
+</style>
+<style>
+  .payment-primary,.payment-secondary { font-family:inherit;font-size:12px;border-radius:999px;padding:8px 15px;cursor:pointer; }
+  .payment-primary { background:#2457F5;border:1px solid #2457F5;color:#FFFFFF; }
+  .payment-secondary { background:#FFFFFF;border:1px solid #D9E1EF;color:#647187; }
+  .payment-primary:disabled,.payment-secondary:disabled { opacity:.45;cursor:not-allowed; }
+  .payment-layout { display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px; }
+  @media(max-width:760px) { .payment-layout { grid-template-columns:1fr; } }
+</style>
 <script>window.AIOS_PAGE = "campaigns";</script>
 <script src="../support.js"></script>
 <script src="../mail-nav.js" defer></script>
@@ -933,7 +948,7 @@
 
           <sc-if value="{{ campaignTabCooperation }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;padding:0 2px;flex-wrap:wrap">
-              <div style="flex:1 1 300px;min-width:0"><div style="font-size:16px;font-weight:600;color:#1D2638">合作履约</div><div style="font-size:12px;color:#8792A5;margin-top:3px">按红人查看从建联到素材回收的完整合作链路</div></div>
+              <div style="flex:1 1 300px;min-width:0"><div style="font-size:16px;font-weight:600;color:#1D2638">合作履约</div><div style="font-size:12px;color:#8792A5;margin-top:3px">按红人查看从建联到素材回收的完整合作链路 · 付款审批为演示数据，未连接飞书</div></div>
               <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end"><sc-for list="{{ cooperationSummary }}" as="m" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:6px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:999px;padding:5px 10px"><span style="width:6px;height:6px;border-radius:999px;background:{{ m.color }}"></span><span style="font-size:11px;color:#8792A5">{{ m.label }}</span><span style="font-size:12px;font-weight:600;color:#334155">{{ m.value }}</span></div></sc-for></div>
             </div>
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap">
@@ -942,7 +957,7 @@
                 <input type="text" value="{{ coopQuery }}" onChange="{{ coopQuerySet }}" placeholder="筛选红人账号，例如 @mia.selfcare" style="min-width:0;flex:1;border:0;outline:none;background:transparent;color:#1D2638;font-family:inherit;font-size:12.5px" />
                 <sc-if value="{{ coopQueryActive }}" hint-placeholder-val="{{ false }}"><span onClick="{{ coopQueryClear }}" title="清除筛选" style="font-size:15px;line-height:1;color:#8792A5;cursor:pointer">×</span></sc-if>
               </div>
-              <span style="font-size:11.5px;color:#8792A5">{{ coopFilterCount }}</span>
+              <span style="font-size:11.5px;color:#8792A5">{{ coopFilterCount }}</span><span style="margin-left:auto;font-size:11px;color:#8792A5"><span style="color:#8799BA;font-size:17px;vertical-align:-1px">›</span> 可点击查看或处理</span>
             </div>
             <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden">
               <div style="overflow-x:auto">
@@ -954,12 +969,12 @@
                   <sc-for list="{{ cooperationRows }}" as="r" hint-placeholder-count="8">
                     <div style="display:grid;grid-template-columns:190px repeat(6,minmax(142px,1fr));gap:0;border-bottom:1px solid #EEF2F8;background:#FFFFFF" style-hover="background:#FBFCFF">
                       <div style="padding:14px 15px;display:flex;flex-direction:column;justify-content:center;min-width:0">
-                        <div onClick="{{ r.open }}" style="display:flex;align-items:center;gap:9px;cursor:pointer;min-width:0"><span style="width:30px;height:30px;border-radius:999px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:0 0 30px">{{ r.initial }}</span><div style="min-width:0"><div style="font-size:12.5px;font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.handle }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.profile }}</div></div></div>
+                        <div class="coop-creator-action" title="查看红人档案" onClick="{{ r.open }}" style="display:flex;align-items:center;gap:9px;cursor:pointer;min-width:0"><span style="width:30px;height:30px;border-radius:999px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:0 0 30px">{{ r.initial }}</span><div style="min-width:0"><div style="font-size:12.5px;font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.handle }}</div><div style="font-size:10.5px;color:#8792A5;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.profile }}</div></div><span class="coop-click-indicator" aria-hidden="true">›</span></div>
                         <div style="display:flex;align-items:center;gap:7px;margin-top:10px"><div style="flex:1;height:4px;background:#EEF2F8;border-radius:999px;overflow:hidden"><div style="height:100%;width:{{ r.progressPct }}%;background:{{ r.progressColor }};border-radius:999px"></div></div><span style="font-size:10px;color:#8792A5;white-space:nowrap">{{ r.progressText }}</span></div>
                       </div>
                       <sc-for list="{{ r.stages }}" as="st" hint-placeholder-count="6">
-                        <div onClick="{{ st.action }}" style="min-height:91px;padding:13px 12px;border-left:1px solid #EDF1F7;box-sizing:border-box;cursor:{{ st.cursor }};position:relative">
-                          <div style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:16px;border-radius:999px;background:{{ st.dotBg }};color:{{ st.dotFg }};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex:0 0 16px">{{ st.mark }}</span><span style="font-size:11px;font-weight:600;color:{{ st.fg }}">{{ st.status }}</span></div>
+                        <div class="{{ st.actionClass }}" title="{{ st.actionTitle }}" onClick="{{ st.action }}" style="min-height:91px;padding:13px 12px;border-left:1px solid #EDF1F7;box-sizing:border-box;cursor:{{ st.cursor }};position:relative">
+                          <div style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:16px;border-radius:999px;background:{{ st.dotBg }};color:{{ st.dotFg }};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex:0 0 16px">{{ st.mark }}</span><span style="font-size:11px;font-weight:600;color:{{ st.fg }}">{{ st.status }}</span><sc-if value="{{ st.actionable }}" hint-placeholder-val="{{ true }}"><span class="coop-click-indicator" aria-hidden="true">›</span></sc-if></div>
                           <div style="font-size:11px;line-height:1.45;color:#647187;margin-top:7px;text-wrap:pretty">{{ st.note }}</div>
                           <div style="font-size:9.5px;color:{{ st.metaFg }};margin-top:5px">{{ st.meta }}</div>
                         </div>
@@ -996,7 +1011,7 @@
                     <sc-if value="{{ coopActionIsPosts }}" hint-placeholder-val="{{ false }}">
                       <div style="margin-bottom:15px">
                         <div style="font-size:11.5px;color:#A2ABBA;margin-bottom:7px">素材类型标签</div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ alTypeChips }}" as="tc" hint-placeholder-count="2"><div onClick="{{ tc.pick }}" style="display:flex;align-items:center;gap:7px;border:1px solid {{ tc.bd }};background:{{ tc.bg }};border-radius:11px;padding:8px 12px;cursor:pointer;white-space:nowrap"><span style="width:14px;height:14px;border-radius:5px;border:1.5px solid {{ tc.boxBd }};background:{{ tc.boxBg }};color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;flex:0 0 14px">{{ tc.check }}</span><span style="font-size:12.5px;font-weight:500;color:{{ tc.fg }}">{{ tc.label }}</span><span style="font-size:11px;color:#A2ABBA">{{ tc.note }}</span></div></sc-for></div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ alTypeChips }}" as="tc" hint-placeholder-count="3"><div role="checkbox" aria-checked="{{ tc.on }}" aria-label="{{ tc.label }}" onClick="{{ tc.pick }}" style="display:flex;align-items:center;gap:7px;border:1px solid {{ tc.bd }};background:{{ tc.bg }};border-radius:11px;padding:8px 12px;cursor:pointer;white-space:nowrap"><span style="width:14px;height:14px;border-radius:5px;border:1.5px solid {{ tc.boxBd }};background:{{ tc.boxBg }};color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;flex:0 0 14px">{{ tc.check }}</span><span style="font-size:12.5px;font-weight:500;color:{{ tc.fg }}">{{ tc.label }}</span><span style="font-size:11px;color:#A2ABBA">{{ tc.note }}</span></div></sc-for></div>
                         <sc-if value="{{ alTypeHint }}" hint-placeholder-val="{{ false }}"><div style="font-size:11px;color:#1D48D8;margin-top:7px">{{ alTypeHint }}</div></sc-if>
                       </div>
                       <div style="margin-bottom:14px">
@@ -1004,7 +1019,18 @@
                         <div style="display:flex;gap:7px;flex-wrap:wrap"><sc-for list="{{ coopAssetChannelOptions }}" as="ch" hint-placeholder-count="4"><div onClick="{{ ch.pick }}" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border:1px solid {{ ch.bd }};background:{{ ch.bg }};color:{{ ch.fg }};border-radius:999px;padding:6px 12px;cursor:pointer"><span style="width:6px;height:6px;border-radius:999px;background:{{ ch.dot }}"></span>{{ ch.label }}</div></sc-for></div>
                       </div>
                       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px"><sc-for list="{{ alFormBase }}" as="fd" hint-placeholder-count="5"><div style="min-width:0"><div style="font-size:11.5px;color:#A2ABBA;margin-bottom:4px">{{ fd.label }}</div><sc-if value="{{ fd.isText }}" hint-placeholder-val="{{ true }}"><input type="text" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:10px;padding:8px 11px;outline:none" /></sc-if><sc-if value="{{ fd.isSelect }}" hint-placeholder-val="{{ false }}"><div style="position:relative"><div onClick="{{ fd.toggle }}" style="display:flex;align-items:center;gap:6px;font-size:13px;background:#F8FAFE;border:1px solid {{ fd.bd }};border-radius:10px;padding:8px 11px;cursor:pointer;white-space:nowrap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:{{ fd.fg }}">{{ fd.value }}</span><span style="font-size:8px;color:#A2ABBA">▾</span></div><sc-if value="{{ fd.open }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:calc(100% + 5px);left:0;z-index:90;min-width:100%;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:12px;box-shadow:0 10px 26px rgba(29,38,56,.12);padding:5px"><sc-for list="{{ fd.options }}" as="o" hint-placeholder-count="2"><div onClick="{{ o.pick }}" style="font-size:12.5px;color:{{ o.fg }};background:{{ o.bg }};border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap">{{ o.label }}</div></sc-for></div></sc-if></div></sc-if></div></sc-for></div>
-                      <div style="border:1px solid #EEF2F8;border-radius:14px;padding:13px;background:#F8FAFE;margin-top:15px"><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600;color:#1D2638">表现数据</div><div style="font-size:11px;color:#A2ABBA">GMV 非必填 · CPV 留空时按成本 ÷ Views 自动计算</div></div><div style="display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px"><sc-for list="{{ alFormMetrics }}" as="fd" hint-placeholder-count="4"><div style="min-width:0"><div style="font-size:11px;color:#A2ABBA;margin-bottom:3px">{{ fd.label }}</div><input type="text" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:9px;padding:7px 10px;outline:none;font-variant-numeric:tabular-nums" /></div></sc-for></div></div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:15px">
+                    <sc-for list="{{ alMarketingGoalCards }}" as="gc" hint-placeholder-count="2">
+                      <section style="min-width:0;border:1px solid #E2E8F2;border-radius:14px;padding:14px;background:#F8FAFE">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600;color:#1D2638">{{ gc.title }}</div><span style="font-size:10.5px;color:#2457F5;background:#EAF0FF;border-radius:999px;padding:3px 8px">{{ gc.badge }}</span></div>
+                        <div style="font-size:11px;color:#8792A5;line-height:1.6;margin-top:7px;overflow-wrap:anywhere">{{ gc.context }}</div>
+                        <sc-if value="{{ gc.empty }}"><div style="font-size:12px;color:#8792A5;border:1px dashed #D5DFEF;border-radius:9px;padding:14px;margin-top:10px;background:#FFFFFF">{{ gc.emptyText }}</div></sc-if>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-top:10px"><sc-for list="{{ gc.metrics }}" as="metric" hint-placeholder-count="4"><div style="min-width:0;background:#FFFFFF;border:1px solid #EEF2F8;border-radius:9px;padding:10px"><div style="font-size:11px;color:#8792A5">{{ metric.label }}</div><div style="font-size:14px;font-weight:600;color:#1D2638;margin-top:6px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums">{{ metric.value }}</div></div></sc-for></div>
+                      </section>
+                    </sc-for>
+                  </div>
+
+                  <div style="border:1px solid #EEF2F8;border-radius:14px;padding:13px;background:#F8FAFE;margin-top:15px"><div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px;flex-wrap:wrap"><div style="font-size:13px;font-weight:600;color:#1D2638">表现数据</div><div style="font-size:11px;color:#A2ABBA">至少填写一个时间段；每组 Views、CPV 必填，红人 GMV 和 ER % 非必填。未到的时间段可留空。</div></div><sc-for list="{{ alMetricGroups }}" as="mg" hint-placeholder-count="3"><div style="border:1px solid #E2E8F2;border-radius:11px;background:#FFFFFF;padding:12px;margin-top:10px"><div style="font-size:12.5px;font-weight:600;color:#1D2638;margin-bottom:10px">{{ mg.label }}</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px"><sc-for list="{{ mg.fields }}" as="fd" hint-placeholder-count="4"><div style="min-width:0"><div style="font-size:11px;color:#A2ABBA;margin-bottom:3px">{{ fd.label }}<sc-if value="{{ fd.required }}"><span style="color:#C4636D;margin-left:3px">*</span></sc-if></div><input type="text" aria-label="{{ fd.ariaLabel }}" aria-required="{{ fd.required }}" value="{{ fd.value }}" onChange="{{ fd.set }}" placeholder="{{ fd.ph }}" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;color:#1D2638;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:9px;padding:7px 10px;outline:none;font-variant-numeric:tabular-nums" /></div></sc-for></div></div></sc-for></div>
                       <div style="display:flex;align-items:center;gap:9px;margin-top:15px;flex-wrap:wrap"><span style="flex:1 1 260px;font-size:11.5px;color:#8792A5">保存后同步进入当前 Campaign 的「素材」页与 Asset Library；可继续录入其他渠道。</span><div onClick="{{ coopAssetReset }}" style="font-size:12.5px;border:1px solid #E2E8F2;background:#FFFFFF;color:#647187;border-radius:999px;padding:7px 15px;cursor:pointer">重置</div><div onClick="{{ coopAssetSubmit }}" style="font-size:12.5px;background:#2457F5;color:#FFFFFF;border:1px solid #2457F5;border-radius:999px;padding:7px 16px;cursor:pointer">保存并入库</div></div>
                     </sc-if>
                     <sc-if value="{{ coopActionHasNotice }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:{{ coopActionNoticeColor }};margin-top:11px">{{ coopActionNotice }}</div></sc-if>
@@ -1163,6 +1189,73 @@
     </div>
   </main>
 
+  <sc-if value="{{ coopPaymentApprovalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ coopActionClose }}" style="position:fixed;inset:0;z-index:220;background:rgba(29,38,56,.38);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box">
+      <section onClick="{{ coopActionKeep }}" role="dialog" aria-modal="true" aria-label="付款审批进度" style="width:min(1000px,100%);max-height:calc(100dvh - 40px);display:flex;flex-direction:column;background:#FFFFFF;border:1px solid #D9E1EF;border-radius:20px;overflow:hidden;box-shadow:0 24px 64px rgba(29,38,56,.22)">
+        <header style="padding:20px 24px;border-bottom:1px solid #E2E8F2;display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:18px;font-weight:600;color:#1D2638">付款审批进度 <span style="font-size:11px;color:#A5762C;background:#FBEEDA;border-radius:5px;padding:3px 7px;vertical-align:2px">飞书 · 原型演示</span></div><div style="font-size:12px;color:#8792A5;margin-top:6px">{{ coopActionHandle }} · {{ cd.name }}</div></div><button class="payment-secondary" onClick="{{ coopActionClose }}" aria-label="关闭付款审批">×</button></header>
+        <div style="padding:20px 24px;overflow-y:auto;min-height:0;overscroll-behavior:contain">
+          <div style="display:flex;align-items:center;gap:20px;padding:18px 20px;background:#F8FAFE;border:1px solid #E2E8F2;border-radius:14px;margin-bottom:22px;flex-wrap:wrap"><div style="flex:1"><div style="font-size:11px;color:#8792A5">申请金额</div><div style="font-size:26px;font-weight:600;color:#1D2638;margin-top:5px">{{ paymentApproval.amount }}</div><div style="font-size:12px;color:#647187;margin-top:5px">{{ paymentApproval.item }}</div></div><div style="text-align:right"><span style="font-size:13px;font-weight:600;color:{{ approvalStatusColor }};background:{{ approvalStatusBg }};padding:5px 11px;border-radius:8px">{{ paymentApproval.label }}</span><div style="font-size:12px;color:#647187;margin-top:12px">{{ paymentApproval.current }}</div></div></div>
+          <div class="payment-layout">
+            <div><h3 style="font-size:14px;color:#334155;margin:0 0 16px">审批时间轴</h3><div style="font-size:11px;color:#8792A5;margin-bottom:18px;overflow-wrap:anywhere">审批单号：{{ paymentApproval.number }}</div>
+              <ol style="list-style:none;padding:0 0 0 13px;margin:0"><sc-for list="{{ approvalTimeline }}" as="n" hint-placeholder-count="3"><li style="position:relative;border-left:1px solid #E2E8F2;padding:0 0 24px 26px"><span style="position:absolute;left:-12px;top:0;width:24px;height:24px;border-radius:50%;background:{{ n.bg }};color:{{ n.color }};font-size:11px;display:flex;align-items:center;justify-content:center">{{ n.mark }}</span><div style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#334155"><span>{{ n.title }}</span><span style="font-size:11px;color:{{ n.color }}">{{ n.status }}</span></div><div style="font-size:12px;color:#647187;margin-top:7px">{{ n.actor }}</div><div style="font-size:11px;color:#A2ABBA;margin-top:5px">{{ n.time }}</div><div style="font-size:12px;line-height:1.65;color:#647187;margin-top:9px;background:#F8FAFE;padding:10px 12px;border-radius:8px">{{ n.opinion }}</div></li></sc-for></ol>
+
+            </div>
+            <div style="border-left:1px solid #EEF2F8;padding-left:20px"><h3 style="font-size:14px;color:#334155;margin:0 0 12px">付款与凭证</h3><div style="font-size:12px;line-height:1.8;color:#647187;background:#F8FAFE;border-radius:10px;padding:13px;margin-bottom:16px">{{ approvalResult }}</div>
+              <sc-if value="{{ coopPaymentHasSaved }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #E2E8F2;border-radius:12px;overflow:hidden;background:#F8FAFE">
+                  <img src="{{ coopPaymentShownImage }}" alt="已保存的付款凭证" style="display:block;width:100%;max-height:300px;object-fit:contain" />
+                  <div style="padding:9px 11px;font-size:11.5px;color:#647187;word-break:break-all">{{ coopPaymentShownName }}</div>
+                </div>
+                <div style="font-size:11px;color:#4E7156;margin-top:9px">付款确认时间：{{ coopPaymentSavedAt }}</div>
+              </sc-if>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </sc-if>
+
+
+  <sc-if value="{{ cooperationBriefMailOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ cooperationBriefMailClose }}" style="position:fixed;inset:0;z-index:310;background:rgba(20,29,46,.4);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box">
+      <section onClick="{{ coopActionKeep }}" role="dialog" aria-modal="true" aria-label="Brief 沟通邮件" style="width:min(1040px,100%);height:min(700px,calc(100dvh - 40px));display:flex;flex-direction:column;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(29,38,56,.22)">
+        <header style="display:flex;align-items:center;gap:16px;padding:18px 22px;border-bottom:1px solid #E2E8F2">
+          <div style="flex:1"><div style="font-size:17px;font-weight:600;color:#1D2638">Brief 沟通邮件</div><div style="font-size:12px;color:#8792A5;margin-top:4px">{{ cooperationBriefMailHandle }} · {{ cd.name }}</div></div>
+          <button type="button" onClick="{{ cooperationBriefMailClose }}" aria-label="关闭邮件" style="border:0;background:#F5F8FE;border-radius:50%;width:32px;height:32px;font-size:22px;color:#647187;cursor:pointer">×</button>
+        </header>
+        <div style="padding:11px 22px;background:#F8FAFE;border-bottom:1px solid #E2E8F2;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:#647187"><span>全部往来 · {{ cooperationBriefMailCount }} 封邮件</span><span>时间倒序 · 最新在上</span></div>
+        <div style="flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:24px;background:#F8FAFE">
+          <sc-if value="{{ cooperationBriefMailEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:48px 16px;text-align:center;color:#8792A5;font-size:14px">暂无往来邮件<div style="font-size:12px;margin-top:10px">当前尚未记录与这位红人的邮件沟通。</div></div></sc-if>
+          <ol aria-label="邮件时间轴" style="list-style:none;margin:0;padding:0 0 0 10px">
+            <sc-for list="{{ cooperationBriefMailItems }}" as="m" hint-placeholder-count="3">
+              <li style="position:relative;padding:0 0 24px 26px;border-left:2px solid #DFE6F2">
+                <span aria-hidden="true" style="position:absolute;left:-6px;top:6px;width:10px;height:10px;border-radius:50%;background:{{ m.directionColor }};box-shadow:0 0 0 4px #F8FAFE"></span>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:12px"><time style="color:#647187;font-variant-numeric:tabular-nums">{{ m.displayTime }}</time><span style="background:{{ m.directionBg }};color:{{ m.directionColor }};padding:3px 9px;border-radius:6px;font-weight:600">{{ m.directionLabel }}</span><sc-if value="{{ m.newest }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:#8792A5">最新</span></sc-if></div>
+                <article style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:14px;padding:20px 22px">
+                  <h2 style="font-size:15px;color:#1D2638;margin:0 0 14px;line-height:1.6">{{ m.subject }}</h2>
+                  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:11px 12px;background:#F4F7FF;border-radius:9px"><span title="根据当前留存的邮件正文或摘要提取" style="font-size:11px;font-weight:600;color:#2457F5;margin-right:3px">AI 关键词</span><sc-for list="{{ m.keywords }}" as="kw" hint-placeholder-count="3"><span style="font-size:11px;color:#465C85;background:#FFFFFF;border:1px solid #DFE6F5;border-radius:6px;padding:3px 8px">{{ kw.label }}</span></sc-for></div>
+                  <div style="font-size:11px;color:#8792A5;margin-top:17px">{{ m.contentLabel }}</div>
+                  <div style="font-size:13px;line-height:1.85;color:#334155;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:8px">{{ m.content }}</div>
+                  <details class="coop-original-mail" style="margin-top:16px;border-top:1px solid #EEF2F8;padding-top:12px">
+                    <summary style="font-size:12px;font-weight:600;color:#2457F5;cursor:pointer;padding:6px 0;width:fit-content">查看原邮件</summary>
+                    <div style="margin-top:12px;border:1px solid #E2E8F2;border-radius:10px;overflow:hidden">
+                      <div style="padding:16px;background:#F8FAFE;display:grid;grid-template-columns:58px minmax(0,1fr);gap:8px 12px;font-size:12px;overflow-wrap:anywhere;color:#465268"><span style="color:#8792A5">主题</span><span>{{ m.subject }}</span><span style="color:#8792A5">发件人</span><span>{{ m.sender }}</span><span style="color:#8792A5">收件人</span><span>{{ m.recipient }}</span><span style="color:#8792A5">时间</span><span>{{ m.displayTime }}</span></div>
+                      <sc-if value="{{ m.hasOriginalBody }}" hint-placeholder-val="{{ true }}"><div style="padding:20px;font-size:13px;line-height:1.9;color:#334155;white-space:pre-wrap;overflow-wrap:anywhere">{{ m.originalBody }}</div></sc-if>
+                      <sc-if value="{{ m.originalBodyMissing }}" hint-placeholder-val="{{ false }}"><div style="padding:20px;font-size:13px;line-height:1.8;color:#8792A5">原邮件正文未保存，暂时无法查看。<br />当前记录仅保留邮件信息或摘要，需同步原邮件后才能显示完整内容。</div></sc-if>
+                      <sc-if value="{{ m.hasAttachments }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:#647187;padding:12px 16px;border-top:1px solid #EEF2F8">附件：{{ m.attachments }}</div></sc-if>
+                    </div>
+                  </details>
+                </article>
+              </li>
+            </sc-for>
+          </ol>
+        </div>
+      </section>
+    </div>
+  </sc-if>
+
+
   <sc-if value="{{ copilotClosed }}" hint-placeholder-val="{{ true }}">
     <div onClick="{{ toggleCopilot }}" style="position:fixed;right:24px;bottom:24px;z-index:120;display:flex;align-items:center;gap:9px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:11px 18px;cursor:pointer;font-size:14px;font-weight:500;white-space:nowrap;box-shadow:0 10px 26px rgba(36,87,245,.34)" style-hover="background:#1D48D8">
       <span style="width:7px;height:7px;border-radius:999px;background:#FFFFFF;opacity:.85;animation:pulseDot 2s infinite"></span>
@@ -1206,6 +1299,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js?v=10"></script>
+<script src="../app-logic.js?v=payment-approval-readonly-20261023-b"></script>
 </body>
 </html>
