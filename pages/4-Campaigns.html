@@ -1158,12 +1158,12 @@
               </sc-if>
               <sc-if value="{{ campaignGoalCreatorHasRows }}" hint-placeholder-val="{{ false }}">
                 <div style="border:1px solid #DDE5F1;border-radius:16px;background:#FFFFFF;box-shadow:0 8px 24px rgba(29,38,56,.04);overflow-x:auto">
-                  <div style="min-width:1180px">
-                    <div style="display:grid;grid-template-columns:minmax(168px,1.2fr) 88px repeat(3,minmax(108px,1fr)) 72px 64px 72px 76px;column-gap:10px;padding:11px 14px;background:#F7F9FD;border-bottom:1px solid #DDE5F1;font-size:11px;font-weight:500;color:#8792A5;letter-spacing:.02em">
-                      <div>红人</div><div>状态</div><div>内容</div><div>播放</div><div>GMV</div><div style="text-align:right">花费</div><div style="text-align:right">ROAS</div><div style="text-align:right">综合</div>
+                  <div style="min-width:1000px">
+                    <div style="display:grid;grid-template-columns:minmax(168px,1.2fr) 88px repeat(3,minmax(108px,1fr)) 72px 64px;column-gap:10px;padding:11px 14px;background:#F7F9FD;border-bottom:1px solid #DDE5F1;font-size:11px;font-weight:500;color:#8792A5;letter-spacing:.02em">
+                      <div>红人</div><div>状态</div><div>内容</div><div>播放</div><div>GMV</div><div style="text-align:right">花费</div><div style="text-align:right">ROAS</div>
                     </div>
                     <sc-for list="{{ campaignGoalCreatorRows }}" as="cr" hint-placeholder-count="6">
-                      <div onClick="{{ cr.open }}" style="display:grid;grid-template-columns:minmax(168px,1.2fr) 88px repeat(3,minmax(108px,1fr)) 72px 64px 72px 76px;column-gap:10px;padding:12px 14px;border-bottom:1px solid #EEF2F8;align-items:center;cursor:pointer" style-hover="background:#F8FAFE">
+                      <div onClick="{{ cr.open }}" style="display:grid;grid-template-columns:minmax(168px,1.2fr) 88px repeat(3,minmax(108px,1fr)) 72px 64px;column-gap:10px;padding:12px 14px;border-bottom:1px solid #EEF2F8;align-items:center;cursor:pointer" style-hover="background:#F8FAFE">
                         <div style="display:flex;align-items:center;gap:9px;min-width:0">
                           <span style="width:32px;height:32px;border-radius:10px;background:#EAF0FF;color:#2457F5;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex:0 0 32px">{{ cr.initial }}</span>
                           <div style="min-width:0"><div style="font-size:13px;font-weight:600;color:#1D2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cr.handle }}</div><div style="font-size:10.5px;color:#A2ABBA;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cr.profile }}</div></div>
@@ -1174,7 +1174,6 @@
                         <div><div style="font-size:12px;color:#334155;font-variant-numeric:tabular-nums">{{ cr.gmvActual }} / {{ cr.gmvTarget }}</div><div style="height:4px;background:#EEF2F8;border-radius:2px;margin-top:5px;overflow:hidden"><div style="height:4px;width:{{ cr.gmvBar }}%;background:{{ cr.barColor }}"></div></div></div>
                         <div style="text-align:right;font-size:12px;color:#647187;font-variant-numeric:tabular-nums">{{ cr.spendText }}</div>
                         <div style="text-align:right;font-size:12px;color:#647187;font-variant-numeric:tabular-nums">{{ cr.roasText }}</div>
-                        <div style="text-align:right"><div style="font-size:12px;font-weight:600;color:#1D2638;font-variant-numeric:tabular-nums">{{ cr.compositeText }}</div><span style="font-size:10px;border-radius:999px;padding:1px 6px;background:{{ cr.tagBg }};color:{{ cr.tagFg }}">{{ cr.tag }}</span></div>
                       </div>
                     </sc-for>
                   </div>

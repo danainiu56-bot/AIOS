@@ -81,6 +81,7 @@
   .contract-dropzone.is-dragging { border-color:#2457F5;background:#F1F5FF; }
   #contract-file-input { display:none !important; }
   .contract-form-grid { display:grid;grid-template-columns:1fr 1fr;gap:13px 14px; }
+  .contract-target-row { grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px 14px; }
   .contract-field { display:flex;flex-direction:column;gap:5px; }
   .contract-field.full { grid-column:1 / -1; }
   .contract-field label { font-size:11.5px;color:#647187; }
@@ -101,7 +102,7 @@
   .contract-file-preview-dialog { width:min(860px,100%);height:min(86vh,920px);display:flex;flex-direction:column;overflow:hidden; }
   .contract-file-preview-dialog iframe { flex:1;width:100%;border:0;background:#E8EDF5; }
   .contract-empty { display:none;padding:38px 20px;text-align:center;color:#8792A5;font-size:13px; }
-  @media (max-width:620px) { .contract-form-grid { grid-template-columns:1fr; }.contract-field.full { grid-column:auto; } }
+  @media (max-width:620px) { .contract-form-grid,.contract-target-row { grid-template-columns:1fr; }.contract-field.full { grid-column:auto; } }
 </style>
 </helmet>
 
@@ -389,7 +390,11 @@
               <div class="contract-field"><label for="contract-deal">合作方式 *</label><select id="contract-deal" aria-label="合作方式"><option value="" selected disabled>请选择合作方式</option></select></div>
               <div class="contract-field"><label for="contract-amount">合同金额 *</label><input id="contract-amount" placeholder="例如 USD 1,200 + 10% 佣金"></div>
               <div class="contract-field"><label for="contract-signed-date">签署日期 *</label><input id="contract-signed-date" type="date"></div>
+              <div class="contract-target-row">
               <div class="contract-field"><label for="contract-expiry-date">到期日期 *</label><input id="contract-expiry-date" type="date"></div>
+              <div class="contract-field"><label for="contract-content-count">内容条数 *</label><input id="contract-content-count" required type="number" min="0" step="1" inputmode="numeric" placeholder="例如2"></div>
+              <div class="contract-field"><label for="contract-view-target">播放量营销目标 *</label><input id="contract-view-target" type="text" required placeholder="例如100k"></div>
+              </div>
               <div class="contract-field full"><label for="contract-rights-type">素材授权类型</label><select id="contract-rights-type"><option value="">未约定素材授权</option><option value="social">仅品牌社媒授权</option><option value="ad">广告投放授权</option></select></div>
               <div class="contract-field full"><label for="contract-rights-scope">合同约定的授权范围（含素材授权时必填）</label><input id="contract-rights-scope" placeholder="请按签署条款填写渠道、用途及限制"><div id="contract-asset-context" style="font-size:11px;color:#647187;line-height:1.7">有素材授权的合同将覆盖所选 Campaign 中该红人的素材；请确认合同确实包含此范围。</div></div>
               <div class="contract-field full"><label style="display:flex;align-items:flex-start;gap:8px;color:#647187;font-size:12px"><input id="contract-signed-confirm" type="checkbox" style="width:16px;margin-top:3px;flex:none">我已核对上传文件包含双方签署，授权类型、素材范围与有效期均与合同条款一致。</label><div style="font-size:11px;color:#8792A5">上传未签草稿或仅填写合同编号，不会获得素材授权。</div></div>
@@ -519,6 +524,8 @@
     const modal = get('contract-upload-modal');
     if (!modal) return;
     fillDealSelect();
+    get('contract-view-target').required = true;
+    get('contract-content-count').required = true;
     const signedDate = get('contract-signed-date');
     if (signedDate && !signedDate.value) signedDate.value = new Date().toISOString().slice(0, 10);
     if (get('contract-expiry-date')) get('contract-expiry-date').min = signedDate?.value || '';
@@ -634,14 +641,16 @@
       detailField('金额', clean(data.amount)) +
       detailField('签署日期', clean(data.signed)) +
       detailField('有效期', clean(data.expiry)) +
+      detailField('内容条数', data.contentCount == null ? '未填写' : clean(data.contentCount)) +
+      detailField('播放量营销目标', data.viewTarget == null ? '未填写' : clean(Number(data.viewTarget).toLocaleString('zh-CN'))) +
       detailField('负责人', clean(data.owner)) +
       '<div class="contract-field full"><label>文件</label><a class="contract-detail-file" href="' + clean(fileUrl) + '" target="_blank" rel="noopener" data-contract-action="open-detail-file" data-file-name="' + clean(data.fileName) + '"><span class="contract-file-icon">' + clean(data.fileKind) + '</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + clean(data.fileName) + '</span><span style="margin-left:auto;flex:0 0 auto;font-size:12px">打开浏览</span></a></div>';
   };
   const openDetail = (row) => {
     if (!row) return;
     if (row.dataset.fileMissing) { alert('此合同的本地文件已不可用，请重新上传签署文件。'); return; }
-    fillDetail(parseRecordRow(row));
     const saved = contractStore.records().find(c=>c.id === row.dataset.uploadedContract);
+    fillDetail({...parseRecordRow(row), contentCount: saved?.contentCount, viewTarget: saved?.viewTarget});
     if (saved) get('contract-detail-grid').insertAdjacentHTML('beforeend',
       detailField('素材授权', clean(saved.rightsType === 'ad' ? '广告投放授权' : saved.rightsType === 'social' ? '仅品牌社媒授权' : '未约定')) +
       detailField('授权范围',clean(saved.rightsScope || '未约定')) + detailField('覆盖素材',clean(saved.assetKey ? '上传时关联的单条素材' : '该 Campaign 下此红人的素材')));
@@ -829,12 +838,23 @@
     const amount = get('contract-amount')?.value.trim();
     const signedDate = get('contract-signed-date')?.value;
     const expiryDate = get('contract-expiry-date')?.value;
+    const contentCountInput = get('contract-content-count');
+    const contentCountValue = contentCountInput.value.trim();
+    const contentCount = contentCountValue === '' ? null : Number(contentCountValue);
+    const viewTargetInput = get('contract-view-target');
+    const viewTargetValue = viewTargetInput.value.trim();
+    const viewTargetMatch = viewTargetValue.match(/^(\d+(?:\.\d+)?)\s*([kK])?$/);
+    const viewTarget = viewTargetMatch ? Number(viewTargetMatch[1]) * (viewTargetMatch[2] ? 1000 : 1) : NaN;
     const rightsType = get('contract-rights-type')?.value;
     const rightsScope = get('contract-rights-scope')?.value.trim();
     const signedConfirmed = !!get('contract-signed-confirm')?.checked;
     const error = get('contract-upload-error');
     const fail = message => { error.textContent = message; error.style.display = ''; };
     if (!selectedContractFile || !creator || !campaign || !sku || !deal || !amount || !signedDate || !expiryDate) return fail('请选择合同文件，并完整填写 Campaign、红人、合作方式、合同金额及日期。');
+    if (!contentCountValue && !contentCountInput.validity.badInput) return fail('请填写内容条数。');
+    if (contentCountInput.validity.badInput || (contentCount !== null && (!Number.isSafeInteger(contentCount) || contentCount < 0))) return fail('内容条数请填写大于或等于 0 的整数。');
+    if (!viewTargetValue) return fail('请填写播放量营销目标。');
+    if (!Number.isSafeInteger(viewTarget) || viewTarget < 0) return fail('请输入有效的播放量营销目标，例如100k或100000，换算后须为非负整数。');
     if (expiryDate < signedDate) return fail('到期日期不能早于签署日期。');
     if (sourceParams.get('asset') && !rightsType) return fail('请选择本合同约定的素材授权类型。');
     if (rightsType && (!rightsScope || !signedConfirmed)) return fail('请填写合同授权范围，并确认文件包含双方签署及相应授权条款。');
@@ -843,7 +863,7 @@
     const file = selectedContractFile;
     const record = {
       id: 'CTR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase(),
-      creator,campaign,sku,product,platform,deal,amount,signedDate,expiryDate,rightsType,rightsScope,signedConfirmed,
+      creator,campaign,sku,product,platform,deal,amount,signedDate,expiryDate,contentCount,viewTarget,rightsType,rightsScope,signedConfirmed,
       assetKey:sourceParams.get('asset') || '', status:'active',fileStored:true,
       fileName:file.name,extension:file.name.split('.').pop().toUpperCase(),sizeLabel:(file.size/1024/1024).toFixed(2)+' MB'
     };
@@ -860,7 +880,7 @@
       }
       renderUploadedRecord(record,file);
       selectedContractFile=null; get('contract-file-input').value=''; get('contract-file-label').textContent='选择文件或拖拽到这里';
-      ['contract-creator','contract-campaign','contract-sku','contract-deal','contract-amount','contract-signed-date','contract-expiry-date','contract-rights-type','contract-rights-scope'].forEach(id=>{get(id).value='';});
+      ['contract-creator','contract-campaign','contract-sku','contract-deal','contract-amount','contract-signed-date','contract-expiry-date','contract-content-count','contract-view-target','contract-rights-type','contract-rights-scope'].forEach(id=>{get(id).value='';});
       get('contract-signed-confirm').checked=false;
       syncCampaignSku(); closeUpload(); filterRecords();
     } catch (_) { fail('合同保存或关联失败，请检查浏览器存储空间后重试。'); }
