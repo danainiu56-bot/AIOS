@@ -149,6 +149,37 @@ const SETTINGS_ORG = loadSettingsOrg();
 class Component extends DCLogic {
   get accent() { return this.props.accent ?? '#2457F5'; }
 
+  openProductScore(sku, event) {
+    if (event && event.stopPropagation) event.stopPropagation();
+    this._productScoreTrigger = event && event.currentTarget;
+    this.setState({ productScoreSku: sku, productScoreOpen: true }, () => {
+      const close = document.getElementById('product-score-close');
+      if (close) close.focus();
+    });
+  }
+
+  closeProductScore(event) {
+    if (event && event.stopPropagation) event.stopPropagation();
+    this.setState({ productScoreOpen: false }, () => {
+      if (this._productScoreTrigger && this._productScoreTrigger.isConnected) this._productScoreTrigger.focus();
+      this._productScoreTrigger = null;
+    });
+  }
+
+  productScoreKeyDown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeProductScore(event);
+    } else if (event.key === 'Tab') {
+      const panel = document.getElementById('product-score-panel');
+      if (!panel) return;
+      const controls = Array.from(panel.querySelectorAll('button, a[href], summary, [tabindex="0"]'));
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  }
+
   componentDidMount() {
     this._assetRulesRefresh = () => this.setState({ assetRulesRevision: Date.now() });
     window.addEventListener('focus', this._assetRulesRefresh);
@@ -234,6 +265,7 @@ class Component extends DCLogic {
       if (Object.keys(patch).length) this.setState(patch);
     } catch (_) {}
     this._productDrawerKeyHandler = (event) => {
+      if (event.key === 'Escape' && this.state.productScoreOpen) { this.closeProductScore(event); return; }
       if (event.key === 'Escape' && this.state.productDrawerOpen) this.setState({ productDrawerOpen: false });
       if (event.key === 'Escape' && this.state.sw && this.state.sw.drawer) this.setState(st => ({ sw: { ...st.sw, drawer: false } }));
       if (event.key === 'Escape' && this.state.swVersionManagerOpen) this.setState({ swVersionManagerOpen: false, swVersionRenameKey: '', swVersionDeleteKey: '' });
@@ -401,6 +433,8 @@ class Component extends DCLogic {
     skuQuery: '',
     productPromotionFilter: 'all',
     detailSku: 'RYZ-SC-01',
+    productScoreSku: '',
+    productScoreOpen: false,
     promoted: (() => {
       try {
         const saved = JSON.parse(localStorage.getItem('aios.promotedProducts') || '[]');
@@ -1102,6 +1136,28 @@ class Component extends DCLogic {
     { id: 'm', label: '发布一个月' }
   ];
 
+  assetPerformanceOf = (entry) => {
+    const present = value => value != null && String(value).trim() !== '';
+    const format = (value, kind) => {
+      if (!present(value)) return '—';
+      const raw = String(value).trim();
+      if (kind === 'views' && !/^(?:\d+(?:\.\d+)?|\.\d+)[KM]?$/i.test(raw)) return '—';
+      const n = kind === 'views' ? this.toNumU(raw) : Number(raw.replace(/%$/, ''));
+      if (!Number.isFinite(n) || n < 0) return '—';
+      if (kind === 'views') return n >= 1000000 ? Number((n / 1000000).toFixed(2)) + 'M' : n >= 1000 ? Number((n / 1000).toFixed(2)) + 'K' : String(n);
+      if (kind === 'cpv') return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 6 });
+      return n + '%';
+    };
+    const performanceStages = this.assetMetricPeriods.map(period => ({
+      id: period.id, label: period.label,
+      recorded: ['views', 'cpv', 'er', 'gmv'].some(key => present(entry[period.id + '_' + key])),
+      views: format(entry[period.id + '_views'], 'views'),
+      cpv: format(entry[period.id + '_cpv'], 'cpv'),
+      er: format(entry[period.id + '_er'], 'er')
+    }));
+    return { performanceStages };
+  };
+
   assetMetricsError = (fm) => {
     let filled = false;
     for (const period of this.assetMetricPeriods) {
@@ -1166,6 +1222,7 @@ class Component extends DCLogic {
       post: e.post || '2026-08-20', url: e.url || '#',
       views: fmtV(vNum), er: erTxt, spend: Number(e.spend) || 0,
       gmv: Number(latest.gmv) || 0, reportedCpv: latest.cpv, metricPeriod: latest.label, orders: Number(e.m_conv) || Number(e.w_conv) || 0,
+      ...this.assetPerformanceOf(e),
       due: e.post || '2026-08-20', delivered: e.post || '2026-08-20',
       rights, isRights: !!e.isRights, types: Array.isArray(e.types) ? [...e.types] : undefined,
       campaign: e.campaign || '手工录入', sub: (e.campaign || '手工录入') + ' · ' + this.assetMetricPeriods.map(p => p.label + ' ' + (e[p.id + '_views'] ?? '—')).join(' / '),
@@ -2069,6 +2126,7 @@ class Component extends DCLogic {
       .map((p, i) => ({
         ...p, market: 'US', idx: i + 1,
         scoreColor: this.scoreColor(p.score), scoreBg: this.pillBg(p.score),
+        openScore: (event) => this.openProductScore(p.sku, event),
         starsText: p.stars + ' ★', reviewsText: p.reviews, psText: p.ps,
         prio: skuPrio[p.sku] || 'K2',
         prioBg: (prioStyle[skuPrio[p.sku]] || prioStyle.K2)[0],
@@ -2112,7 +2170,7 @@ class Component extends DCLogic {
       return {
         ...t, on, bg: on ? '#2457F5' : 'transparent', bd: on ? '#2457F5' : 'transparent',
         fg: on ? '#FFFFFF' : '#647187', noteFg: on ? '#FFFFFF' : '#8792A5',
-        pick: () => this.setState({ prodTab: t.id, productDrawerOpen: false })
+        pick: () => this.setState({ prodTab: t.id, productDrawerOpen: false, productScoreOpen: false })
       };
     });
     const gmvCalc = (() => {
@@ -2223,7 +2281,7 @@ class Component extends DCLogic {
       { label: '大类排名', value: '#' + skuHit.bsrTop, note: skuHit.bsrTopCat },
       { label: '库存', value: skuHit.stock + ' 件', note: skuHit.stockNote }
     ].map(f => ({ ...f, plain: !f.link })) : [];
-    const skuScores = { 'RYZ-SC-01': 87, 'RYZ-SC-02': 81, 'LUM-AR-02': 74, 'VER-GL-04': 58, 'NUV-SP-07': 41 };
+    const skuScores = skuScoreMap;
     const skuDimSets = {
       'RYZ-SC-01': [9, 8, 8, 9, 9, 8, 7, 8, 6, 7], 'RYZ-SC-02': [9, 7, 7, 8, 9, 7, 8, 7, 6, 7],
       'LUM-AR-02': [8, 7, 6, 8, 8, 8, 7, 7, 8, 7], 'VER-GL-04': [7, 4, 4, 6, 6, 7, 5, 5, 9, 6],
@@ -2233,6 +2291,57 @@ class Component extends DCLogic {
     const dimHints = ['是否容易通过短视频/图片展示', '红人是否容易讲出故事和体验', '是否有清晰区别于竞品的卖点',
       '是否能激发身份、审美、愉悦、安全感等情绪', '是否有明确使用场景', '是否适合寄样、试用、开箱',
       '是否能覆盖佣金、寄样、内容成本', '是否适合被分享、讨论、模仿', '是否涉及医疗、功效、金融、敏感 claims', '用户看完内容后是否容易购买'];
+    // Only independently stored dimension records are evidence of existing scores.
+    // Never reverse-engineer missing dimensions or weights from the preset total.
+    const scoreProduct = skuAll.find(p => p.sku === s.productScoreSku);
+    const productScoreDetail = (() => {
+      if (!scoreProduct) return null;
+      const total = skuScoreMap[scoreProduct.sku];
+      const recorded = skuDimSets[scoreProduct.sku];
+      const sum = recorded ? recorded.reduce((a, b) => a + b, 0) : null;
+      const difference = sum === null ? null : total - sum;
+      const evidenceNeeded = ['产品图片、演示视频', '使用体验与内容脚本', '同类竞品与卖点对比', '用户评论与需求证据', '使用场景与目标人群', '寄样成本、体验门槛', '毛利、佣金、寄样与内容成本', '社媒内容与互动数据', '功效声明、认证与审核记录', '购买路径与转化数据'];
+      const dims = dimNames.map((name, i) => ({
+        name, hint: dimHints[i], value: recorded ? recorded[i] : null,
+        score: recorded ? recorded[i] + ' / 10' : '未记录',
+        color: recorded ? (recorded[i] >= 8 ? SAGE : recorded[i] >= 6 ? AMBER : RUST) : '#8792A5',
+        weight: '未配置', contribution: '无法计算', evidence: evidenceNeeded[i]
+      }));
+      const extreme = (value) => dims.filter(d => d.value === value).map(d => d.name + ' ' + d.value + '/10').join('、');
+      const summaryNames = value => dims.filter(d => d.value === value).map(d => d.name).join('、');
+      return {
+        sku: scoreProduct.sku, name: scoreProduct.name, total, color: this.scoreColor(total),
+        composition: [
+          { label: '内容表现', detail: dimNames[0] + '、' + dimNames[1] },
+          { label: '种草吸引力', detail: dimNames[2] + '、' + dimNames[3] },
+          { label: '体验适配', detail: dimNames[4] + '、' + dimNames[5] },
+          { label: '传播转化', detail: dimNames[7] + '、' + dimNames[9] },
+          { label: '商业与风险', detail: dimNames[6] + '、' + dimNames[8] }
+        ],
+        summary: recorded
+          ? '现有示例分项中，' + summaryNames(Math.max(...recorded)) + '得分相对较高，' + summaryNames(Math.min(...recorded)) + '得分相对较低。'
+          : '这项评分用于概括产品的红人营销适配度：看产品是否容易展示、讲述和激发兴趣，以及传播转化、推广成本与合规情况。',
+        summaryNote: recorded ? '示例评分，权重与计算规则尚未确认。' : '当前为示例总分，尚无该产品的分项记录。',
+        recorded: !!recorded, missing: !recorded, dims,
+        recordCount: recorded ? '10 / 10' : '0 / 10',
+        sum, difference,
+        equation: recorded ? recorded.join(' + ') + ' = ' + sum : '分项得分未记录，暂无法核对总分。',
+        check: recorded
+          ? difference === 0 ? '分项简单合计恰好等于列表总分；权重和规则未记录，仍不能确认这就是实际计算公式。'
+            : '分项简单合计为 ' + sum + '，列表总分为 ' + total + '，相差 ' + Math.abs(difference) + ' 分。当前未记录差异原因。'
+          : '当前仅有预设总分，缺少独立分项记录、权重和计算规则。',
+        high: recorded ? extreme(Math.max(...recorded)) : '',
+        low: recorded ? extreme(Math.min(...recorded)) : '',
+        facts: [
+          { label: '星级 / 评论数', value: scoreProduct.stars + ' ★ / ' + scoreProduct.reviews },
+          { label: '售价', value: scoreProduct.price },
+          { label: 'RPS14', value: scoreProduct.ps + ' 件 / 日' },
+          { label: '细分类目 BSR', value: '#' + scoreProduct.bsr + ' · ' + scoreProduct.bsrCat },
+          { label: '库存', value: scoreProduct.stock + ' 件' },
+          { label: 'ASIN', value: scoreProduct.asin }
+        ]
+      };
+    })();
     const skuScore = skuHit ? (skuScores[skuHit.sku] || 60) : 0;
     const skuScoreColor = this.scoreColor(skuScore);
     const skuDims = skuHit ? (skuDimSets[skuHit.sku] || dimNames.map(() => 6)).map((v, i) => ({
@@ -2301,10 +2410,11 @@ class Component extends DCLogic {
       : '/ 100 · ' + (dFit > dBuMean ? '高于' : '低于') + detail.bu + '均值 ' + Math.abs(dFit - dBuMean) + ' 分';
 
     const pd = {
+      openScore: (event) => this.openProductScore(detail.sku, event),
       name: detail.name, fitNote: dFitNote, fit: dFit, color: this.scoreColor(dFit), pillBg: this.pillBg(dFit), priority: this.priority(dFit),
       desc: descMap[detail.sku] || (detail.brand + ' 旗下' + detail.category.split(' / ')[1] + '产品，US 站在售，由' + detail.owner + '负责运营。当前 BSR #' + detail.bsr + '（' + detail.bsrCat + '），日均出单 ' + detail.ps + ' 件。'),
       stats: [{ label: '售价', value: detail.price }, { label: '星级', value: detail.stars + ' ★ · ' + detail.reviews + ' 条' }, { label: '市场 / BU', value: 'US · ' + detail.bu }, { label: '运营专员', value: detail.owner }],
-      dims: dDimVals.map((sc, i) => ({ label: dimNames[i], score: sc + '/10', pct: sc * 10, color: sc >= 8 ? SAGE : sc >= 6 ? AMBER : RUST })),
+      dims: dimNames.map((name, i) => { const sc = skuDimSets[detail.sku] && skuDimSets[detail.sku][i]; return { label: name, score: sc == null ? '未记录' : sc + '/10', pct: sc == null ? 0 : sc * 10, color: sc == null ? '#8792A5' : sc >= 8 ? SAGE : sc >= 6 ? AMBER : RUST }; }),
       aiVerdict: (() => {
         const v = dNarrative[detail.sku];
         if (v) return v;
@@ -8013,7 +8123,7 @@ class Component extends DCLogic {
       return true;
     }).map((row,index) => {
       const auth = window.AIOSAssetContracts.authorization(row);
-      return { ...row, idx: index+1, qualityValue: this.assetQuality(row), qualityAria: row.title + '的质量标记', setQuality: e=>this.markAssetQuality(row,e.target.value), authLabel: auth.label, authColor: auth.valid ? '#4E7156' : '#8792A5',
+      return { ...row, ...(row.performanceStages ? {} : this.assetPerformanceOf(row)), idx: index+1, qualityValue: this.assetQuality(row), qualityAria: row.title + '的质量标记', setQuality: e=>this.markAssetQuality(row,e.target.value), authLabel: auth.label, authColor: auth.valid ? '#4E7156' : '#8792A5',
         authDetail: auth.contract ? auth.contract.id + ' · ' + (auth.contract.rightsType === 'ad' ? '广告投放' : auth.contract.rightsType === 'social' ? '仅社媒' : '条款待确认') : '签署匹配的授权合同后收录',
         authEnd: auth.contract?.expiryDate ? '有效期至 ' + auth.contract.expiryDate : '',
         contractAction: auth.contract ? '管理合同' : '关联合同',
@@ -10518,6 +10628,10 @@ class Component extends DCLogic {
       isReportCampaign: s.reportTab === 'campaign', isReportCreator: s.reportTab === 'creator',
       isReportAsset: s.reportTab === 'asset', isReportProduct: s.reportTab === 'product',
       productRows, productCount, productEmpty, anomalies, anomalySummary,
+      productScoreDetail,
+      productScoreOpen: !!s.productScoreOpen && !!productScoreDetail,
+      closeProductScore: (event) => this.closeProductScore(event),
+      productScoreKeyDown: (event) => this.productScoreKeyDown(event),
       productLibraryTitle: '产品库',
       productLibraryDescription: '勾选产品后，可批量提交推广或取消推广。',
       productGridColumns: '32px 44px 86px 52px 88px 176px 60px 84px 132px 84px 152px 84px 116px 108px 76px 84px 74px 84px 84px 74px 150px 168px 104px 72px',

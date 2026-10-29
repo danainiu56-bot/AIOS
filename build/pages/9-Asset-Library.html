@@ -18,7 +18,7 @@
 <style>
 .asset-cards{container-type:inline-size;container-name:asset-list;min-width:0}
 .asset-card{background:#FFF;border:1px solid #E2E8F2;border-radius:16px;margin-bottom:14px;overflow:hidden;box-shadow:0 3px 12px rgba(29,38,56,.025)}
-.asset-card-main{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,.95fr);gap:22px;padding:20px}
+.asset-card-main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr) minmax(290px,1.15fr);gap:22px;padding:20px}
 .asset-card-main>div{min-width:0}
 .asset-card-label{font-size:10.5px;color:#8792A5;margin-bottom:10px;letter-spacing:.02em}
 .asset-card-media{display:flex;gap:12px;align-items:flex-start}
@@ -28,17 +28,19 @@
 .asset-card-pair{display:flex;gap:9px;align-items:baseline;font-size:11.5px;line-height:1.85;margin-top:3px}
 .asset-card-pair>span:first-child{color:#8792A5;flex:0 0 54px;font-size:10.5px}
 .asset-card-pair>span:last-child{min-width:0;overflow-wrap:anywhere;color:#1D2638}
-.asset-card-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0;background:#F8FAFE;border:1px solid #EDF1F7;border-radius:11px;padding:12px 9px}
-.asset-card-metrics>div{min-width:0;text-align:center}
-.asset-card-metrics dt{font-size:10.5px;color:#8792A5;margin-bottom:7px}
-.asset-card-metrics dd{margin:0;font-size:15px;font-weight:600;color:#1D2638;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.02em}
+.asset-stage-table{background:#F8FAFE;border:1px solid #E8EEF8;border-radius:11px;overflow:hidden}
+.asset-stage-row{display:grid;grid-template-columns:minmax(82px,1.25fr) repeat(3,minmax(0,1fr));align-items:center;gap:6px;padding:10px 12px;border-top:1px solid #E8EEF8;font-size:12px;font-variant-numeric:tabular-nums}
+.asset-stage-row>span{min-width:0;text-align:right;overflow-wrap:anywhere}
+.asset-stage-row>span:first-child{text-align:left;color:#647187;font-size:11px}
+.asset-stage-head{border-top:0;padding-top:9px;padding-bottom:9px;background:#F1F5FC;color:#8792A5;font-size:10.5px}
+.asset-stage-head>span:first-child{color:#8792A5;font-size:10.5px}
 .asset-card-footer{display:flex;align-items:center;gap:20px;padding:13px 20px;border-top:1px solid #EEF2F8;background:#FCFDFF;flex-wrap:wrap}
 .asset-card-quality{display:flex;align-items:center;gap:10px;flex:0 0 auto}
 .asset-card-select{font:inherit;font-size:11.5px;border:1px solid #D9E1EF;border-radius:8px;padding:7px 9px;width:118px;cursor:pointer}
 .asset-card-auth{display:flex;align-items:center;gap:12px;flex:1 1 280px;min-width:0;padding-left:20px;border-left:1px solid #E2E8F2}
 .asset-card-contract-btn{flex:none;font:inherit;font-size:11.5px;background:#FFF;border:1px solid #CBD8F2;border-radius:999px;color:#2457F5;padding:8px 13px;cursor:pointer}
 .asset-card-contract-btn:hover{background:#EAF0FF;border-color:#A8BDF5}
-@container asset-list (max-width:780px){.asset-card-main{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}.asset-card-performance{grid-column:1/-1}.asset-card-metrics{padding:10px}.asset-card-auth{padding-left:0;border-left:0}}
+@container asset-list (max-width:780px){.asset-card-main{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}.asset-card-performance{grid-column:1/-1}.asset-card-auth{padding-left:0;border-left:0}}
 @container asset-list (max-width:480px){.asset-card-main{grid-template-columns:minmax(0,1fr);padding:16px}.asset-card-footer{padding:13px 16px}.asset-card-auth{flex-basis:100%}}
 </style>
 <script>window.AIOS_PAGE = "assets";</script>
@@ -311,12 +313,13 @@
                     </div>
                     <div class="asset-card-performance">
                       <div class="asset-card-label">表现数据</div>
-                      <dl class="asset-card-metrics">
-                        <div><dt>Views</dt><dd>{{ r.views }}</dd></div>
-                        <div><dt>CPV</dt><dd style="color:{{ r.cpvColor }}">{{ r.cpv }}</dd></div>
-                        <div><dt>ER</dt><dd>{{ r.er }}</dd></div>
-                      </dl>
-                      <div style="font-size:10px;color:#A2ABBA;margin-top:8px">数据仅供质量评估参考</div>
+                      <div class="asset-stage-table" role="table" aria-label="{{ r.title }}的三阶段表现数据">
+                        <div class="asset-stage-row asset-stage-head" role="row"><span role="columnheader">阶段</span><span role="columnheader">Views</span><span role="columnheader">CPV</span><span role="columnheader">ER</span></div>
+                        <sc-for list="{{ r.performanceStages }}" as="period">
+                          <div class="asset-stage-row" role="row"><span role="rowheader">{{ period.label }}</span><span role="cell">{{ period.views }}</span><span role="cell">{{ period.cpv }}</span><span role="cell">{{ period.er }}</span></div>
+                        </sc-for>
+                      </div>
+                      <div style="font-size:10px;color:#A2ABBA;margin-top:8px">— 表示未录入 · 数据仅供质量评估参考</div>
                     </div>
                   </div>
                   <div class="asset-card-footer">
@@ -480,6 +483,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js?v=asset-filter-trim-20261023-a"></script>
+<script src="../app-logic.js?v=asset-metric-stages-20261029"></script>
 </body>
 </html>

@@ -35,6 +35,24 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes slideIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes pulseDot { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+  .marketing-score-button { border:0;font:inherit;cursor:pointer;transition:box-shadow .15s,transform .15s; }
+  .marketing-score-button:hover { box-shadow:0 0 0 3px #DCE5FF;transform:translateY(-1px); }
+  .marketing-score-button:focus-visible, .score-close:focus-visible { outline:2px solid #2457F5;outline-offset:3px; }
+  .score-panel { position:absolute;top:0;right:0;width:min(560px,100vw);height:100%;background:#FFF;box-shadow:-16px 0 48px #1d263829;display:flex;flex-direction:column;animation:slideIn .2s ease both; }
+  .score-panel-header { display:flex;align-items:center;gap:16px;padding:20px 24px;border-bottom:1px solid #E2E8F2;flex-shrink:0; }
+  .score-panel-content { overflow-y:auto;overscroll-behavior:contain;padding:24px;display:flex;flex-direction:column;gap:24px; }
+  .score-overview { display:flex;align-items:center;gap:20px;padding:20px;background:#F7F9FD;border-radius:14px; }
+  .score-section h3 { font-size:15px;margin:0 0 8px;font-weight:600; }
+  .score-muted { color:#647187;font-size:13px;line-height:1.75; }
+  .score-composition { margin:0; }
+  .score-composition-row { display:grid;grid-template-columns:100px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid #EDF1F7;font-size:13px;line-height:1.7; }
+  .score-composition-row:last-child { border-bottom:0; }
+  .score-composition-row dt { font-weight:500;color:#1D2638; }
+  .score-composition-row dd { margin:0;color:#647187;overflow-wrap:anywhere; }
+  .score-summary { background:#F5F8FF;border-radius:12px;padding:16px 18px; }
+  .score-summary p { margin:0;color:#43526A;font-size:13px;line-height:1.9; }
+  .score-note { margin:-8px 0 0;font-size:11px;line-height:1.7;color:#8792A5; }
+  @media(max-width:640px) { .score-panel-header { padding:16px; } .score-panel-content { padding:20px 16px;gap:20px; } .score-composition-row { grid-template-columns:90px minmax(0,1fr);gap:10px; } }
 </style>
 </helmet>
 
@@ -143,6 +161,7 @@
                 <div style="font-size:18px;font-weight:600;letter-spacing:-.015em;color:#1D2638">{{ productLibraryTitle }}</div>
                 <div style="font-size:12.5px;color:#647187;margin-top:3px;text-wrap:pretty">{{ productLibraryDescription }}</div>
                 <div style="font-size:12px;color:#A2ABBA;margin-top:3px">共 {{ productCount }} 条 · 按营销得分降序 · 横向可滚动</div>
+                <div style="font-size:12px;color:#647187;margin-top:3px">当前为示例评分 · 点击分数查看评分说明</div>
               </div>
               <div style="flex:0 0 auto;display:flex;align-items:center;gap:8px">
                 <div onClick="{{ submitProductPromotion }}" style="flex:0 0 auto;font-size:12.5px;font-weight:600;border:1px solid {{ productActionBorder }};background:{{ productActionBg }};color:{{ productActionFg }};border-radius:999px;padding:7px 14px;cursor:{{ productActionCursor }};white-space:nowrap">提交推广</div>
@@ -169,7 +188,7 @@
                   <div style="display:grid;grid-template-columns:{{ productGridColumns }};gap:12px;padding:12px 18px;border-bottom:1px solid #EDF1F7;align-items:center;font-size:13.5px;background:{{ p.rowBg }}" style-hover="background:#F8FAFE">
                     <div onClick="{{ p.toggleSelected }}" title="选择 {{ p.name }}" style="width:17px;height:17px;border-radius:5px;border:1.5px solid {{ p.selectBorder }};background:{{ p.selectBg }};color:#FFFFFF;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ p.selectCheck }}</div>
                     <div style="color:#8792A5;font-variant-numeric:tabular-nums">{{ p.idx }}</div>
-                    <div><span style="display:inline-block;min-width:38px;text-align:center;font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;border-radius:999px;padding:3px 10px;background:{{ p.scoreBg }};color:{{ p.scoreColor }}">{{ p.score }}</span></div>
+                    <div><button type="button" class="marketing-score-button" onClick="{{ p.openScore }}" title="查看评分说明" aria-label="查看 {{ p.name }} 的营销得分说明，{{ p.score }} 分" style="display:inline-block;min-width:38px;text-align:center;font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;border-radius:999px;padding:3px 10px;background:{{ p.scoreBg }};color:{{ p.scoreColor }}">{{ p.score }}</button></div>
                     <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy" style="width:36px;height:36px;border-radius:9px;object-fit:cover;background:#F5F8FE;border:1px solid #E2E8F2;display:block" />
                     <div><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:999px;padding:3px 9px;background:{{ p.promoStatusBg }};color:{{ p.promoStatusFg }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ p.promoStatusDot }}"></span>{{ p.promoStatusLabel }}</span></div>
                     <div style="min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</div>
@@ -367,15 +386,17 @@
                     </div>
                     <div style="width:150px;flex:0 0 150px;background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;padding:14px;text-align:center">
                       <div style="font-size:12px;color:#647187">适配评分</div>
-                      <div style="font-size:36px;line-height:1.15;color:{{ pd.color }};font-variant-numeric:tabular-nums">{{ pd.fit }}</div>
+                      <button type="button" class="marketing-score-button" onClick="{{ pd.openScore }}" aria-label="查看 {{ pd.name }} 的营销得分说明" style="font-size:36px;line-height:1.15;color:{{ pd.color }};font-variant-numeric:tabular-nums;background:transparent;border-radius:8px">{{ pd.fit }}</button>
                       <div style="font-size:11.5px;color:#647187;text-wrap:pretty">{{ pd.fitNote }}</div>
+                      <div style="font-size:11.5px;color:#8792A5;margin-top:5px">示例预设 · 点击查看明细</div>
                     </div>
                   </div>
 
                   <div style="display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:16px;align-items:start">
                     <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
                       <div style="background:#FFFFFF;border:1px solid #E2E8F2;border-radius:16px;padding:18px">
-                        <div style="font-size:15px;font-weight:600;color:#1D2638;margin-bottom:14px">十维评分</div>
+                        <div style="font-size:15px;font-weight:600;color:#1D2638;margin-bottom:4px">十维评分记录</div>
+                        <div style="font-size:12px;color:#8792A5;margin-bottom:14px">现有示例分项，权重与依据待补充。</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px 24px">
                           <sc-for list="{{ pd.dims }}" as="d" hint-placeholder-count="10">
                             <div>
@@ -552,6 +573,40 @@
     </div>
   </main>
 
+  <sc-if value="{{ productScoreOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeProductScore }}" style="position:fixed;inset:0;z-index:200;background:rgba(29,38,56,.32);backdrop-filter:blur(2px)">
+      <section id="product-score-panel" class="score-panel" role="dialog" aria-modal="true" aria-labelledby="product-score-title" onClick="{{ keepProductDrawer }}" onKeyDown="{{ productScoreKeyDown }}">
+        <header class="score-panel-header">
+          <div style="flex:1;min-width:0">
+            <h2 id="product-score-title" style="margin:0;font-size:20px;letter-spacing:-.02em">营销得分说明</h2>
+            <div class="score-muted" style="margin-top:4px">{{ productScoreDetail.name }} · {{ productScoreDetail.sku }}</div>
+          </div>
+          <button id="product-score-close" type="button" class="score-close" onClick="{{ closeProductScore }}" aria-label="关闭评分说明" style="width:34px;height:34px;border:1px solid #E2E8F2;border-radius:50%;background:#FFF;color:#647187;font-size:22px;cursor:pointer;flex-shrink:0">×</button>
+        </header>
+        <div class="score-panel-content">
+          <div class="score-overview">
+            <div style="flex-shrink:0"><span style="font-size:46px;font-weight:600;line-height:1;color:{{ productScoreDetail.color }};font-variant-numeric:tabular-nums">{{ productScoreDetail.total }}</span><span style="font-size:13px;color:#8792A5;margin-left:5px">/ 100</span></div>
+            <div><div style="font-size:15px;font-weight:600">营销得分</div><div class="score-muted" style="margin-top:3px">产品的红人营销适配度</div></div>
+          </div>
+          <section class="score-section">
+            <h3>评分构成</h3>
+            <div class="score-muted" style="font-size:12px;margin-bottom:4px">按现有评估维度，归纳为五个方面</div>
+            <dl class="score-composition">
+              <sc-for list="{{ productScoreDetail.composition }}" as="part">
+                <div class="score-composition-row"><dt>{{ part.label }}</dt><dd>{{ part.detail }}</dd></div>
+              </sc-for>
+            </dl>
+          </section>
+          <section class="score-section score-summary">
+            <h3>评分总结</h3>
+            <p>{{ productScoreDetail.summary }}</p>
+          </section>
+          <p class="score-note">{{ productScoreDetail.summaryNote }}</p>
+        </div>
+      </section>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ copilotClosed }}" hint-placeholder-val="{{ true }}">
     <div onClick="{{ toggleCopilot }}" style="position:fixed;right:24px;bottom:24px;z-index:120;display:flex;align-items:center;gap:9px;background:#2457F5;color:#FFFFFF;border-radius:999px;padding:11px 18px;cursor:pointer;font-size:14px;font-weight:500;white-space:nowrap;box-shadow:0 10px 26px rgba(36,87,245,.34)" style-hover="background:#1D48D8">
       <span style="width:7px;height:7px;border-radius:999px;background:#FFFFFF;opacity:.85;animation:pulseDot 2s infinite"></span>
@@ -595,6 +650,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;copilotDefaultOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;界面&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;options&quot;:[&quot;#2457F5&quot;,&quot;#6E8F74&quot;,&quot;#2457F5&quot;],&quot;default&quot;:&quot;#2457F5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;界面&quot;}}">
 </script>
-<script src="../app-logic.js"></script>
+<script src="../app-logic.js?v=product-score-summary-20261029"></script>
 </body>
 </html>
